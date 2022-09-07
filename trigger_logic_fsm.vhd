@@ -6,6 +6,11 @@ library proasic3l;
 use proasic3l.all;
 
 entity TRIGGER_logic_FSM is
+generic(
+    concurrentTriggers   : natural;
+    prescaledTriggers    : natural;
+    holdOffBits          : natural
+);
 port(
     reset                : in  std_logic;
     clock                : in  std_logic;  
@@ -32,6 +37,8 @@ port(
 
     trgExtIn             : in  std_logic;
 
+    holdoff              : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
+
     trg_to_DAQ_EASI      : out std_logic  -- attivo alto
 );
 end TRIGGER_logic_FSM;
@@ -48,6 +55,11 @@ port(
 end component;
 
 component TRIGGER_selector is
+generic(
+    concurrentTriggers   : natural;
+    prescaledTriggers    : natural;
+    holdOffBits          : natural
+);
 port(
     reset                : in  std_logic;
     clock                : in  std_logic;  
@@ -75,6 +87,8 @@ port(
     mask_rate_9          : out std_logic_vector(15 downto 0);
 
     trgExtIn             : in  std_logic;
+
+    holdoff              : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
     trg_int              : out std_logic  -- attivo alto
 );
@@ -338,7 +352,12 @@ begin
     end process;
 end generate;
 
-trigger_selector_component : TRIGGER_selector 
+trigger_selector_component : TRIGGER_selector
+generic map(
+    concurrentTriggers   => concurrentTriggers,
+    prescaledTriggers    => prescaledTriggers,
+    holdOffBits          => holdOffBits
+)
 port map(
     clock => clock,
     reset => reset,
@@ -365,6 +384,8 @@ port map(
     mask_rate_9 => mask_rate_9_sig,
 
     trgExtIn => s_trgExt100ns,
+
+    holdoff => holdoff,
 
     trg_int => trigger
 );

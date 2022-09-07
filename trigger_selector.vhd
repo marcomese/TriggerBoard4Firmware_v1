@@ -6,6 +6,11 @@ library proasic3l;
 use proasic3l.all;
 
 entity TRIGGER_selector is
+generic(
+    concurrentTriggers   : natural;
+    prescaledTriggers    : natural;
+    holdOffBits          : natural
+);
 port(
     reset                : in  std_logic;
     clock                : in  std_logic;  
@@ -34,6 +39,8 @@ port(
 
     trgExtIn             : in  std_logic;
 
+    holdoff              : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
+
     trg_int              : out std_logic  -- attivo alto
 );
 end TRIGGER_selector;
@@ -49,8 +56,20 @@ port(
 );
 end component;
 
+component prescaler is
+generic(
+    holdoffBits : natural
+);
+port(
+    clk         : in  std_logic;
+    rst         : in  std_logic;
+    holdoff     : in  std_logic_vector(holdoffBits-1 downto 0);
+    triggerIn   : in  std_logic;
+    triggerOut  : out std_logic
+);
+end component;
+
 constant maskNum    : natural := 10;
-constant concurrTrg : natural := 6;
 
 type countArray is array (natural range 0 to maskNum-1) of std_logic_vector(15 downto 0);
 
@@ -80,7 +99,9 @@ signal  trigger_int,
         veto_lateral,
         veto_bottom              : std_logic;
 
-signal  trigger_int_vec          : std_logic_vector(concurrTrg-1 downto 0);
+signal  trigger_int_vec          : std_logic_vector(concurrentTriggers-1 downto 0);
+
+signal  trigger_prescaled        : std_logic_vector(prescaledTriggers-1 downto 0);
 
 signal  TR1,
         TR1AND,
@@ -183,12 +204,11 @@ begin
 
         trigger(6)   <= veto_bottom and EN1 and EN2 and not (TR1 or TR2 or veto_lateral);
 
-        trigger(7)   <= (RAN_05 or RAN_08) and not (TR1 or TR2 or
-                                                    RAN_01 or RAN_02 or RAN_03 or RAN_04 or
-                                                              RAN_06 or RAN_07 or
-                                                    RAN_09 or RAN_10 or RAN_11 or RAN_12 or
-                                                    veto_lateral or veto_bottom or
-                                                    EN1 or EN2);
+        trigger(7)   <= (RAN_05 or RAN_06 or RAN_07 or RAN_08) and not (TR1 or TR2 or
+                                                                        RAN_01 or RAN_02 or RAN_03 or RAN_04 or
+                                                                        RAN_09 or RAN_10 or RAN_11 or RAN_12 or
+                                                                        veto_lateral or veto_bottom or
+                                                                        EN1 or EN2);
 
         trigger(8)   <= (EN1 or EN2) and not (TR1 or TR2 or
                                               RAN_01 or RAN_02 or RAN_03 or RAN_04 or
@@ -284,7 +304,7 @@ begin
     end if;
 end process;
 
-mux_trgN_gen: for i in 0 to concurrTrg-1 generate
+mux_trgN_gen: for i in 0 to concurrentTriggers-1 generate
 begin
     mux_triggerN:process(clock, reset, trigger_mask_int, trigger)
     begin
@@ -293,23 +313,39 @@ begin
         elsif rising_edge(clock) then
             case trigger_mask_int((i*4)+3 downto (i*4)) is
                 when X"0"  =>  trigger_int_vec(i) <= '0';
-                when X"1"  =>  trigger_int_vec(i) <= trigger(0);
-                when X"2"  =>  trigger_int_vec(i) <= trigger(1);
-                when X"3"  =>  trigger_int_vec(i) <= trigger(2);
-                when X"4"  =>  trigger_int_vec(i) <= trigger(3);
-                when X"5"  =>  trigger_int_vec(i) <= trigger(4);
-                when X"6"  =>  trigger_int_vec(i) <= trigger(5);
-                when X"7"  =>  trigger_int_vec(i) <= trigger(6);
-                when X"8"  =>  trigger_int_vec(i) <= trigger(7);
-                when X"9"  =>  trigger_int_vec(i) <= trigger(8);
-                when X"A"  =>  trigger_int_vec(i) <= trigger(9);
+                when X"1"  =>  trigger_int_vec(i) <= rise(0);--trigger(0);
+                when X"2"  =>  trigger_int_vec(i) <= rise(1);--trigger(1);
+                when X"3"  =>  trigger_int_vec(i) <= rise(2);--trigger(2);
+                when X"4"  =>  trigger_int_vec(i) <= rise(3);--trigger(3);
+                when X"5"  =>  trigger_int_vec(i) <= rise(4);--trigger(4);
+                when X"6"  =>  trigger_int_vec(i) <= rise(5);--trigger(5);
+                when X"7"  =>  trigger_int_vec(i) <= rise(6);--trigger(6);
+                when X"8"  =>  trigger_int_vec(i) <= rise(7);--trigger(7);
+                when X"9"  =>  trigger_int_vec(i) <= rise(8);--trigger(8);
+                when X"A"  =>  trigger_int_vec(i) <= rise(9);--trigger(9);
                 when others => trigger_int_vec(i) <= '0';
             end case;
         end if;
     end process;
 end generate;
 
-trigger_int <= or_reduce(trigger_int_vec);
+prescGen: for i in 0 to prescaledTriggers-1 generate
+begin
+    prescInst: prescaler
+    generic map(
+        holdoffBits => holdOffBits
+    )
+    port map(
+        clk         => clock,
+        rst         => reset,
+        holdoff     => holdoff((i*holdOffBits)+(holdOffBits-1) downto (i*holdOffBits)),
+        triggerIn   => trigger_int_vec(i),
+        triggerOut  => trigger_prescaled(i)
+    );
+end generate;
+
+trigger_int <= or_reduce(trigger_prescaled & 
+                         trigger_int_vec(concurrentTriggers-1 downto prescaledTriggers));
 
 mux_veto:process(clock, reset, trigger_mask_int, trigger_int, veto_lateral, veto_bottom, trgExtIn)
 begin

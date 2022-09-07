@@ -8,7 +8,9 @@ entity register_file is
 generic(
     sysid                 : std_logic_vector(31 downto 0) := x"00000000";
     refDac1Def            : std_logic_vector(31 downto 0);
-    refDac2Def            : std_logic_vector(31 downto 0)
+    refDac2Def            : std_logic_vector(31 downto 0);
+    prescaledTriggers     : natural;
+    holdOffBits           : natural
 );
 port(
     clk                   : in std_logic;
@@ -73,6 +75,8 @@ port(
     writeDataLen        : in   std_logic;
 
     regAcqData          : in  std_logic_vector(2303  downto 0);
+
+    holdoff             : out std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
     PMT_rate            : in std_logic_vector(1023 downto 0);
     mask_rate           : in std_logic_vector(319 downto 0);
@@ -314,7 +318,9 @@ constant ACQDATA69_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 
 constant ACQDATA70_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000FA";
 constant ACQDATA71_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000FB";
 ----------- DA SISTEMARE!!!
-constant MASK_RATE_09_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000FC";
+constant MASK_RATE_09_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000FC";
+constant PRESC_M3_M2_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000FD";
+constant PRESC_M1_M0_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000FE";
 ----------------------------
 -- define the length of the REGISTER_FILE
 -- aumento la dimensione di questa costante per tener conto dei nuovi 42 registri che ho aggiunto (114+42=156)
@@ -331,7 +337,8 @@ constant MASK_RATE_09_ADDR               : std_logic_vector(ADDR_LENGHT - 1 down
 -- tolgo i due registri reserved (236-2=234)
 -- tolgo 32 registri pmt_rate (234-32=202)
 -- aggiungo un registro MASK_RATE_9 (202+1=203)
-constant REGISTER_FILE_LENGTH    : integer := 203;
+-- aggiungo due registri per i prescaler (203+2=205)
+constant REGISTER_FILE_LENGTH    : integer := 205;
 
 -- define the map of the address this is used to get the local address of the register
 constant address_vector : addr_vector_t(0 to REGISTER_FILE_LENGTH - 1) :=
@@ -539,6 +546,8 @@ constant address_vector : addr_vector_t(0 to REGISTER_FILE_LENGTH - 1) :=
     (addr => ACQDATA70_ADDR,            mode => RO),
     (addr => ACQDATA71_ADDR,            mode => RO),
     (addr => MASK_RATE_09_ADDR,         mode => RO),
+    (addr => PRESC_M3_M2_ADDR,          mode => RO),
+    (addr => PRESC_M1_M0_ADDR,          mode => RO),
     (addr => x"00000000",               mode => RO)  -- defensive
 );
 
@@ -761,6 +770,8 @@ constant register_vector_reset : mem_t(0 to REGISTER_FILE_LENGTH - 1) :=
     x"00000000", -- ACQDATA70
     x"00000000", -- ACQDATA71
     x"00000000", -- MASK_RATE_9
+    x"00000000", -- PRESC_M3_M2
+    x"00000000", -- PRESC_M1_M0
     x"00000000"
 );
     
@@ -845,6 +856,9 @@ o_write_done      <= r_write_done;
 
 refDAC_1 <= register_vector(get_local_addr(REF_DAC_1_ADDR, address_vector));
 refDAC_2 <= register_vector(get_local_addr(REF_DAC_2_ADDR, address_vector));
+
+holdoff <= register_vector(get_local_addr(PRESC_M3_M2_ADDR, address_vector)) &
+           register_vector(get_local_addr(PRESC_M1_M0_ADDR, address_vector));
 
 config_vector_1 <=  register_vector( get_local_addr(CONFIG_CITIROC_1_35_ADDR, address_vector) )(23 downto 0) &
                     register_vector( get_local_addr(CONFIG_CITIROC_1_34_ADDR, address_vector) )              & 

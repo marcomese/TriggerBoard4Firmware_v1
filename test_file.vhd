@@ -8,6 +8,11 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 use IEEE.MATH_REAL.ALL;
 
 entity test_file is
+generic(
+    concurrentTriggers   : natural;
+    prescaledTriggers    : natural;
+    holdOffBits          : natural
+);
 port (
     clockSYS       : in std_logic;  -- clk di sistema: 192 MHz
     clock48M       : in std_logic;
@@ -105,6 +110,8 @@ port (
     adcDataOut        : out std_logic_vector(1535 downto 0);
 
     trgExtIn          : in std_logic;
+
+    holdoff           : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
     debug_triggerIN   : in std_logic
 );
@@ -204,31 +211,38 @@ port(
 end component;
 
 component TRIGGER_logic_FSM is
+generic(
+    concurrentTriggers   : natural;
+    prescaledTriggers    : natural;
+    holdOffBits          : natural
+);
 port(
-    reset                : in std_logic;
-    clock                : in std_logic;  
-    clock200k            : in std_logic;  
-    debug                : in std_logic;
+    reset                : in  std_logic;
+    clock                : in  std_logic;  
+    clock200k            : in  std_logic;  
+    debug                : in  std_logic;
     trigger_in_1         : in  std_logic_vector(31 downto 0);
     trigger_in_2         : in  std_logic_vector(31 downto 0);
     PMT_mask_1           : in  std_logic_vector(31 downto 0);
     PMT_mask_2           : in  std_logic_vector(31 downto 0);
-    generic_trigger_mask : in std_logic_vector(31 downto 0);	
+    generic_trigger_mask : in  std_logic_vector(31 downto 0);	
     trigger_mask         : in  std_logic_vector(31 downto 0);
-    apply_trigger_mask   : in std_logic;
-    apply_PMT_mask       : in std_logic;
-    start_readers        : in std_logic;
+    apply_trigger_mask   : in  std_logic;
+    apply_PMT_mask       : in  std_logic;
+    start_readers        : in  std_logic;
 
-    calibration_state    : in std_logic;
-    acquisition_state    : in std_logic;
+    calibration_state    : in  std_logic;
+    acquisition_state    : in  std_logic;
+			
+    PMT_rate             : out std_logic_vector(1023 downto 0);	
+    mask_rate            : out std_logic_vector(319 downto 0);
 
-    mask_rate            : out std_logic_vector(319 downto 0);				
-    PMT_rate             : out std_logic_vector(1023 downto 0);			
-
-    trigger_flag_1       : out std_logic_vector(31 downto 0);			
+    trigger_flag_1       : out std_logic_vector(31 downto 0);	
     trigger_flag_2       : out std_logic_vector(31 downto 0);			
 
-    trgExtIn             : in std_logic;
+    trgExtIn             : in  std_logic;
+
+    holdoff              : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
     trg_to_DAQ_EASI      : out std_logic  -- attivo alto
 );
@@ -545,7 +559,12 @@ end process;
 
 start_readers_sig <= acquisition_state_sig or calibration_state_sig;
 
-triggerLogicFSMInst: TRIGGER_logic_FSM 
+triggerLogicFSMInst: TRIGGER_logic_FSM
+generic map(
+    concurrentTriggers   => concurrentTriggers,
+    prescaledTriggers    => prescaledTriggers,
+    holdOffBits          => holdOffBits
+)
 port map (
     reset                => sw_rst,
     clock                => clk,
@@ -571,6 +590,8 @@ port map (
     trigger_flag_2       => s_trigger_flag_2,			
 
     trgExtIn             => trgExtIn,
+
+    holdoff              => holdoff,
 
     trg_to_DAQ_EASI      => trigger_interno_sig
 );

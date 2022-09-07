@@ -198,20 +198,12 @@ port(
 );
 end component;
 
-component prescaler is
-generic(
-    holdoffBits : natural := 10
-);
-port(
-    clk        : in  std_logic;
-    rst        : in  std_logic;
-    holdoff    : in  std_logic_vector(holdoffBits-1 downto 0);
-    triggerIn  : in  std_logic;
-    triggerOut : out std_logic
-);
-end component;
-
 component test_file is
+generic(
+    concurrentTriggers   : natural;
+    prescaledTriggers    : natural;
+    holdOffBits          : natural
+);
 port (
     clockSYS       : in std_logic;
     clock48M       : in std_logic;
@@ -311,6 +303,8 @@ port (
 
     trgExtIn          : in std_logic;
 
+    holdoff           : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
+
     debug_triggerIN   : in std_logic
 
 );
@@ -401,9 +395,11 @@ end component;
 
 component register_file is
 generic(
-    sysid      : std_logic_vector(31 downto 0) := x"00000000";
-    refDac1Def : std_logic_vector(31 downto 0);
-    refDac2Def : std_logic_vector(31 downto 0)
+    sysid                 : std_logic_vector(31 downto 0) := x"00000000";
+    refDac1Def            : std_logic_vector(31 downto 0);
+    refDac2Def            : std_logic_vector(31 downto 0);
+    prescaledTriggers     : natural;
+    holdOffBits           : natural
 );
 port(
     clk                   : in std_logic;
@@ -444,6 +440,7 @@ port(
     stop_cal            : out std_logic; -- attivo alto (impulso lungo almeno un colpo di clock)
 
     -- Segnali da/verso DPCU e TDAQ
+--    dataReady           : in  std_logic;
     TDAQ_BUSY           : in  std_logic;
     DPCU_TRGHOLD        : in  std_logic;
     DPCU_BUSY           : in  std_logic;
@@ -455,8 +452,8 @@ port(
     -- status register
     config_status_1     : in std_logic; 
     config_status_2     : in std_logic; 
-    acquisition_state   : in std_logic; -- = '1' quando il sistema Ã¨ in acquisizione
-    calibration_state   : in std_logic; -- = '1' quando il sistema Ã¨ in calibrazione
+    acquisition_state   : in std_logic; -- = '1' quando il sistema è in acquisizione
+    calibration_state   : in std_logic; -- = '1' quando il sistema è in calibrazione
 
     refDac_status_1     : in std_logic;
     refDac_status_2     : in std_logic;
@@ -467,6 +464,8 @@ port(
     writeDataLen        : in   std_logic;
 
     regAcqData          : in  std_logic_vector(2303  downto 0);
+
+    holdoff             : out std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
     PMT_rate            : in std_logic_vector(1023 downto 0);
     mask_rate           : in std_logic_vector(319 downto 0);
@@ -576,6 +575,10 @@ port(
     trigger_out : out  STD_LOGIC
 );
 end component;
+
+constant concurrentTriggers : natural := 6;
+constant prescaledTriggers  : natural := 4;
+constant holdOffBits        : natural := 16;
 
 signal  wdRst,
         wdi,
@@ -760,7 +763,7 @@ signal dpcu_tdaq_sync : std_logic_vector(3 downto 0);
 signal  dpcuPPSSync,
         dpcuBusyInSync,
         dpcuTrgHoldSync,
-        tdaqBusyInSync  : std_logic; 
+        tdaqBusyInSync      : std_logic; 
 
 signal extendedTriggerOut   : std_logic;
 
@@ -773,7 +776,9 @@ signal  dataReadyOutSig,
         dataReadyOutSigBuff : std_logic;
 
 signal  ppsCount,
-        ppsCountSync    : std_logic_vector(31 downto 0);
+        ppsCountSync        : std_logic_vector(31 downto 0);
+
+signal  holdoff             : std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
 --attribute syn_keep     : boolean;
 --attribute syn_preserve : boolean;
@@ -992,104 +997,111 @@ clk24MBuf: CLKINT
     );
 
 inst_test_file: test_file
-    port map (
-            clockSYS => s_clock200M,--s_clock192M,
-            clock48M => s_clock48M,
-            clock24M => s_clock24MBuff,
-            rst => s_global_rst,
+generic map(
+    concurrentTriggers   => concurrentTriggers,
+    prescaledTriggers    => prescaledTriggers,
+    holdOffBits          => holdOffBits
+)
+port map(
+    clockSYS => s_clock200M,--s_clock192M,
+    clock48M => s_clock48M,
+    clock24M => s_clock24MBuff,
+    rst => s_global_rst,
 
-            triggerInhibit => trgInhibit,
-            triggerOUT => trigger_interno_sig,
+    triggerInhibit => trgInhibit,
+    triggerOUT => trigger_interno_sig,
 
-            PMT_mask_1           => s_PMT_mask_1,
-            PMT_mask_2           => s_PMT_mask_2,
-            generic_trigger_mask => s_generic_trigger_mask,
-            trigger_mask         => s_trigger_mask,
-            apply_trigger_mask   => s_apply_trigger_mask,
-            apply_PMT_mask       => s_apply_PMT_mask,
+    PMT_mask_1           => s_PMT_mask_1,
+    PMT_mask_2           => s_PMT_mask_2,
+    generic_trigger_mask => s_generic_trigger_mask,
+    trigger_mask         => s_trigger_mask,
+    apply_trigger_mask   => s_apply_trigger_mask,
+    apply_PMT_mask       => s_apply_PMT_mask,
 
-            start_ACQ            => s_start_ACQ,
-            stop_ACQ             => s_stop_ACQ,
-            start_cal            => s_start_cal,
-            stop_cal             => s_stop_cal,
-            acquisition_state    => s_acquisition_state,
-            calibration_state    => s_calibration_state,
-            PMT_rate => s_PMT_rate,
-            mask_rate => s_mask_rate,
-            trigger_flag_1 => s_trigger_flag_1,
-            trigger_flag_2 => s_trigger_flag_2,
+    start_ACQ            => s_start_ACQ,
+    stop_ACQ             => s_stop_ACQ,
+    start_cal            => s_start_cal,
+    stop_cal             => s_stop_cal,
+    acquisition_state    => s_acquisition_state,
+    calibration_state    => s_calibration_state,
+    PMT_rate => s_PMT_rate,
+    mask_rate => s_mask_rate,
+    trigger_flag_1 => s_trigger_flag_1,
+    trigger_flag_2 => s_trigger_flag_2,
 
-            config_status_1 => s_config_status_1,
-            config_status_2 => s_config_status_2,
+    config_status_1 => s_config_status_1,
+    config_status_2 => s_config_status_2,
 
-            sw_rst => s_sw_rst,
+    sw_rst => s_sw_rst,
 
-            select_reg_1 => s_select_reg_1,
-            SR_IN_SR_1 => s_SR_IN_SR_1,
-            RST_B_SR_1 => s_RST_B_SR_1,
-            CLK_SR_1 => s_CLK_SR_1,
-            load_1 => s_load_1,
-            select_reg_2 => s_select_reg_2,
-            SR_IN_SR_2 => s_SR_IN_SR_2,
-            RST_B_SR_2 => s_RST_B_SR_2,
-            CLK_SR_2 => s_CLK_SR_2,
-            load_2 => s_load_2,
+    select_reg_1 => s_select_reg_1,
+    SR_IN_SR_1 => s_SR_IN_SR_1,
+    RST_B_SR_1 => s_RST_B_SR_1,
+    CLK_SR_1 => s_CLK_SR_1,
+    load_1 => s_load_1,
+    select_reg_2 => s_select_reg_2,
+    SR_IN_SR_2 => s_SR_IN_SR_2,
+    RST_B_SR_2 => s_RST_B_SR_2,
+    CLK_SR_2 => s_CLK_SR_2,
+    load_2 => s_load_2,
 
-            config_vector_1 => s_config_vector_1,
-            config_vector_2 => s_config_vector_2,
+    config_vector_1 => s_config_vector_1,
+    config_vector_2 => s_config_vector_2,
 
-            configure_command_1 => s_start_config_1,
-            configure_command_2 => s_start_config_2,
+    configure_command_1 => s_start_config_1,
+    configure_command_2 => s_start_config_2,
 
-            pwr_on_citiroc1 => s_pwr_on_citiroc1,
-            pwr_on_citiroc2 => s_pwr_on_citiroc2,
+    pwr_on_citiroc1 => s_pwr_on_citiroc1,
+    pwr_on_citiroc2 => s_pwr_on_citiroc2,
 
-            rstCIT1out => rstCIT1out,
-            rstCIT2out => rstCIT2out,
+    rstCIT1out => rstCIT1out,
+    rstCIT2out => rstCIT2out,
 
-            PWR_ON_1 => s_PWR_ON_1,
-            PWR_ON_2 => s_PWR_ON_2,
+    PWR_ON_1 => s_PWR_ON_1,
+    PWR_ON_2 => s_PWR_ON_2,
 
-            VAL_EVT_1 => s_VAL_EVT_1,
-            VAL_EVT_2 => s_VAL_EVT_2,
+    VAL_EVT_1 => s_VAL_EVT_1,
+    VAL_EVT_2 => s_VAL_EVT_2,
 
-            RAZ_CHN_1 => s_RAZ_CHN_1,
-            RAZ_CHN_2 => s_RAZ_CHN_2,
+    RAZ_CHN_1 => s_RAZ_CHN_1,
+    RAZ_CHN_2 => s_RAZ_CHN_2,
 
-            trigger_in_1 => s_trigger_in_1,
-            trigger_in_2 => s_trigger_in_2,
+    trigger_in_1 => s_trigger_in_1,
+    trigger_in_2 => s_trigger_in_2,
 
-            SDATA_hg_1 => s_SDATA_hg_1,
-            SDATA_lg_1 => s_SDATA_lg_1,
-            CS_1 => s_CS_1,
-            SCLK_1 => s_SCLK_1,
-            hold_hg_1 => s_hold_hg_1,
-            hold_lg_1 => s_hold_lg_1,
+    SDATA_hg_1 => s_SDATA_hg_1,
+    SDATA_lg_1 => s_SDATA_lg_1,
+    CS_1 => s_CS_1,
+    SCLK_1 => s_SCLK_1,
+    hold_hg_1 => s_hold_hg_1,
+    hold_lg_1 => s_hold_lg_1,
 
-            CLK_READ_1 => s_CLK_READ_1,
-            SR_IN_READ_1 => s_SR_IN_READ_1,
+    CLK_READ_1 => s_CLK_READ_1,
+    SR_IN_READ_1 => s_SR_IN_READ_1,
 
-            RST_B_READ_1 => s_RST_B_READ_1,
+    RST_B_READ_1 => s_RST_B_READ_1,
 
-            SDATA_hg_2 => s_SDATA_hg_2,
-            SDATA_lg_2 => s_SDATA_lg_2,
-            CS_2 => s_CS_2,
-            SCLK_2 => s_SCLK_2,
-            hold_hg_2 => s_hold_hg_2,
-            hold_lg_2 => s_hold_lg_2,
+    SDATA_hg_2 => s_SDATA_hg_2,
+    SDATA_lg_2 => s_SDATA_lg_2,
+    CS_2 => s_CS_2,
+    SCLK_2 => s_SCLK_2,
+    hold_hg_2 => s_hold_hg_2,
+    hold_lg_2 => s_hold_lg_2,
 
-            CLK_READ_2 => s_CLK_READ_2,
-            SR_IN_READ_2 => s_SR_IN_READ_2,
+    CLK_READ_2 => s_CLK_READ_2,
+    SR_IN_READ_2 => s_SR_IN_READ_2,
 
-            RST_B_READ_2 => s_RST_B_READ_2,
+    RST_B_READ_2 => s_RST_B_READ_2,
 
-            dataReady => dataReady,
+    dataReady => dataReady,
 
-            adcDataOut => adcDataOut,
+    adcDataOut => adcDataOut,
 
-            trgExtIn => trgExt,
+    trgExtIn => trgExt,
 
-            debug_triggerIN => s_start_debug
+    holdoff => holdoff,
+
+    debug_triggerIN => s_start_debug
 );
 
 ppsCounterInst: ppsCounter
@@ -1217,8 +1229,9 @@ inst_register_file: register_file
 
     sysid => x"33CC33CC",
     refDac1Def => refDac1Def,
-    refDac2Def => refDac2Def
-
+    refDac2Def => refDac2Def,
+    prescaledTriggers => prescaledTriggers,
+    holdOffBits => holdOffBits
   )
 
   port map (
@@ -1281,6 +1294,8 @@ inst_register_file: register_file
         dpcuDataLenOut => dpcuDataLenFromSpw,
 
         regAcqData => regAcqData,
+
+        holdoff => holdoff,
 
         PMT_rate => s_PMT_rate,
         mask_rate => s_mask_rate,
