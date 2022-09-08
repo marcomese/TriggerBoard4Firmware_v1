@@ -44,7 +44,7 @@ port(
     Aclr   : in    std_logic;
     Clock  : in    std_logic;
     Enable : in    std_logic;
-    Q      : out   std_logic_vector(30 downto 0)
+    Q      : out   std_logic_vector(4 downto 0)
 );
 end component;
 

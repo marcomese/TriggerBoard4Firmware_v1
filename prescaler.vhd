@@ -28,46 +28,41 @@ port(
 );
 end component;
 
---constant maxHoldoff        : natural := natural(2**holdoffBits-1);
---
---signal   holdoffCount      : natural range 0 to maxHoldoff-1;
+constant maxHoldoff      : natural := natural(2**holdoffBits-1);
 
-signal  holdoffCount : std_logic_vector(holdoffBits-1 downto 0);
+signal   holdoffCount    : natural range 0 to maxHoldoff-1;
 
-signal  enableCount,
-        clearCount   : std_logic; 
+signal   holdoffCountVec : std_logic_vector(holdoffBits-1 downto 0);
+
+signal   clearCount      : std_logic;
 
 begin
 
--- per migliorare il timing uso un contatore look-ahead!!!
+triggerOut <= clearCount;
 
-clearCount <= '1' when holdoffCount = holdoff else '0';
+holdoffCount <= to_integer(unsigned(holdoffCountVec));
+
+clearProc: process(clk, rst, holdoffCount, holdoff)
+begin
+    if rst = '1' then
+        clearCount <= '0';
+    elsif rising_edge(clk) then
+        if holdoffCount /= 0 and holdoffCount = unsigned(holdoff) then
+            clearCount <= '1';
+        else
+            clearCount <= '0';
+        end if;
+    end if;
+end process;
+
+-- per migliorare il timing uso un contatore look-ahead!!!
 
 holdoffCounterInst: counter16Bit
 port map(
-    Aclr   => clearCount,
+    Aclr   => rst or clearCount,
     Clock  => clk,
     Enable => triggerIn,
-    Q      => holdOffCount
+    Q      => holdOffCountVec
 );
-
---holdoffProc: process(clk, rst, triggerIn)
---begin
-    --if rst = '1' then
-        --holdoffCount <= 0;
-        --triggerOut   <= '0';
-    --elsif rising_edge(clk) then
-        --if holdoffCount = unsigned(holdoff) then
-            --holdoffCount <= 0;
-            --triggerOut <= '1';
-        --elsif triggerIn = '1' then
-            --holdoffCount <= holdoffCount + 1;
-            --triggerOut <= '0';
-        --elsif triggerIn = '0' then
-            --holdoffCount <= holdoffCount;
-            --triggerOut  <= '0';
-        --end if;
-    --end if;
---end process;
 
 end architecture_prescaler;

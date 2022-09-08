@@ -589,9 +589,7 @@ signal  wdRst,
 -- Segnali per test_file
 ---------------------------------------------------
 
-signal clock48M_buffered : std_logic;
 signal s_clock24MBuff    : std_logic;
---signal s_clock192M       : std_logic;
 signal s_clock200M       : std_logic;
 signal s_clock24M        : std_logic;
 signal s_clock48M        : std_logic;
@@ -751,7 +749,6 @@ signal rstCIT1out, rstCIT2out : std_logic;
 
 constant zeros288   : std_logic_vector(287 downto 0) := (others => '0');
 
-signal pllLock      : std_logic;
 signal writeDone    : std_logic;
 signal spwCtrlBusy  : std_logic;
 signal trgInhibit   : std_logic;

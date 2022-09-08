@@ -65,7 +65,7 @@ begin
             end if;
 
         when others =>
-                origStP <= idle;
+                origStF <= idle;
     end case;
 end process;
 

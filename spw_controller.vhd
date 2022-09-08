@@ -157,9 +157,9 @@ type mem_t is array (natural range <>) of std_logic_vector(g_spw_data_width - 1 
   signal s_command_received : std_logic_vector(7 downto 0);
   signal s_rx_address_byte  : word_to_byte_t(3 downto 0);
   signal s_rx_data_byte     : word_to_byte_t(3 downto 0);
-  signal s_counter_rx : integer range 0 to 4;
+  signal s_counter_rx : integer range 0 to 3;
   
-  signal s_counter : integer range 0 to 4;
+  signal s_counter : integer range 0 to 3;
   signal s_command : std_logic_vector(7 downto 0);
 
   signal s_sm_status  : std_logic_vector(2 downto 0);

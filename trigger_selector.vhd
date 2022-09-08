@@ -47,6 +47,18 @@ end TRIGGER_selector;
 
 architecture Behavioral of TRIGGER_selector is
 
+component edgeDetector is
+generic(
+    edge      : std_logic := '0' -- '0' falling, '1' rising
+);
+port(
+    clk       : in  std_logic;
+    rst       : in  std_logic;
+    signalIn  : in  std_logic;
+    signalOut : out std_logic
+);
+end component;
+
 component counter16Bit is
 port(
     Aclr   : in    std_logic;
@@ -244,16 +256,16 @@ BOT_00_masked <= BOT_00 or (not generic_trigger_mask_int(20));
 
 sincronizzatore : for i in 0 to maskNum-1 generate
 begin
-    edge_trigger_i: process(reset, clock, trigger)
-    variable resync_i : std_logic_vector(1 to 3);
-    begin
-        if reset='1' then
-            rise(i) <= '0';
-        elsif rising_edge(clock) then
-            rise(i) <= resync_i(2) and not resync_i(3);
-            resync_i := trigger(i) & resync_i(1 to 2);
-        end if;
-    end process;
+    edge_trigger_i: edgeDetector
+    generic map(
+        edge      => '1'
+    )
+    port map(
+        clk       => clock,
+        rst       => reset,
+        signalIn  => trigger(i),
+        signalOut => rise(i)
+    );
 end generate sincronizzatore;
 
 reset_counter_register: process(reset, clock, rate_time_sig)
@@ -306,23 +318,23 @@ end process;
 
 mux_trgN_gen: for i in 0 to concurrentTriggers-1 generate
 begin
-    mux_triggerN:process(clock, reset, trigger_mask_int, trigger)
+    mux_triggerN:process(clock, reset, trigger_mask_int)
     begin
         if reset = '1' then
             trigger_int_vec(i) <= '0';
         elsif rising_edge(clock) then
             case trigger_mask_int((i*4)+3 downto (i*4)) is
                 when X"0"  =>  trigger_int_vec(i) <= '0';
-                when X"1"  =>  trigger_int_vec(i) <= rise(0);--trigger(0);
-                when X"2"  =>  trigger_int_vec(i) <= rise(1);--trigger(1);
-                when X"3"  =>  trigger_int_vec(i) <= rise(2);--trigger(2);
-                when X"4"  =>  trigger_int_vec(i) <= rise(3);--trigger(3);
-                when X"5"  =>  trigger_int_vec(i) <= rise(4);--trigger(4);
-                when X"6"  =>  trigger_int_vec(i) <= rise(5);--trigger(5);
-                when X"7"  =>  trigger_int_vec(i) <= rise(6);--trigger(6);
-                when X"8"  =>  trigger_int_vec(i) <= rise(7);--trigger(7);
-                when X"9"  =>  trigger_int_vec(i) <= rise(8);--trigger(8);
-                when X"A"  =>  trigger_int_vec(i) <= rise(9);--trigger(9);
+                when X"1"  =>  trigger_int_vec(i) <= rise(0);
+                when X"2"  =>  trigger_int_vec(i) <= rise(1);
+                when X"3"  =>  trigger_int_vec(i) <= rise(2);
+                when X"4"  =>  trigger_int_vec(i) <= rise(3);
+                when X"5"  =>  trigger_int_vec(i) <= rise(4);
+                when X"6"  =>  trigger_int_vec(i) <= rise(5);
+                when X"7"  =>  trigger_int_vec(i) <= rise(6);
+                when X"8"  =>  trigger_int_vec(i) <= rise(7);
+                when X"9"  =>  trigger_int_vec(i) <= rise(8);
+                when X"A"  =>  trigger_int_vec(i) <= rise(9);
                 when others => trigger_int_vec(i) <= '0';
             end case;
         end if;
@@ -358,18 +370,6 @@ begin
             when X"02"  => trg_int <= trigger_int and not veto_bottom;
             when X"03"  => trg_int <= trigger_int and not(veto_lateral or veto_bottom);
             when X"04"  => trg_int <= trgExtIn;
-            --when X"05"  => trg_int <= trigger_int_vec(0);
-            --when X"06"  => trg_int <= trigger_int_vec(1);
-            --when X"07"  => trg_int <= trigger_int_vec(2);
-            --when X"08"  => trg_int <= trigger_int_vec(3);
-            --when X"09"  => trg_int <= trigger_int_vec(4);
-            --when X"0A"  => trg_int <= trigger_int_vec(5);
-            --when X"0B"  => trg_int <= trigger_int_vec(0) and trigger_int_vec(1);
-            --when X"0C"  => trg_int <= trigger_int_vec(2) and trigger_int_vec(3);
-            --when X"0D"  => trg_int <= trigger_int_vec(4) and trigger_int_vec(5);
-            --when X"0E"  => trg_int <= trigger_int_vec(0) or trigger_int_vec(1);
-            --when X"0F"  => trg_int <= trigger_int_vec(2) or trigger_int_vec(3);
-            --when X"10"  => trg_int <= trigger_int_vec(4) or trigger_int_vec(5);
             when others => trg_int <= trigger_int;
         end case;
     end if;
