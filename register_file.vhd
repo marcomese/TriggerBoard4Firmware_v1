@@ -546,8 +546,8 @@ constant address_vector : addr_vector_t(0 to REGISTER_FILE_LENGTH - 1) :=
     (addr => ACQDATA70_ADDR,            mode => RO),
     (addr => ACQDATA71_ADDR,            mode => RO),
     (addr => MASK_RATE_09_ADDR,         mode => RO),
-    (addr => PRESC_M3_M2_ADDR,          mode => RO),
-    (addr => PRESC_M1_M0_ADDR,          mode => RO),
+    (addr => PRESC_M3_M2_ADDR,          mode => RW),
+    (addr => PRESC_M1_M0_ADDR,          mode => RW),
     (addr => x"00000000",               mode => RO)  -- defensive
 );
 
