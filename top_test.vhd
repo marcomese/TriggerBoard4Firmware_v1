@@ -21,6 +21,9 @@ port (
 	CLK_SR_2         : out std_logic;
     load_2           : out std_logic;
 
+    LVDS_TO_ASIC_EN_1 : out std_logic;
+    LVDS_TO_ASIC_EN_2 : out std_logic;
+
     EN_PWR_DIG_CITIROC_1 : out std_logic;
     PGOOD_DIG_CITIROC_1  : in std_logic;
     EN_PWR_ANA_CITIROC_1 : out std_logic;
@@ -49,6 +52,14 @@ port (
     trigger_in_1     : in std_logic_vector(31 downto 0);
     trigger_in_2     : in std_logic_vector(31 downto 0);
 
+    OR32_1    : in std_logic;
+    OR32_2    : in std_logic;
+
+    NOR32_1   : inout std_logic;
+    NOR32_2   : inout std_logic;
+    NOR32T_1  : inout std_logic;
+    NOR32T_2  : inout std_logic;
+
     SDATA_hg_1       : in std_logic;    -- 2 leading '0' + 12 dati
     SDATA_lg_1       : in std_logic;    -- 2 leading '0' + 12 dati
     CS_1             : out std_logic;  -- attivo sul fronte di discesa
@@ -73,6 +84,17 @@ port (
                                         -- quando SR_IN_READ è alto sul fronte di salita di CLK_READ, il primo canale (CH_0) va sull'output
     RST_B_READ_2     : out std_logic;  -- attivo basso
                                         -- deve essere inviato appena hold_B va a '1', prima di iniziare la lettura
+    SR_OUT_READ_1    : in std_logic;
+    SR_OUT_READ_2    : in std_logic;
+    SR_OUT_SR_1      : in std_logic;
+    SR_OUT_SR_2      : in std_logic;
+
+    DIG_PROBE_1      : in std_logic;
+    DIG_PROBE_2      : in std_logic;
+
+    HIT_MUX_1        : in std_logic;
+    HIT_MUX_2        : in std_logic;
+
     ha_rstb_psc      : out std_logic;    -- reset del peak detector (citiroc A)
     hb_rstb_psc      : out std_logic;    -- reset del peak detector (citiroc B)
 
@@ -785,6 +807,14 @@ signal  holdoff             : std_logic_vector((holdOffBits*prescaledTriggers)-1
 
 begin
 
+LVDS_TO_ASIC_EN_1 <= '1';
+LVDS_TO_ASIC_EN_2 <= '1';
+
+NOR32_1  <= 'Z' when s_pwr_on_citiroc1 = '1' else '0';
+NOR32_2  <= 'Z' when s_pwr_on_citiroc2 = '1' else '0';
+NOR32T_1 <= 'Z' when s_pwr_on_citiroc1 = '1' else '0';
+NOR32T_2 <= 'Z' when s_pwr_on_citiroc2 = '1' else '0';
+
 clk48BufInst: CLKINT
 port map(
     A => clock48M,
@@ -820,7 +850,7 @@ trgInhibit <= (not dpcuTrgHoldSync) or (not tdaqBusyInSync) or fifoAFULL;
 
 triggerOutExpand: trigger_extender_100ns
 port map(
-    clock       => s_clock200M,--s_clock192M,
+    clock       => s_clock200M,
     reset       => s_global_rst,
     trigger_in  => trigger_interno_sig,
     trigger_out => extendedTriggerOut
@@ -959,14 +989,14 @@ port map(
     pGoodAnaIn  => PGOOD_ANA_CITIROC_2
 );
 
-uscitaTest(15) <= '0';
-uscitaTest(14) <= '0';
-uscitaTest(13) <= '0';
-uscitaTest(12) <= '0';
-uscitaTest(11) <= '0';
-uscitaTest(10) <= '0';
-uscitaTest(9)  <= '0';
-uscitaTest(8)  <= '0';
+uscitaTest(15) <= OR32_1 or OR32_2;
+uscitaTest(14) <= HIT_MUX_1 or HIT_MUX_2;
+uscitaTest(13) <= DIG_PROBE_1;
+uscitaTest(12) <= DIG_PROBE_2;
+uscitaTest(11) <= SR_OUT_SR_1;
+uscitaTest(10) <= SR_OUT_SR_2;
+uscitaTest(9)  <= SR_OUT_READ_1;
+uscitaTest(8)  <= SR_OUT_READ_2;
 uscitaTest(7)  <= dpcuReset;
 uscitaTest(6)  <= dataReadyOutSigBuff;
 uscitaTest(5)  <= trgInhibit;
