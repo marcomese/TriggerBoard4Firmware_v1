@@ -17,6 +17,8 @@ port (
     clockSYS       : in std_logic;  -- clk di sistema: 192 MHz
     clock48M       : in std_logic;
     clock24M       : in std_logic;  -- per gli ADC
+    clock200k      : in std_logic;
+
     rst            : in std_logic;
 
     triggerInhibit : in std_logic;
@@ -69,15 +71,6 @@ port (
     rstCIT1out : out std_logic;
     rstCIT2out : out std_logic;
 
-    PWR_ON_1       : out std_logic;
-    PWR_ON_2       : out std_logic;
-
-    VAL_EVT_1       : out std_logic;
-    VAL_EVT_2       : out std_logic;
-
-    RAZ_CHN_1       : out std_logic;
-    RAZ_CHN_2       : out std_logic;
-
     trigger_in_1    : in std_logic_vector(31 downto 0);
     trigger_in_2    : in std_logic_vector(31 downto 0);    
 
@@ -128,27 +121,10 @@ component pulseExpand is
            pulseOUT : out  STD_LOGIC);
 end component;
 
-component clk220kGen is
-port(
-    rst    : in  std_logic;
-    clkIn  : in  std_logic;
-    clkOut : out std_logic
-);
-end component;
-
 component CLKINT is
     port (A : in std_logic;
           Y : out std_logic);
 end component;
-
-COMPONENT output_DDR is
-    port( DataR : in    std_logic;
-          DataF : in    std_logic;
-          CLR   : in    std_logic;
-          CLK   : in    std_logic;
-          PAD   : out   std_logic
-        );
-end COMPONENT;
 
 component delayLine is
     Generic(
@@ -269,8 +245,6 @@ constant holdDelayConst : std_logic_vector(7 downto 0) := x"20";
 signal clk         : std_logic;
 signal idle_1_sig  : std_logic;
 signal idle_2_sig  : std_logic;
-signal clk200k_sig, 
-       clk200k_int : std_logic;
 
 signal CLK_READ_1_sig, CLK_READ_2_sig : std_logic;
 
@@ -334,6 +308,12 @@ config_status_2 <= idle_2_sig;
 trigger_flag_1 <= s_trigger_flag_1;
 trigger_flag_2 <= s_trigger_flag_2;
 
+CLK_READ_1 <= CLK_READ_1_sig;
+CLK_READ_2 <= CLK_READ_2_sig;
+
+SCLK_1 <= SCLK_1_sig;
+SCLK_2 <= SCLK_2_sig;
+
 adcDataOutReg: process(sw_rst, clk, s_dataReady)
 begin
     if sw_rst = '1' then
@@ -360,7 +340,7 @@ dataReady <= s_dataReady;
 pulseExpand_inst1: pulseExpand
 port map(
     clkOrig  => clk,
-    clkDest  => clk200k_sig,
+    clkDest  => clock200k,
     rst      => rst,
     pulseIN  => configure_command_1,
     pulseOUT => conf_comm_200k_1
@@ -369,23 +349,10 @@ port map(
 pulseExpand_inst2: pulseExpand
 port map(
     clkOrig  => clk,
-    clkDest  => clk200k_sig,
+    clkDest  => clock200k,
     rst      => rst,
     pulseIN  => configure_command_2,
     pulseOUT => conf_comm_200k_2
-);
-
-clk200kGenInst: clk220kGen
-port map(
-    rst    => rst,
-    clkIn  => clock24M,
-    clkOut => clk200k_int
-);
-
-BUFclk200: CLKINT
-port map(
-    Y => clk200k_sig,
-    A => clk200k_int
 );
 
 holdDelay_1_inst: delayLine
@@ -400,11 +367,11 @@ port map(
     delayVal  => holdDelayConst
 );
 
-rstCIT1Gen: process(rst, clk200k_sig)
+rstCIT1Gen: process(rst, clock200k)
 begin
     if rst = '1' then
         rstCIT1FF <= '0';
-    elsif rising_edge(clk200k_sig) then
+    elsif rising_edge(clock200k) then
         rstCIT1FF <= pwr_on_citiroc1;
     end if;
 end process;
@@ -414,7 +381,7 @@ rstCIT1out <= rstCIT1;
 
 configCit1Inst: config_CITIROC_1
 port map(  
-    clk200k           => clk200k_sig,
+    clk200k           => clock200k,
     reset             => rstCIT1,
 
     configure_command => conf_comm_200k_1, 
@@ -442,11 +409,11 @@ port map(
     delayVal  => holdDelayConst
 );
 
-rstCIT2Gen: process(rst, clk200k_sig)
+rstCIT2Gen: process(rst, clock200k)
 begin
     if rst = '1' then
         rstCIT2FF <= '0';
-    elsif rising_edge(clk200k_sig) then
+    elsif rising_edge(clock200k) then
         rstCIT2FF <= pwr_on_citiroc2;
     end if;
 end process;
@@ -456,7 +423,7 @@ rstCIT2out <= rstCIT2;
 
 configCit2Inst: config_CITIROC_1
 port map(  
-    clk200k           => clk200k_sig,
+    clk200k           => clock200k,
     reset             => rstCIT2,
 
     configure_command => conf_comm_200k_2, 
@@ -476,7 +443,7 @@ readFsmCit2Inst: READ_FSM
 port map(
     clock       => clk,
     reset       => sw_rst,
-    clock200    => clk200k_sig,
+    clock200    => clock200k,
     clock24M    => clock24M,
 
     SDATA_hg    => SDATA_hg_1,
@@ -501,7 +468,7 @@ readFsmCit1Inst: READ_FSM
 port map(
     clock       => clk,
     reset       => sw_rst,
-    clock200    => clk200k_sig,
+    clock200    => clock200k,
     clock24M    => clock24M,
 
     SDATA_hg    => SDATA_hg_2,
@@ -568,7 +535,7 @@ generic map(
 port map (
     reset                => sw_rst,
     clock                => clk,
-    clock200k            => clk200k_sig,
+    clock200k            => clock200k,
     debug                => trigger_int_sig,
     trigger_in_1         => trigger_in_1,
     trigger_in_2         => trigger_in_2,
@@ -606,48 +573,5 @@ begin
         resync := debug_triggerIN & resync(1 to 2);
     end if;
 end process;
-
-ODDR_CLK_READ_1: output_DDR
-port map(
-    DataR => '0',
-    DataF => '1',
-    CLR   => CLK_READ_1_sig, 
-    CLK   => clk200k_sig,
-    PAD   => CLK_READ_1
-);
-
-ODDR_CLK_READ_2: output_DDR
-port map(
-    DataR => '0',
-    DataF => '1',
-    CLR   => CLK_READ_2_sig, 
-    CLK   => clk200k_sig,
-    PAD   => CLK_READ_2
-);
-
-ODDR_SCLK_1: output_DDR
-port map(
-    DataR => '0',
-    DataF => '1',
-    CLR   => SCLK_1_sig,
-    CLK   => clock24M,
-    PAD   => SCLK_1
-);
-
-ODDR_SCLK_2: output_DDR
-port map(
-    DataR => '0',
-    DataF => '1',
-    CLR   => SCLK_2_sig,
-    CLK   => clock24M,
-    PAD   => SCLK_2
-);
-
-PWR_ON_1  <= '1';
-PWR_ON_2  <= '1';
-VAL_EVT_1  <= '1';
-VAL_EVT_2  <= '1';    
-RAZ_CHN_1  <= '0';
-RAZ_CHN_2  <= '0';
 
 end Behavioral;

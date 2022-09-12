@@ -84,7 +84,8 @@ SYNC_PROC: process (clock,reset)
 			pres_state <= wait_state;
 
             hold_B        <= '0' ;  -- attivo ALTO
-			CLK_READ_sig  <= '0' ;  -- attivo sul fronte di salita
+			--CLK_READ_sig  <= '0' ;  -- attivo sul fronte di salita
+            CLK_READ_sig  <= '1' ;  -- pilota l'ingresso CLR di DDR_OUT quindi va inteso come attivo basso
             SR_IN_READ_sig <= '0' ; -- deve andare a '1' per un colpo di clock dopo il reset per avviare l'acquisizione 
                                     -- quando SR_IN_READ è alto sul fronte di salita di CLK_READ, il primo canale (CH_0) va sull'output
 			RST_B_READ_sig  <= '1' ;  -- attivo basso 
@@ -181,7 +182,8 @@ if next_state = wait_state then -- hold = '0'
                             -- sistema in attesa
 
             hold_B_i        <= '0' ;  -- attivo ALTO
-			CLK_READ_i      <= '0' ;  -- attivo sul fronte di salita
+--			CLK_READ_i      <= '0' ;  -- attivo sul fronte di salita
+            CLK_READ_i      <= '1' ;  -- attivo sul fronte di salita
             SR_IN_READ_i    <= '0' ;  -- deve andare a '1' per un colpo di clock dopo il reset per avviare l'acquisizione 
                                       -- quando SR_IN_READ è alto sul fronte di salita di CLK_READ, il primo canale (CH_0) va sull'output
 			RST_B_READ_i    <= '1' ;  -- attivo basso 
@@ -193,7 +195,8 @@ elsif next_state = hold_state then -- hold = '1'
                                    -- inizia il processo di lettura, stato di transizione
 
             hold_B_i        <= '1' ;  -- attivo ALTO
-			CLK_READ_i      <= '0' ;  -- attivo sul fronte di salita
+--			CLK_READ_i      <= '0' ;  -- attivo sul fronte di salita
+            CLK_READ_i      <= '1' ;  -- attivo basso
             SR_IN_READ_i    <= '0' ;  -- deve andare a '1' per un colpo di clock dopo il reset per avviare l'acquisizione 
                                       -- quando SR_IN_READ è alto sul fronte di salita di CLK_READ, il primo canale (CH_0) va sull'output
 			RST_B_READ_i      <= '1' ;  -- attivo basso 
@@ -205,7 +208,8 @@ elsif next_state = reset_state then -- hold = '1'
                                     -- per iniziare l'acquisizione bisogna resettare il registo di read
 
             hold_B_i        <= '1' ;  -- attivo ALTO
-			CLK_READ_i      <= '0' ;  -- attivo sul fronte di salita
+--			CLK_READ_i      <= '0' ;  -- attivo sul fronte di salita
+            CLK_READ_i      <= '1' ;  -- attivo basso
             SR_IN_READ_i    <= '0' ;  -- deve andare a '1' per un colpo di clock dopo il reset per avviare l'acquisizione 
                                       -- quando SR_IN_READ è alto sul fronte di salita di CLK_READ, il primo canale (CH_0) va sull'output
 			RST_B_READ_i      <= '0' ;  -- attivo basso 
@@ -217,7 +221,8 @@ elsif next_state = start_read_state then -- hold = '1'
                                          -- SR_IN deve andare a '1' per un colpo di CLK_READ: sul fronte di salita di CLK_READ, il primo canale (CH_0) va sull'output
 
             hold_B_i        <= '1' ;  -- attivo ALTO
-			CLK_READ_i      <= '1' ;  -- attivo sul fronte di salita
+--			CLK_READ_i      <= '1' ;  -- attivo sul fronte di salita
+            CLK_READ_i      <= '0' ;  -- attivo basso
             SR_IN_READ_i    <= '1' ;  -- deve andare a '1' per un colpo di clock dopo il reset per avviare l'acquisizione 
                                       -- quando SR_IN_READ è alto sul fronte di salita di CLK_READ, il primo canale (CH_0) va sull'output
 			RST_B_READ_i    <= '1' ;  -- attivo basso 
@@ -229,7 +234,8 @@ elsif next_state = read_state then -- hold = '1'
                                    -- 31 colpi di clock, fino a quando SR_OUT non va a '1'
 
             hold_B_i        <= '1' ;  -- attivo ALTO
-			CLK_READ_i      <= '1' ;  -- attivo sul fronte di salita
+--			CLK_READ_i      <= '1' ;  -- attivo sul fronte di salita
+            CLK_READ_i      <= '0' ;  -- attivo basso
             SR_IN_READ_i    <= '0' ;  -- deve andare a '1' per un colpo di clock dopo il reset per avviare l'acquisizione 
                                       -- quando SR_IN_READ è alto sul fronte di salita di CLK_READ, il primo canale (CH_0) va sull'output
 			RST_B_READ_i    <= '1' ;  -- attivo basso 
@@ -241,7 +247,8 @@ elsif next_state = store_state then -- hold = '1'
                                     -- stato di transizione in cui ci memorizza il dato							 
 
             hold_B_i        <= '1' ;  -- attivo ALTO
-			CLK_READ_i      <= '0' ;  -- attivo sul fronte di salita
+--			CLK_READ_i      <= '0' ;  -- attivo sul fronte di salita
+            CLK_READ_i      <= '1' ;  -- attivo basso
             SR_IN_READ_i    <= '0' ;  -- deve andare a '1' per un colpo di clock dopo il reset per avviare l'acquisizione 
                                       -- quando SR_IN_READ è alto sul fronte di salita di CLK_READ, il primo canale (CH_0) va sull'output
 			RST_B_READ_i      <= '1' ;  -- attivo basso 
@@ -252,7 +259,8 @@ elsif next_state = store_state then -- hold = '1'
 else
 
             hold_B_i        <= '0' ;  -- attivo ALTO
-			CLK_READ_i      <= '0' ;  -- attivo sul fronte di salita
+--			CLK_READ_i      <= '0' ;  -- attivo sul fronte di salita
+            CLK_READ_i      <= '1' ;  -- attivo basso
             SR_IN_READ_i    <= '0' ;  -- deve andare a '1' per un colpo di clock dopo il reset per avviare l'acquisizione 
                                       -- quando SR_IN_READ è alto sul fronte di salita di CLK_READ, il primo canale (CH_0) va sull'output
 			RST_B_READ_i      <= '1' ;  -- attivo basso 

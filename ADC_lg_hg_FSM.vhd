@@ -76,7 +76,8 @@ SYNC_PROC: process (clock,reset)
 			pres_state <= wait_state;
 
             CS_sig    <= '1' ;  -- attivo basso
-			SCLK_sig  <= '0' ;  -- attivo sul fronte di salita
+--			SCLK_sig  <= '0' ;  -- attivo sul fronte di salita
+            SCLK_sig  <= '1' ;  -- pilota l'ingresso CLR di DDR_OUT quindi è attivo basso
             store_sig <= '0' ;
 
 		elsif clock'event and clock='1' then
@@ -137,31 +138,36 @@ begin
 if next_state = wait_state then --  sistema in attesa
 
             CS_i        <= '1' ;  -- attivo basso
-			SCLK_i      <= '0' ;  -- attivo sul fronte di salita
+--			SCLK_i      <= '0' ;  -- attivo sul fronte di salita
+			SCLK_i      <= '1' ;  -- attivo basso
             store_sig_i <= '0' ;
 
 elsif next_state = start_read_state then -- 1 colpo di clock
 
             CS_i        <= '1' ;  -- attivo basso
-			SCLK_i      <= '1' ;  -- attivo sul fronte di salita
+--			SCLK_i      <= '1' ;  -- attivo sul fronte di salita
+			SCLK_i      <= '0' ;  -- attivo basso
             store_sig_i <= '0' ;            
 
 elsif next_state = read_state then -- 14 colpi di clock
 
             CS_i        <= '0' ;  -- attivo basso
-			SCLK_i      <= '1' ;  -- attivo sul fronte di salita
+--			SCLK_i      <= '1' ;  -- attivo sul fronte di salita
+			SCLK_i      <= '0' ;  -- attivo basso
             store_sig_i <= '0' ;
 
 elsif next_state = store_state then 
 
             CS_i        <= '1' ;  -- attivo basso -----------------------------corretto????????
-			SCLK_i      <= '0' ;  -- attivo sul fronte di salita
+--			SCLK_i      <= '0' ;  -- attivo sul fronte di salita
+			SCLK_i      <= '1' ;  -- attivo basso
             store_sig_i <= '1' ;
 
 else
 
             CS_i        <= '1' ;  -- attivo basso
-			SCLK_i      <= '0' ;  -- attivo sul fronte di salita
+--			SCLK_i      <= '0' ;  -- attivo sul fronte di salita
+			SCLK_i      <= '1' ;  -- attivo basso
             store_sig_i <= '0' ;
 
 end if; 

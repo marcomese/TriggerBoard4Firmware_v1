@@ -9,16 +9,17 @@ generic(
     resetLGVal : std_logic_vector(15 downto 0) := x"0000"
 );
 port(
-    clk24M   : in  std_logic;
-    rst      : in  std_logic;
-	dacHGVal : in  std_logic_vector(15 downto 0);
-    dacLGVal : in  std_logic_vector(15 downto 0);
-    send     : in  std_logic;
-    confDone : out std_logic;
-    dout     : out std_logic;
-    syncHG   : out std_logic;
-    syncLG   : out std_logic;
-    sclk     : out std_logic
+    clk24M     : in  std_logic;
+    rst        : in  std_logic;
+	dacHGVal   : in  std_logic_vector(15 downto 0);
+    dacLGVal   : in  std_logic_vector(15 downto 0);
+    enableSclk : out std_logic;
+    send       : in  std_logic;
+    confDone   : out std_logic;
+    dout       : out std_logic;
+    syncHG     : out std_logic;
+    syncLG     : out std_logic;
+    sclk       : out std_logic
 );
 end refController;
 
@@ -75,7 +76,7 @@ signal  shiftDone,
         bufferSout,
         bufferReset, bufferResetF,
         serializerReset,
-        enableSclk,
+        enableSclkSig,
         initSend,initSendF,
         confDoneSig, confDoneSigF  : std_logic;
 
@@ -108,30 +109,26 @@ bufferData(15 downto 0)  <= dacLGVal;
 
 srIn <= (send or initSend) & dataSentSig;
 
-sclkEnFF: process(clk24M, rst, srIn, enableSclk)
+enableSclk <= enableSclkSig;
+
+sclkEnFF: process(clk24M, rst, srIn, enableSclkSig)
 begin
     if rst = '1' then
-        enableSclk <= '0';
+--        enableSclkSig <= '0';
+        enableSclkSig <= '1'; -- pilota l'ingresso CLR di DDR_OUT quindi è attivo basso
     elsif rising_edge(clk24M) then
         case srIn is
             when "01" =>
-                enableSclk <= '0';
+--                enableSclkSig <= '0';
+                  enableSclkSig <= '1'; -- pilota l'ingresso CLR di DDR_OUT quindi è attivo basso
             when "10" =>
-                enableSclk <= '1';
+--                enableSclkSig <= '1';
+                  enableSclkSig <= '0'; -- pilota l'ingresso CLR di DDR_OUT quindi è attivo basso
             when others =>
-                enableSclk <= enableSclk;
+                enableSclkSig <= enableSclkSig;
         end case;
     end if;
 end process;
-
-ODDR_SCLK_1: output_DDR
-port map( 
-    DataR  => '1',
-    DataF  => '0',
-    CLR    => enableSclk, -- attivo basso
-    CLK    => clk24M,
-    PAD    => sclk
-);
 
 syncHG <= syncHGSig;
 

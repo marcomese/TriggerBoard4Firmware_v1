@@ -89,6 +89,12 @@ port (
     SR_OUT_SR_1      : in std_logic;
     SR_OUT_SR_2      : in std_logic;
 
+    RESETB_PA_1      : out std_logic;
+    RESETB_PA_2      : out std_logic;
+
+    PS_MODEB_EXT_1    : out std_logic;
+    PS_MODEB_EXT_2    : out std_logic;
+
     DIG_PROBE_1      : in std_logic;
     DIG_PROBE_2      : in std_logic;
 
@@ -178,6 +184,23 @@ port(
 );
 end component;
 
+component DDR_OUT
+port(
+    DR  : in    std_logic := 'U';
+    DF  : in    std_logic := 'U';
+    CLK : in    std_logic := 'U';
+    CLR : in    std_logic := 'U';
+    Q   : out   std_logic
+);
+end component;
+
+component OUTBUF
+port(
+    D   : in    std_logic := 'U';
+    PAD : out   std_logic
+);
+end component;
+
 component CLKINT is
 port(
         A : in std_logic;
@@ -186,6 +209,14 @@ port(
 end component;
 
 component clkDiv2 is
+port(
+    rst    : in  std_logic;
+    clkIn  : in  std_logic;
+    clkOut : out std_logic
+);
+end component;
+
+component clk220kGen is
 port(
     rst    : in  std_logic;
     clkIn  : in  std_logic;
@@ -230,6 +261,7 @@ port (
     clockSYS       : in std_logic;
     clock48M       : in std_logic;
     clock24M       : in std_logic;
+    clock200k      : in std_logic;
     rst            : in std_logic;  --
 
     triggerInhibit : in std_logic;
@@ -281,15 +313,6 @@ port (
 
     rstCIT1out : out std_logic;
     rstCIT2out : out std_logic;
-
-    PWR_ON_1       : out std_logic;
-    PWR_ON_2       : out std_logic;
-
-    VAL_EVT_1       : out std_logic;
-    VAL_EVT_2       : out std_logic;
-
-    RAZ_CHN_1       : out std_logic;
-    RAZ_CHN_2       : out std_logic;
 
     trigger_in_1    : in std_logic_vector(31 downto 0);
     trigger_in_2    : in std_logic_vector(31 downto 0);
@@ -509,16 +532,17 @@ generic(
     resetLGVal : std_logic_vector(15 downto 0)
 );
 port(
-    clk24M   : in  std_logic;
-    rst      : in  std_logic;
-	dacHGVal : in  std_logic_vector(15 downto 0);
-    dacLGVal : in  std_logic_vector(15 downto 0);
-    send     : in  std_logic;
-    confDone : out std_logic;
-    dout     : out std_logic;
-    syncHG   : out std_logic;
-    syncLG   : out std_logic;
-    sclk     : out std_logic
+    clk24M     : in  std_logic;
+    rst        : in  std_logic;
+	dacHGVal   : in  std_logic_vector(15 downto 0);
+    dacLGVal   : in  std_logic_vector(15 downto 0);
+    enableSclk : out std_logic;
+    send       : in  std_logic;
+    confDone   : out std_logic;
+    dout       : out std_logic;
+    syncHG     : out std_logic;
+    syncLG     : out std_logic;
+    sclk       : out std_logic
 );
 end component;
 
@@ -616,6 +640,9 @@ signal s_clock200M       : std_logic;
 signal s_clock24M        : std_logic;
 signal s_clock48M        : std_logic;
 
+signal clk200k_sig, 
+       clk200k_int : std_logic;
+
 signal s_select_reg_1    : std_logic;
 signal s_SR_IN_SR_1      : std_logic;
 signal s_RST_B_SR_1      : std_logic;
@@ -626,15 +653,6 @@ signal s_SR_IN_SR_2      : std_logic;
 signal s_RST_B_SR_2      : std_logic;
 signal s_CLK_SR_2        : std_logic;
 signal s_load_2          : std_logic;
-
-signal s_PWR_ON_1        : std_logic;
-signal s_PWR_ON_2        : std_logic;
-
-signal s_VAL_EVT_1       : std_logic;
-signal s_VAL_EVT_2       : std_logic;
-
-signal s_RAZ_CHN_1       : std_logic;
-signal s_RAZ_CHN_2       : std_logic;
 
 signal s_trigger_in_1    : std_logic_vector(31 downto 0);
 signal s_trigger_in_2    : std_logic_vector(31 downto 0);
@@ -736,10 +754,14 @@ signal trigger_interno_sig : std_logic;
 
 signal s_sendRefDAC,
        s_sendRefDAC_24M,
+       enableSclk_1,
+       enableSclk_2,
        s_refDacSync1HG,
        s_refDacSync1LG,
        s_refDacSync2HG,
-       s_refDacSync2LG     : std_logic;
+       s_refDacSync2LG,
+       s_refDacSCLK_1,
+       s_refDacSCLK_2  : std_logic;
 
 signal s_confDoneCIT1, s_confDoneCIT2     : std_logic;
 
@@ -799,6 +821,19 @@ signal  ppsCount,
 
 signal  holdoff             : std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
+
+
+
+
+signal  CLK_READ_1_toBuf,
+        CLK_READ_2_toBuf,
+        SCLK_1_toBuf,
+        SCLK_2_toBuf,
+        CLK_SR_1_toBuf,
+        CLK_SR_2_toBuf,
+        s_refDacSCLK_1_toBuf,
+        s_refDacSCLK_2_toBuf : std_logic;
+
 --attribute syn_keep     : boolean;
 --attribute syn_preserve : boolean;
 --
@@ -807,13 +842,23 @@ signal  holdoff             : std_logic_vector((holdOffBits*prescaledTriggers)-1
 
 begin
 
-LVDS_TO_ASIC_EN_1 <= '1';
-LVDS_TO_ASIC_EN_2 <= '1';
+PWR_ON_1  <= s_pwr_on_citiroc1;
+PWR_ON_2  <= s_pwr_on_citiroc2;
+VAL_EVT_1  <= '1';
+VAL_EVT_2  <= '1';    
+RAZ_CHN_1  <= '0';
+RAZ_CHN_2  <= '0';
+
+LVDS_TO_ASIC_EN_1 <= s_pwr_on_citiroc1;
+LVDS_TO_ASIC_EN_2 <= s_pwr_on_citiroc2;
 
 NOR32_1  <= 'Z' when s_pwr_on_citiroc1 = '1' else '0';
 NOR32_2  <= 'Z' when s_pwr_on_citiroc2 = '1' else '0';
 NOR32T_1 <= 'Z' when s_pwr_on_citiroc1 = '1' else '0';
 NOR32T_2 <= 'Z' when s_pwr_on_citiroc2 = '1' else '0';
+
+RESETB_PA_1 <= '0';
+RESETB_PA_2 <= '0';
 
 clk48BufInst: CLKINT
 port map(
@@ -825,6 +870,32 @@ clk200BufInst: CLKINT
 port map(
     A => clock200M,
     Y => s_clock200M
+);
+
+clk48DivInst: clkDiv2
+port map(
+    rst    => s_global_rst,
+    clkIn  => s_clock48M,
+    clkOut => s_clock24M
+);
+
+clk24MBuf: CLKINT
+    port map(
+        A => s_clock24M,
+        Y => s_clock24MBuff
+    );
+
+clk200kGenInst: clk220kGen
+port map(
+    rst    => s_global_rst,
+    clkIn  => s_clock24MBuff,
+    clkOut => clk200k_int
+);
+
+BUFclk200: CLKINT
+port map(
+    Y => clk200k_sig,
+    A => clk200k_int
 );
 
 dpcu_tdaq_in <= dpcuPPS & dpcuBusyIn & dpcuTrgHold & tdaqBusyIn;
@@ -900,33 +971,26 @@ port map(
     Y => swRst
 );
 
-ha_rstb_psc <= RST_FROM_SUPERVISOR;
-hb_rstb_psc <= RST_FROM_SUPERVISOR;
+ha_rstb_psc <= RST_FROM_SUPERVISOR and s_pwr_on_citiroc1;
+hb_rstb_psc <= RST_FROM_SUPERVISOR and s_pwr_on_citiroc2;
 
 ---------------------------------------------------
--- Gli ingressi e le uscite di top_test li 
--- collego ai segnali che vanno a test_file
+-- Uscite verso CITIROC
 ---------------------------------------------------
 
-select_reg_1 <= s_select_reg_1;
-SR_IN_SR_1 <= s_SR_IN_SR_1;
-RST_B_SR_1 <= s_RST_B_SR_1;
-CLK_SR_1 <= s_CLK_SR_1;
-load_1 <= s_load_1;
-select_reg_2 <= s_select_reg_2;
-SR_IN_SR_2 <= s_SR_IN_SR_2;
-RST_B_SR_2 <= s_RST_B_SR_2;
-CLK_SR_2 <= s_CLK_SR_2;
-load_2 <= s_load_2;
+select_reg_1 <= s_select_reg_1 and s_pwr_on_citiroc1; -- '0' al reset, non è necessario metterlo in and con pwrOnCit
+SR_IN_SR_1   <= s_SR_IN_SR_1 and s_pwr_on_citiroc1;
+RST_B_SR_1   <= s_RST_B_SR_1 and s_pwr_on_citiroc1;
+--CLK_SR_1     <= s_CLK_SR_1 and s_pwr_on_citiroc1; -- '0' al reset, non è necessario metterlo in and con pwrOnCit
+load_1       <= s_load_1 and s_pwr_on_citiroc1; -- '0' al reset, non è necessario metterlo in and con pwrOnCit
 
-PWR_ON_1 <= s_PWR_ON_1;
-PWR_ON_2 <= s_PWR_ON_2;
+select_reg_2 <= s_select_reg_2 and s_pwr_on_citiroc2;
+SR_IN_SR_2   <= s_SR_IN_SR_2 and s_pwr_on_citiroc2;
+RST_B_SR_2   <= s_RST_B_SR_2 and s_pwr_on_citiroc2;
+--CLK_SR_2     <= s_CLK_SR_2 and s_pwr_on_citiroc2; -- '0' al reset, non è necessario metterlo in and con pwrOnCit
+load_2       <= s_load_2 and s_pwr_on_citiroc2; -- '0' al reset, non è necessario metterlo in and con pwrOnCit
 
-VAL_EVT_1 <= s_VAL_EVT_1;
-VAL_EVT_2 <= s_VAL_EVT_2;
-
-RAZ_CHN_1 <= s_RAZ_CHN_1;
-RAZ_CHN_2 <= s_RAZ_CHN_2;
+---------------------------------------------------
 
 s_trigger_in_1 <= trigger_in_1;
 s_trigger_in_2 <= trigger_in_2;
@@ -934,26 +998,29 @@ s_trigger_in_2 <= trigger_in_2;
 s_SDATA_hg_1 <= SDATA_hg_1;
 s_SDATA_lg_1 <= SDATA_lg_1;
 CS_1 <= s_CS_1;
-SCLK_1 <= s_SCLK_1;
-hold_hg_1 <= s_hold_hg_1;
-hold_lg_1 <= s_hold_lg_1;
+--SCLK_1 <= s_SCLK_1;
 
-CLK_READ_1 <= s_CLK_READ_1;
-SR_IN_READ_1 <= s_SR_IN_READ_1;
+hold_hg_1 <= s_hold_hg_1 and s_pwr_on_citiroc1; -- '0' al reset, non è necessario metterlo in and con pwrOnCit
+hold_lg_1 <= s_hold_lg_1 and s_pwr_on_citiroc1; -- '0' al reset, non è necessario metterlo in and con pwrOnCit
 
-RST_B_READ_1 <= s_RST_B_READ_1;
+--CLK_READ_1   <= s_CLK_READ_1 and s_pwr_on_citiroc1; -- '0' al reset, non è necessario metterlo in and con pwrOnCit
+SR_IN_READ_1 <= s_SR_IN_READ_1 and s_pwr_on_citiroc1;
+RST_B_READ_1 <= s_RST_B_READ_1 and s_pwr_on_citiroc1;
 
 s_SDATA_hg_2 <= SDATA_hg_2;
 s_SDATA_lg_2 <= SDATA_lg_2;
 CS_2 <= s_CS_2;
-SCLK_2 <= s_SCLK_2;
-hold_hg_2 <= s_hold_hg_2;
-hold_lg_2 <= s_hold_lg_2;
+--SCLK_2 <= s_SCLK_2;
 
-CLK_READ_2 <= s_CLK_READ_2;
-SR_IN_READ_2 <= s_SR_IN_READ_2;
+hold_hg_2 <= s_hold_hg_2 and s_pwr_on_citiroc2;
+hold_lg_2 <= s_hold_lg_2 and s_pwr_on_citiroc2;
 
-RST_B_READ_2 <= s_RST_B_READ_2;
+--CLK_READ_2   <= s_CLK_READ_2 and s_pwr_on_citiroc2; -- '0' al reset, non è necessario metterlo in and con pwrOnCit
+SR_IN_READ_2 <= s_SR_IN_READ_2 and s_pwr_on_citiroc2;
+RST_B_READ_2 <= s_RST_B_READ_2 and s_pwr_on_citiroc2;
+
+PS_MODEB_EXT_1 <= '1' and s_pwr_on_citiroc1;
+PS_MODEB_EXT_2 <= '1' and s_pwr_on_citiroc2;
 
 ---------------------------------------------------
 -- Gli ingressi e le uscite di top_test 
@@ -1008,21 +1075,6 @@ uscitaTest(0)  <= dpcuBusyInSync;
 
 dataReadyOut <= dataReadyOutSigBuff;
 
-clk48DivInst: clkDiv2
-port map(
-    rst    => s_global_rst,
-    clkIn  => s_clock48M,
-    clkOut => s_clock24M
-);
-
---s_clock24MBuff <= s_clock24M;
-
-clk24MBuf: CLKINT
-    port map(
-        A => s_clock24M,
-        Y => s_clock24MBuff
-    );
-
 inst_test_file: test_file
 generic map(
     concurrentTriggers   => concurrentTriggers,
@@ -1033,6 +1085,7 @@ port map(
     clockSYS => s_clock200M,--s_clock192M,
     clock48M => s_clock48M,
     clock24M => s_clock24MBuff,
+    clock200k => clk200k_sig,
     rst => s_global_rst,
 
     triggerInhibit => trgInhibit,
@@ -1083,15 +1136,6 @@ port map(
 
     rstCIT1out => rstCIT1out,
     rstCIT2out => rstCIT2out,
-
-    PWR_ON_1 => s_PWR_ON_1,
-    PWR_ON_2 => s_PWR_ON_2,
-
-    VAL_EVT_1 => s_VAL_EVT_1,
-    VAL_EVT_2 => s_VAL_EVT_2,
-
-    RAZ_CHN_1 => s_RAZ_CHN_1,
-    RAZ_CHN_2 => s_RAZ_CHN_2,
 
     trigger_in_1 => s_trigger_in_1,
     trigger_in_2 => s_trigger_in_2,
@@ -1353,16 +1397,17 @@ generic map(
     resetLGVal => refDac1Def(15 downto 0)
 )
 port map(
-    clk24M   => s_clock24MBuff,
-    rst      => rstCIT1out,
-	dacHGVal => s_refDAC1(31 downto 16),
-    dacLGVal => s_refDAC1(15 downto 0),
-    send     => s_sendRefDAC_24M,
-    confDone => s_confDoneCIT1,
-    dout     => refDacDIN_1,
-    syncHG   => s_refDacSync1HG,
-    syncLG   => s_refDacSync1LG,
-    sclk     => refDacSCLK_1
+    clk24M     => s_clock24MBuff,
+    rst        => rstCIT1out,
+	dacHGVal   => s_refDAC1(31 downto 16),
+    dacLGVal   => s_refDAC1(15 downto 0),
+    enableSclk => enableSclk_1,
+    send       => s_sendRefDAC_24M,
+    confDone   => s_confDoneCIT1,
+    dout       => refDacDIN_1,
+    syncHG     => s_refDacSync1HG,
+    syncLG     => s_refDacSync1LG,
+    sclk       => s_refDacSCLK_1
 );
 
 refControlCIT2: refController
@@ -1375,12 +1420,13 @@ port map(
     rst      => rstCIT2out,
 	dacHGVal => s_refDAC2(31 downto 16),
     dacLGVal => s_refDAC2(15 downto 0),
+    enableSclk => enableSclk_2,
     send     => s_sendRefDAC_24M,
     confDone => s_confDoneCIT2,
     dout     => refDacDIN_2,
     syncHG   => s_refDacSync2HG,
     syncLG   => s_refDacSync2LG,
-    sclk     => refDacSCLK_2
+    sclk     => s_refDacSCLK_2
 );
 
 refDacSYNC_HG_1 <= s_refDacSync1HG;
@@ -1433,6 +1479,127 @@ spwstream_inst: spwstream
         spw_di      => s_spw_di,
         spw_si      => s_spw_si,
         spw_do      => s_spw_do,
-        spw_so      => s_spw_so );
+        spw_so      => s_spw_so
+);
+
+ODDR_CLK_READ_1: DDR_OUT
+port map(
+    DR  => '0',
+    DF  => '1',
+    CLR => s_CLK_READ_1,
+    CLK => clk200k_sig,
+    Q   => CLK_READ_1_toBuf
+);
+
+ODDR_CLK_READ_1_BUF: OUTBUF
+port map(
+    D   => CLK_READ_1_toBuf,
+    PAD => CLK_READ_1
+);
+
+ODDR_CLK_READ_2: DDR_OUT
+port map(
+    DR  => '0',
+    DF  => '1',
+    CLR => s_CLK_READ_2,
+    CLK => clk200k_sig,
+    Q   => CLK_READ_2_toBuf
+);
+
+ODDR_CLK_READ_2_BUF: OUTBUF
+port map(
+    D   => CLK_READ_2_toBuf,
+    PAD => CLK_READ_2
+);
+
+ODDR_SCLK_1: DDR_OUT
+port map(
+    DR  => '0',
+    DF  => '1',
+    CLR => s_SCLK_1,
+    CLK => s_clock24MBuff,
+    Q   => SCLK_1_toBuf
+);
+
+ODDR_SCLK_1_BUF: OUTBUF
+port map(
+    D   => SCLK_1_toBuf,
+    PAD => SCLK_1
+);
+
+ODDR_SCLK_2: DDR_OUT
+port map(
+    DR  => '0',
+    DF  => '1',
+    CLR => s_SCLK_2,
+    CLK => s_clock24MBuff,
+    Q   => SCLK_2_toBuf
+);
+
+ODDR_SCLK_2_BUF: OUTBUF
+port map(
+    D   => SCLK_2_toBuf,
+    PAD => SCLK_2
+);
+
+ODRR_citirocClkSR1: DDR_OUT
+port map(
+    DR => '0',
+    DF => '1',
+    CLR   => s_CLK_SR_1,
+    CLK   => clk200k_sig,
+    Q     => CLK_SR_1_toBuf
+);
+
+ODRR_citirocClkSR1_BUF: OUTBUF
+port map(
+    D   => CLK_SR_1_toBuf,
+    PAD => CLK_SR_1
+);
+
+ODRR_citirocClkSR2: DDR_OUT
+port map(
+    DR => '0',
+    DF => '1',
+    CLR   => s_CLK_SR_2,
+    CLK   => clk200k_sig,
+    Q     => CLK_SR_2_toBuf
+);
+
+ODRR_citirocClkSR2_BUF: OUTBUF
+port map(
+    D   => CLK_SR_2_toBuf,
+    PAD => CLK_SR_2
+);
+
+ODRR_dacSCLK1: DDR_OUT
+port map( 
+    DR  => '1',
+    DF  => '0',
+    CLR => enableSclk_1, -- attivo basso
+    CLK => s_clock24MBuff,
+    Q   => s_refDacSCLK_1_toBuf
+);
+
+ODRR_dacSCLK1_BUF: OUTBUF
+port map(
+    D   => s_refDacSCLK_1_toBuf,
+    PAD => s_refDacSCLK_1
+);
+
+ODRR_dacSCLK2: DDR_OUT
+port map( 
+    DR  => '1',
+    DF  => '0',
+    CLR => enableSclk_2, -- attivo basso
+    CLK => s_clock24MBuff,
+    Q   => s_refDacSCLK_2_toBuf
+);
+
+ODRR_dacSCLK2_BUF: OUTBUF
+port map(
+    D   => s_refDacSCLK_2_toBuf,
+    PAD => s_refDacSCLK_2
+);
 
 end architecture_top_test;

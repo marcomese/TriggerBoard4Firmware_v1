@@ -66,20 +66,15 @@ signal PROBE_reg: std_logic_vector(255 downto 0);
 --attribute syn_preserve of load_i : signal is true;
 --attribute syn_keep     of load_i : signal is true;
 
-component output_DDR is
-port(
-    DataR : in  std_logic;
-    DataF : in  std_logic;
-    CLR   : in  std_logic;
-    CLK   : in  std_logic;
-    PAD   : out std_logic
-);
-end component;
-
 begin
+
+RST_B_SR <= RST_B_SR_sig;
+select_reg <= select_reg_sig;
 
 Data_Conf <= config_vector;
 PROBE_reg <= (others => '0');
+
+CLK_SR <= CLK_SR_sig;
 
 SYNC_PROC: process(reset, clk200k)
 begin
@@ -88,7 +83,8 @@ begin
         select_reg_sig <= '0';
         SR_IN_SR       <= '1'; 
         RST_B_SR_sig   <= '1'; -- attivo basso
-        CLK_SR_sig     <= '0'; -- attivo sul fronte di salita 
+--        CLK_SR_sig     <= '0'; -- attivo sul fronte di salita 
+        CLK_SR_sig     <= '1'; -- pilota l'ingresso CLR di DDR_OUT quindi è attivo basso
         state0_sig     <= '1';
         idle           <= '0';
         load           <= '0';
@@ -180,7 +176,8 @@ begin
         select_reg_i       <= '0'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= '1'; 
         RST_B_SR_i         <= '1'; -- attivo basso
-        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
+--        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
+        CLK_SR_i           <= '1'; -- attivo basso
         state0_sig_i       <= '1';
         idle_i             <= '0';
         load_i             <= '0';
@@ -189,7 +186,8 @@ begin
         select_reg_i       <= '0'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= '1'; 
         RST_B_SR_i         <= '1'; -- attivo basso
-        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
+--        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
+        CLK_SR_i           <= '1'; -- attivo basso
         state0_sig_i       <= '1';
         idle_i             <= '0';
         load_i             <= '0';
@@ -198,7 +196,8 @@ begin
         select_reg_i       <= '0'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= '1'; 
         RST_B_SR_i         <= '0'; -- attivo basso
-        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
+--        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
+        CLK_SR_i           <= '1'; -- attivo basso
         state0_sig_i       <= '0';
         idle_i             <= '0';
         load_i             <= '0';
@@ -207,7 +206,8 @@ begin
         select_reg_i       <= '1'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= '1'; 
         RST_B_SR_i         <= '0'; -- attivo basso
-        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
+--        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
+        CLK_SR_i           <= '1'; -- attivo basso
         state0_sig_i       <= '0';
         idle_i             <= '0';
         load_i             <= '0';
@@ -216,7 +216,8 @@ begin
         select_reg_i       <= '1'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= Data_Conf(bit_nr); ------------------------------------------------------------
         RST_B_SR_i         <= '1'; -- attivo basso
-        CLK_SR_i           <= '1'; ---------------------------------------------------------------- -- attivo sul fronte di salita 
+--        CLK_SR_i           <= '1'; ---------------------------------------------------------------- -- attivo sul fronte di salita 
+        CLK_SR_i           <= '0'; -- attivo basso
         state0_sig_i       <= '0';
         idle_i             <= '0';
         load_i             <= '0';
@@ -225,7 +226,8 @@ begin
         select_reg_i       <= '1'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= '1'; 
         RST_B_SR_i         <= '1'; -- attivo basso
-        CLK_SR_i           <= '1'; -- attivo sul fronte di salita ------------------------------------------------
+--        CLK_SR_i           <= '1'; -- attivo sul fronte di salita ------------------------------------------------
+        CLK_SR_i           <= '0'; -- attivo basso
         state0_sig_i       <= '0';
         idle_i             <= '0';
         load_i             <= '0';
@@ -234,7 +236,8 @@ begin
         select_reg_i       <= '1'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= '1'; 
         RST_B_SR_i         <= '1'; -- attivo basso
-        CLK_SR_i           <= '0'; -- attivo sul fronte di salita ------------------------------------------------
+--        CLK_SR_i           <= '0'; -- attivo sul fronte di salita ------------------------------------------------
+        CLK_SR_i           <= '1'; -- attivo basso
         state0_sig_i       <= '0';
         idle_i             <= '0';
         load_i             <= '0';
@@ -243,7 +246,8 @@ begin
         select_reg_i       <= '1'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= '1'; 
         RST_B_SR_i         <= '1'; -- attivo basso
-        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
+--        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
+        CLK_SR_i           <= '1'; -- attivo basso
         state0_sig_i       <= '0';
         idle_i             <= '0';
         load_i             <= '1';
@@ -252,7 +256,8 @@ begin
         select_reg_i       <= '0'; -- 0 probe reg, 1 slow control reg !!!!!!!!!!!!!!!!!!!!!!
         SR_IN_SR_i         <= PROBE_reg(probe_bit_nr); 
         RST_B_SR_i         <= '1'; -- attivo basso
-        CLK_SR_i           <= '1'; -- attivo sul fronte di salita 
+--        CLK_SR_i           <= '1'; -- attivo sul fronte di salita 
+        CLK_SR_i           <= '0'; -- attivo basso
         state0_sig_i       <= '0';
         idle_i             <= '0';
         load_i             <= '0';
@@ -261,7 +266,8 @@ begin
         select_reg_i       <= '1'; -- 0 probe reg, 1 slow control reg 
         SR_IN_SR_i         <= '1'; 
         RST_B_SR_i         <= '1'; -- attivo basso
-        CLK_SR_i           <= '0'; -- attivo sul fronte di salita !!!!!!!!!!!!!!!!!!!!!! ancora abilitato
+--        CLK_SR_i           <= '0'; -- attivo sul fronte di salita !!!!!!!!!!!!!!!!!!!!!! ancora abilitato
+        CLK_SR_i           <= '1'; -- attivo basso
         state0_sig_i       <= '0';
         idle_i             <= '0';
         load_i             <= '0';
@@ -270,7 +276,8 @@ begin
         select_reg_i       <= '0'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= PROBE_reg(probe_bit_nr); 
         RST_B_SR_i         <= '1'; -- attivo basso
-        CLK_SR_i           <= '1'; -- attivo sul fronte di salita ------------------------------------------------
+--        CLK_SR_i           <= '1'; -- attivo sul fronte di salita ------------------------------------------------
+        CLK_SR_i           <= '0'; -- attivo basso
         state0_sig_i       <= '0';
         idle_i             <= '0';
         load_i             <= '0';
@@ -279,7 +286,8 @@ begin
         select_reg_i       <= '1'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= '1'; 
         RST_B_SR_i         <= '1'; -- attivo basso
-        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
+--        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
+        CLK_SR_i           <= '1'; -- attivo basso
         state0_sig_i       <= '0';
         idle_i             <= '1';
         load_i             <= '0';
@@ -288,7 +296,8 @@ begin
         select_reg_i       <= '1'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= '1'; 
         RST_B_SR_i         <= '1'; -- attivo basso
-        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
+--        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
+        CLK_SR_i           <= '1'; -- attivo basso
         state0_sig_i       <= '0';
         idle_i             <= '0';
         load_i             <= '0';
@@ -354,17 +363,5 @@ begin
         end if;
     end if;
 end process;
-
-CompODDR: output_DDR
-port map(
-    DataR => '0',
-    DataF => '1',
-    CLR   => CLK_SR_sig, 
-    CLK   => clk200k,
-    PAD   => CLK_SR
-);
-
-RST_B_SR <= RST_B_SR_sig;
-select_reg <= select_reg_sig;
 
 end Behavioral;
