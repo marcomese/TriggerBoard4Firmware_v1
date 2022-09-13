@@ -18,8 +18,7 @@ port(
     confDone   : out std_logic;
     dout       : out std_logic;
     syncHG     : out std_logic;
-    syncLG     : out std_logic;
-    sclk       : out std_logic
+    syncLG     : out std_logic
 );
 end refController;
 

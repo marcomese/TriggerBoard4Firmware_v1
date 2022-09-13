@@ -339,7 +339,9 @@ begin
     elsif rising_edge(clk200k) then
         if (RST_B_SR_sig = '0') then -- il contatore viene resettato ogni volta che si resettano i registri
             bit_nr <= 0;	
-        elsif (CLK_SR_sig = '1' and select_reg_sig = '1') then -- il contatore è abilitato solo nello stato di configurazione e limitrofi (config_state, config_to_idle)
+        --elsif (CLK_SR_sig = '1' and select_reg_sig = '1') then -- il contatore è abilitato solo nello stato di configurazione e limitrofi (config_state, config_to_idle)
+        -- cambiando la polarità di CLK_SR_sig anche questo va cambiato
+        elsif (CLK_SR_sig = '0' and select_reg_sig = '1') then -- il contatore è abilitato solo nello stato di configurazione e limitrofi (config_state, config_to_idle)
             if bit_nr < DATA_WIDTH - 1  then
                 bit_nr <= bit_nr + 1;
             end if;
@@ -356,7 +358,9 @@ begin
     elsif rising_edge(clk200k) then
         if (RST_B_SR_sig = '0') then -- il contatore viene resettato ogni volta che si resettano i registri
             probe_bit_nr <= 0;
-        elsif (CLK_SR_sig = '1' and select_reg_sig = '0') then -- il contatore è abilitato solo nello stato di probe (probe_state)
+        --elsif (CLK_SR_sig = '1' and select_reg_sig = '0') then -- il contatore è abilitato solo nello stato di probe (probe_state)
+        -- cambiando la polarità di CLK_SR_sig anche questo va cambiato
+        elsif (CLK_SR_sig = '0' and select_reg_sig = '0') then -- il contatore è abilitato solo nello stato di probe (probe_state)
             if probe_bit_nr < PROBE_WIDTH - 1  then
                 probe_bit_nr <= probe_bit_nr + 1;
             end if;

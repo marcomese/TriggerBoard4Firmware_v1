@@ -134,6 +134,16 @@ port (
     WDI_TO_SUPERVISOR   : out std_logic;
     RST_FROM_SUPERVISOR : in std_logic;
 
+    -- segnali per i sensori di temperatura
+    TSENS_DOUT_1 : in  std_logic;
+    TSENS_CS_N_1 : out std_logic;
+    TSENS_SCLK_1 : out std_logic;
+
+    TSENS_DOUT_2 : in  std_logic;
+    TSENS_CS_N_2 : out std_logic;
+    TSENS_SCLK_2 : out std_logic;
+
+
     -- DAC piedistalli
     refDacDIN_1      : out std_logic;
     refDacSYNC_HG_1  : out std_logic;
@@ -438,6 +448,43 @@ port(
 );
 end component;
 
+component edgeDetector is
+generic(
+    edge      : std_logic := '0' -- '0' falling, '1' rising
+);
+port(
+    clk       : in  std_logic;
+    rst       : in  std_logic;
+    signalIn  : in  std_logic;
+    signalOut : out std_logic
+);
+end component;
+
+component counter4Bit is
+port(
+    Aclr   : in  std_logic;
+    Clock  : in  std_logic;
+    Tcnt   : out std_logic;
+    Q      : out std_logic_vector(3 downto 0);
+    Enable : in  std_logic
+);
+end component;
+
+component AD7814_T_IF_0 is
+  port(-------------------------------------------------------------	  
+	  Clr : in std_logic;-- Active Low	async
+	  clk : in std_logic;-- Fatt.div. /x interno ..
+	  -- settare costante in funzione del sys_clk esterno ..
+	  Start     : in std_logic;-- Active High	pulse  
+	  Completed : out std_logic;-- Active High	pulse
+	  Data_acquired: out std_logic_vector(9 downto 0);--10b Data out..
+    -- serial I/F :
+    Data_in : in std_logic;
+    CS_out  : out std_logic;    
+    Clk_out : out std_logic  	   	  
+   );---------------------------------------------------------------
+end component;
+
 component register_file is
 generic(
     sysid                 : std_logic_vector(31 downto 0) := x"00000000";
@@ -541,8 +588,7 @@ port(
     confDone   : out std_logic;
     dout       : out std_logic;
     syncHG     : out std_logic;
-    syncLG     : out std_logic;
-    sclk       : out std_logic
+    syncLG     : out std_logic
 );
 end component;
 
@@ -759,9 +805,7 @@ signal s_sendRefDAC,
        s_refDacSync1HG,
        s_refDacSync1LG,
        s_refDacSync2HG,
-       s_refDacSync2LG,
-       s_refDacSCLK_1,
-       s_refDacSCLK_2  : std_logic;
+       s_refDacSync2LG  : std_logic;
 
 signal s_confDoneCIT1, s_confDoneCIT2     : std_logic;
 
@@ -821,10 +865,6 @@ signal  ppsCount,
 
 signal  holdoff             : std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
-
-
-
-
 signal  CLK_READ_1_toBuf,
         CLK_READ_2_toBuf,
         SCLK_1_toBuf,
@@ -833,6 +873,14 @@ signal  CLK_READ_1_toBuf,
         CLK_SR_2_toBuf,
         s_refDacSCLK_1_toBuf,
         s_refDacSCLK_2_toBuf : std_logic;
+
+signal  tempData,
+        s_board_temp         : std_logic_vector(31 downto 0);
+
+signal  wdiEdge,
+        startConversion,
+        temp1Completed,
+        temp2Completed       : std_logic;
 
 --attribute syn_keep     : boolean;
 --attribute syn_preserve : boolean;
@@ -947,12 +995,12 @@ wdRst <= not RST_FROM_SUPERVISOR;
 
 watchDogInst: watchDogCtrl
 generic map(
-    clkFreq   => 48.0e6,
-    wdiHWidth => 100.0e-9,
-    wdiLWidth => 500.0e-9
+    clkFreq   => 200.0e3,
+    wdiHWidth => 5.0e-6,
+    wdiLWidth => 25.0e-6
 )
 port map(
-    clk => clock48M,
+    clk => clk200k_sig,
     rst => wdRst,
     wdi => wdi
 );
@@ -1295,6 +1343,81 @@ port map(
     o_txdata            => s_txdata
 );
 
+wdiEdgeDetInst: edgeDetector
+generic map(
+    edge      => '1'
+)
+port map(
+    clk       => s_clock48M,
+    rst       => s_global_rst,
+    signalIn  => wdi,
+    signalOut => wdiEdge
+);
+
+startConversionCounterInst: counter4Bit
+port map(
+    Aclr   => s_global_rst,
+    Clock  => s_clock48M,
+    Tcnt   => startConversion,
+    Enable => wdiEdge,
+    Q      => open
+);
+
+instTempSens1: AD7814_T_IF_0
+ port map(
+    Clr           => not s_global_rst,
+    clk           => s_clock48M,
+
+    Start         => startConversion,
+    Completed     => temp1Completed,
+    Data_acquired => tempData(9 downto 0),
+
+    Data_in       => TSENS_DOUT_1,
+    CS_out        => TSENS_CS_N_1,
+    Clk_out       => TSENS_SCLK_1
+);
+
+tempData(15 downto 10) <= (others => '0');
+
+tDataReg1: process(s_clock48M, s_global_rst)
+begin
+    if s_global_rst = '1' then
+        s_board_temp(15 downto 0) <= (others => '0');
+    elsif rising_edge(s_clock48M) then
+        if temp1Completed = '1' then
+            s_board_temp(15 downto 0) <= tempData(15 downto 0);
+        end if;
+    end if;
+end process;
+
+instTempSens2: AD7814_T_IF_0
+ port map(
+    Clr           => not s_global_rst,
+    clk           => s_clock48M,
+
+    Start         => startConversion,
+    Completed     => temp2Completed,
+    Data_acquired => tempData(25 downto 16),
+
+    Data_in       => TSENS_DOUT_2,
+    CS_out        => TSENS_CS_N_2,
+    Clk_out       => TSENS_SCLK_2
+);
+
+tempData(31 downto 26) <= (others => '0');
+
+tDataReg2: process(s_clock48M, s_global_rst)
+begin
+    if s_global_rst = '1' then
+        s_board_temp(31 downto 16) <= (others => '0');
+    elsif rising_edge(s_clock48M) then
+        if temp2Completed = '1' then
+            s_board_temp(31 downto 16) <= tempData(31 downto 16);
+        end if;
+    end if;
+end process;
+
+
 inst_register_file: register_file
   generic map (
 
@@ -1370,7 +1493,7 @@ inst_register_file: register_file
 
         PMT_rate => s_PMT_rate,
         mask_rate => s_mask_rate,
-        board_temp => (others => '0')--s_board_temp
+        board_temp => s_board_temp
 
   );
 
@@ -1406,8 +1529,7 @@ port map(
     confDone   => s_confDoneCIT1,
     dout       => refDacDIN_1,
     syncHG     => s_refDacSync1HG,
-    syncLG     => s_refDacSync1LG,
-    sclk       => s_refDacSCLK_1
+    syncLG     => s_refDacSync1LG
 );
 
 refControlCIT2: refController
@@ -1425,8 +1547,7 @@ port map(
     confDone => s_confDoneCIT2,
     dout     => refDacDIN_2,
     syncHG   => s_refDacSync2HG,
-    syncLG   => s_refDacSync2LG,
-    sclk     => s_refDacSCLK_2
+    syncLG   => s_refDacSync2LG
 );
 
 refDacSYNC_HG_1 <= s_refDacSync1HG;
@@ -1584,7 +1705,7 @@ port map(
 ODRR_dacSCLK1_BUF: OUTBUF
 port map(
     D   => s_refDacSCLK_1_toBuf,
-    PAD => s_refDacSCLK_1
+    PAD => refDacSCLK_1
 );
 
 ODRR_dacSCLK2: DDR_OUT
@@ -1599,7 +1720,7 @@ port map(
 ODRR_dacSCLK2_BUF: OUTBUF
 port map(
     D   => s_refDacSCLK_2_toBuf,
-    PAD => s_refDacSCLK_2
+    PAD => refDacSCLK_2
 );
 
 end architecture_top_test;
