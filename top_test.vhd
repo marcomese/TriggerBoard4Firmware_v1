@@ -1348,7 +1348,7 @@ generic map(
     edge      => '1'
 )
 port map(
-    clk       => s_clock48M,
+    clk       => s_clock24MBuff,
     rst       => s_global_rst,
     signalIn  => wdi,
     signalOut => wdiEdge
@@ -1357,7 +1357,7 @@ port map(
 startConversionCounterInst: counter4Bit
 port map(
     Aclr   => s_global_rst,
-    Clock  => s_clock48M,
+    Clock  => s_clock24MBuff,
     Tcnt   => startConversion,
     Enable => wdiEdge,
     Q      => open
@@ -1366,7 +1366,7 @@ port map(
 instTempSens1: AD7814_T_IF_0
  port map(
     Clr           => not s_global_rst,
-    clk           => s_clock48M,
+    clk           => s_clock24MBuff,
 
     Start         => startConversion,
     Completed     => temp1Completed,
@@ -1379,11 +1379,11 @@ instTempSens1: AD7814_T_IF_0
 
 tempData(15 downto 10) <= (others => '0');
 
-tDataReg1: process(s_clock48M, s_global_rst)
+tDataReg1: process(s_clock24MBuff, s_global_rst)
 begin
     if s_global_rst = '1' then
         s_board_temp(15 downto 0) <= (others => '0');
-    elsif rising_edge(s_clock48M) then
+    elsif rising_edge(s_clock24MBuff) then
         if temp1Completed = '1' then
             s_board_temp(15 downto 0) <= tempData(15 downto 0);
         end if;
@@ -1393,7 +1393,7 @@ end process;
 instTempSens2: AD7814_T_IF_0
  port map(
     Clr           => not s_global_rst,
-    clk           => s_clock48M,
+    clk           => s_clock24MBuff,
 
     Start         => startConversion,
     Completed     => temp2Completed,
@@ -1406,11 +1406,11 @@ instTempSens2: AD7814_T_IF_0
 
 tempData(31 downto 26) <= (others => '0');
 
-tDataReg2: process(s_clock48M, s_global_rst)
+tDataReg2: process(s_clock24MBuff, s_global_rst)
 begin
     if s_global_rst = '1' then
         s_board_temp(31 downto 16) <= (others => '0');
-    elsif rising_edge(s_clock48M) then
+    elsif rising_edge(s_clock24MBuff) then
         if temp2Completed = '1' then
             s_board_temp(31 downto 16) <= tempData(31 downto 16);
         end if;
