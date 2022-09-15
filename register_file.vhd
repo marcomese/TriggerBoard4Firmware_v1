@@ -63,8 +63,8 @@ port(
     -- status register
     config_status_1     : in std_logic; 
     config_status_2     : in std_logic; 
-    acquisition_state   : in std_logic; -- = '1' quando il sistema è in acquisizione
-    calibration_state   : in std_logic; -- = '1' quando il sistema è in calibrazione
+    acquisition_state   : in std_logic; -- = '1' quando il sistema ï¿½ in acquisizione
+    calibration_state   : in std_logic; -- = '1' quando il sistema ï¿½ in calibrazione
 
     refDac_status_1     : in std_logic;
     refDac_status_2     : in std_logic;
@@ -112,6 +112,212 @@ end record;
 
 -- define the type for the address vector that store the address map table
 type addr_vector_t is array (natural range <>) of addr_t;
+
+-- LOCAL ADDRESSES
+constant ID_REG_LOC_LOC_ADDR              : natural := 0;
+constant STATUS_REG_LOC_ADDR              : natural := 1;
+constant RST_REG_LOC_ADDR                 : natural := 2;
+constant CLK_REG_LOC_ADDR                 : natural := 3;
+constant RW_REG_LOC_ADDR                  : natural := 4;
+constant CMD_REG_LOC_ADDR                 : natural := 5;
+constant CONFIG_CITIROC_1_0_LOC_ADDR      : natural := 6;
+constant CONFIG_CITIROC_1_1_LOC_ADDR      : natural := 7;
+constant CONFIG_CITIROC_1_2_LOC_ADDR      : natural := 8;
+constant CONFIG_CITIROC_1_3_LOC_ADDR      : natural := 9;
+constant CONFIG_CITIROC_1_4_LOC_ADDR      : natural := 10;
+constant CONFIG_CITIROC_1_5_LOC_ADDR      : natural := 11;
+constant CONFIG_CITIROC_1_6_LOC_ADDR      : natural := 12;
+constant CONFIG_CITIROC_1_7_LOC_ADDR      : natural := 13;
+constant CONFIG_CITIROC_1_8_LOC_ADDR      : natural := 14;
+constant CONFIG_CITIROC_1_9_LOC_ADDR      : natural := 15;
+constant CONFIG_CITIROC_1_10_LOC_ADDR     : natural := 16;
+constant CONFIG_CITIROC_1_11_LOC_ADDR     : natural := 17;
+constant CONFIG_CITIROC_1_12_LOC_ADDR     : natural := 18;
+constant CONFIG_CITIROC_1_13_LOC_ADDR     : natural := 19;
+constant CONFIG_CITIROC_1_14_LOC_ADDR     : natural := 20;
+constant CONFIG_CITIROC_1_15_LOC_ADDR     : natural := 21;
+constant CONFIG_CITIROC_1_16_LOC_ADDR     : natural := 22;
+constant CONFIG_CITIROC_1_17_LOC_ADDR     : natural := 23;
+constant CONFIG_CITIROC_1_18_LOC_ADDR     : natural := 24;
+constant CONFIG_CITIROC_1_19_LOC_ADDR     : natural := 25;
+constant CONFIG_CITIROC_1_20_LOC_ADDR     : natural := 26;
+constant CONFIG_CITIROC_1_21_LOC_ADDR     : natural := 27;
+constant CONFIG_CITIROC_1_22_LOC_ADDR     : natural := 28;
+constant CONFIG_CITIROC_1_23_LOC_ADDR     : natural := 29;
+constant CONFIG_CITIROC_1_24_LOC_ADDR     : natural := 30;
+constant CONFIG_CITIROC_1_25_LOC_ADDR     : natural := 31;
+constant CONFIG_CITIROC_1_26_LOC_ADDR     : natural := 32;
+constant CONFIG_CITIROC_1_27_LOC_ADDR     : natural := 33;
+constant CONFIG_CITIROC_1_28_LOC_ADDR     : natural := 34;
+constant CONFIG_CITIROC_1_29_LOC_ADDR     : natural := 35;
+constant CONFIG_CITIROC_1_30_LOC_ADDR     : natural := 36;
+constant CONFIG_CITIROC_1_31_LOC_ADDR     : natural := 37;
+constant CONFIG_CITIROC_1_32_LOC_ADDR     : natural := 38;
+constant CONFIG_CITIROC_1_33_LOC_ADDR     : natural := 39;
+constant CONFIG_CITIROC_1_34_LOC_ADDR     : natural := 40;
+constant CONFIG_CITIROC_1_35_LOC_ADDR     : natural := 41;
+constant CONFIG_CITIROC_2_0_LOC_ADDR      : natural := 42;
+constant CONFIG_CITIROC_2_1_LOC_ADDR      : natural := 43;
+constant CONFIG_CITIROC_2_2_LOC_ADDR      : natural := 44;
+constant CONFIG_CITIROC_2_3_LOC_ADDR      : natural := 45;
+constant CONFIG_CITIROC_2_4_LOC_ADDR      : natural := 46;
+constant CONFIG_CITIROC_2_5_LOC_ADDR      : natural := 47;
+constant CONFIG_CITIROC_2_6_LOC_ADDR      : natural := 48;
+constant CONFIG_CITIROC_2_7_LOC_ADDR      : natural := 49;
+constant CONFIG_CITIROC_2_8_LOC_ADDR      : natural := 50;
+constant CONFIG_CITIROC_2_9_LOC_ADDR      : natural := 51;
+constant CONFIG_CITIROC_2_10_LOC_ADDR     : natural := 52;
+constant CONFIG_CITIROC_2_11_LOC_ADDR     : natural := 53;
+constant CONFIG_CITIROC_2_12_LOC_ADDR     : natural := 54;
+constant CONFIG_CITIROC_2_13_LOC_ADDR     : natural := 55;
+constant CONFIG_CITIROC_2_14_LOC_ADDR     : natural := 56;
+constant CONFIG_CITIROC_2_15_LOC_ADDR     : natural := 57;
+constant CONFIG_CITIROC_2_16_LOC_ADDR     : natural := 58;
+constant CONFIG_CITIROC_2_17_LOC_ADDR     : natural := 59;
+constant CONFIG_CITIROC_2_18_LOC_ADDR     : natural := 60;
+constant CONFIG_CITIROC_2_19_LOC_ADDR     : natural := 61;
+constant CONFIG_CITIROC_2_20_LOC_ADDR     : natural := 62;
+constant CONFIG_CITIROC_2_21_LOC_ADDR     : natural := 63;
+constant CONFIG_CITIROC_2_22_LOC_ADDR     : natural := 64;
+constant CONFIG_CITIROC_2_23_LOC_ADDR     : natural := 65;
+constant CONFIG_CITIROC_2_24_LOC_ADDR     : natural := 66;
+constant CONFIG_CITIROC_2_25_LOC_ADDR     : natural := 67;
+constant CONFIG_CITIROC_2_26_LOC_ADDR     : natural := 68;
+constant CONFIG_CITIROC_2_27_LOC_ADDR     : natural := 69;
+constant CONFIG_CITIROC_2_28_LOC_ADDR     : natural := 70;
+constant CONFIG_CITIROC_2_29_LOC_ADDR     : natural := 71;
+constant CONFIG_CITIROC_2_30_LOC_ADDR     : natural := 72;
+constant CONFIG_CITIROC_2_31_LOC_ADDR     : natural := 73;
+constant CONFIG_CITIROC_2_32_LOC_ADDR     : natural := 74;
+constant CONFIG_CITIROC_2_33_LOC_ADDR     : natural := 75;
+constant CONFIG_CITIROC_2_34_LOC_ADDR     : natural := 76;
+constant CONFIG_CITIROC_2_35_LOC_ADDR     : natural := 77;
+constant TRIGGER_MASK_LOC_ADDR            : natural := 78;
+constant GENERIC_TRIGGER_MASK_LOC_ADDR    : natural := 79;
+constant PMT_1_MASK_LOC_ADDR              : natural := 80;
+constant PMT_2_MASK_LOC_ADDR              : natural := 81;
+constant CAL_FREQ_LOC_ADDR                : natural := 82;
+constant BOARD_TEMP_LOC_ADDR              : natural := 83;
+constant PMT_RATE_00_LOC_ADDR             : natural := 84;
+constant PMT_RATE_01_LOC_ADDR             : natural := 85;
+constant PMT_RATE_02_LOC_ADDR             : natural := 86;
+constant PMT_RATE_03_LOC_ADDR             : natural := 87;
+constant PMT_RATE_04_LOC_ADDR             : natural := 88;
+constant PMT_RATE_05_LOC_ADDR             : natural := 89;
+constant PMT_RATE_06_LOC_ADDR             : natural := 90;
+constant PMT_RATE_07_LOC_ADDR             : natural := 91;
+constant PMT_RATE_08_LOC_ADDR             : natural := 92;
+constant PMT_RATE_09_LOC_ADDR             : natural := 93;
+constant PMT_RATE_10_LOC_ADDR             : natural := 94;
+constant PMT_RATE_11_LOC_ADDR             : natural := 95;
+constant PMT_RATE_12_LOC_ADDR             : natural := 96;
+constant PMT_RATE_13_LOC_ADDR             : natural := 97;
+constant PMT_RATE_14_LOC_ADDR             : natural := 98;
+constant PMT_RATE_15_LOC_ADDR             : natural := 99;
+constant PMT_RATE_16_LOC_ADDR             : natural := 100;
+constant PMT_RATE_17_LOC_ADDR             : natural := 101;
+constant PMT_RATE_18_LOC_ADDR             : natural := 102;
+constant PMT_RATE_19_LOC_ADDR             : natural := 103;
+constant PMT_RATE_20_LOC_ADDR             : natural := 104;
+constant PMT_RATE_21_LOC_ADDR             : natural := 105;
+constant PMT_RATE_22_LOC_ADDR             : natural := 106;
+constant PMT_RATE_23_LOC_ADDR             : natural := 107;
+constant PMT_RATE_24_LOC_ADDR             : natural := 108;
+constant PMT_RATE_25_LOC_ADDR             : natural := 109;
+constant PMT_RATE_26_LOC_ADDR             : natural := 110;
+constant PMT_RATE_27_LOC_ADDR             : natural := 111;
+constant PMT_RATE_28_LOC_ADDR             : natural := 112;
+constant PMT_RATE_29_LOC_ADDR             : natural := 113;
+constant PMT_RATE_30_LOC_ADDR             : natural := 114;
+constant PMT_RATE_31_LOC_ADDR             : natural := 115;
+constant MASK_RATE_00_LOC_ADDR            : natural := 116;
+constant MASK_RATE_01_LOC_ADDR            : natural := 117;
+constant MASK_RATE_02_LOC_ADDR            : natural := 118;
+constant MASK_RATE_03_LOC_ADDR            : natural := 119;
+constant MASK_RATE_04_LOC_ADDR            : natural := 120;
+constant MASK_RATE_05_LOC_ADDR            : natural := 121;
+constant MASK_RATE_06_LOC_ADDR            : natural := 122;
+constant MASK_RATE_07_LOC_ADDR            : natural := 123;
+constant MASK_RATE_08_LOC_ADDR            : natural := 124;
+constant REF_DAC_1_LOC_ADDR               : natural := 125;
+constant REF_DAC_2_LOC_ADDR               : natural := 126;
+constant PCKTS_IN_FIFO_LOC_ADDR           : natural := 127;
+constant ACQDATALEN_LOC_ADDR              : natural := 128;
+constant ACQDATA0_LOC_ADDR                : natural := 129;
+constant ACQDATA1_LOC_ADDR                : natural := 130;
+constant ACQDATA2_LOC_ADDR                : natural := 131;
+constant ACQDATA3_LOC_ADDR                : natural := 132;
+constant ACQDATA4_LOC_ADDR                : natural := 133;
+constant ACQDATA5_LOC_ADDR                : natural := 134;
+constant ACQDATA6_LOC_ADDR                : natural := 135;
+constant ACQDATA7_LOC_ADDR                : natural := 136;
+constant ACQDATA8_LOC_ADDR                : natural := 137;
+constant ACQDATA9_LOC_ADDR                : natural := 138;
+constant ACQDATA10_LOC_ADDR               : natural := 139;
+constant ACQDATA11_LOC_ADDR               : natural := 140;
+constant ACQDATA12_LOC_ADDR               : natural := 141;
+constant ACQDATA13_LOC_ADDR               : natural := 142;
+constant ACQDATA14_LOC_ADDR               : natural := 143;
+constant ACQDATA15_LOC_ADDR               : natural := 144;
+constant ACQDATA16_LOC_ADDR               : natural := 145;
+constant ACQDATA17_LOC_ADDR               : natural := 146;
+constant ACQDATA18_LOC_ADDR               : natural := 147;
+constant ACQDATA19_LOC_ADDR               : natural := 148;
+constant ACQDATA20_LOC_ADDR               : natural := 149;
+constant ACQDATA21_LOC_ADDR               : natural := 150;
+constant ACQDATA22_LOC_ADDR               : natural := 151;
+constant ACQDATA23_LOC_ADDR               : natural := 152;
+constant ACQDATA24_LOC_ADDR               : natural := 153;
+constant ACQDATA25_LOC_ADDR               : natural := 154;
+constant ACQDATA26_LOC_ADDR               : natural := 155;
+constant ACQDATA27_LOC_ADDR               : natural := 156;
+constant ACQDATA28_LOC_ADDR               : natural := 157;
+constant ACQDATA29_LOC_ADDR               : natural := 158;
+constant ACQDATA30_LOC_ADDR               : natural := 159;
+constant ACQDATA31_LOC_ADDR               : natural := 160;
+constant ACQDATA32_LOC_ADDR               : natural := 161;
+constant ACQDATA33_LOC_ADDR               : natural := 162;
+constant ACQDATA34_LOC_ADDR               : natural := 163;
+constant ACQDATA35_LOC_ADDR               : natural := 164;
+constant ACQDATA36_LOC_ADDR               : natural := 165;
+constant ACQDATA37_LOC_ADDR               : natural := 166;
+constant ACQDATA38_LOC_ADDR               : natural := 167;
+constant ACQDATA39_LOC_ADDR               : natural := 168;
+constant ACQDATA40_LOC_ADDR               : natural := 169;
+constant ACQDATA41_LOC_ADDR               : natural := 170;
+constant ACQDATA42_LOC_ADDR               : natural := 171;
+constant ACQDATA43_LOC_ADDR               : natural := 172;
+constant ACQDATA44_LOC_ADDR               : natural := 173;
+constant ACQDATA45_LOC_ADDR               : natural := 174;
+constant ACQDATA46_LOC_ADDR               : natural := 175;
+constant ACQDATA47_LOC_ADDR               : natural := 176;
+constant ACQDATA48_LOC_ADDR               : natural := 177;
+constant ACQDATA49_LOC_ADDR               : natural := 178;
+constant ACQDATA50_LOC_ADDR               : natural := 179;
+constant ACQDATA51_LOC_ADDR               : natural := 180;
+constant ACQDATA52_LOC_ADDR               : natural := 181;
+constant ACQDATA53_LOC_ADDR               : natural := 182;
+constant ACQDATA54_LOC_ADDR               : natural := 183;
+constant ACQDATA55_LOC_ADDR               : natural := 184;
+constant ACQDATA56_LOC_ADDR               : natural := 185;
+constant ACQDATA57_LOC_ADDR               : natural := 186;
+constant ACQDATA58_LOC_ADDR               : natural := 187;
+constant ACQDATA59_LOC_ADDR               : natural := 188;
+constant ACQDATA60_LOC_ADDR               : natural := 189;
+constant ACQDATA61_LOC_ADDR               : natural := 190;
+constant ACQDATA62_LOC_ADDR               : natural := 191;
+constant ACQDATA63_LOC_ADDR               : natural := 192;
+constant ACQDATA64_LOC_ADDR               : natural := 193;
+constant ACQDATA65_LOC_ADDR               : natural := 194;
+constant ACQDATA66_LOC_ADDR               : natural := 195;
+constant ACQDATA67_LOC_ADDR               : natural := 196;
+constant ACQDATA68_LOC_ADDR               : natural := 197;
+constant ACQDATA69_LOC_ADDR               : natural := 198;
+constant ACQDATA70_LOC_ADDR               : natural := 199;
+constant ACQDATA71_LOC_ADDR               : natural := 200;
+constant MASK_RATE_09_LOC_ADDR            : natural := 201;
+constant PRESC_M3_M2_LOC_ADDR             : natural := 202;
+constant PRESC_M1_M0_LOC_ADDR             : natural := 203;
 
 -- control registers
 constant ID_REG_ADDR                  : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000000";
@@ -854,99 +1060,99 @@ dataReadyOut <= dataReadyOutSig;
     -- configuration
 o_write_done      <= r_write_done;
 
-refDAC_1 <= register_vector(get_local_addr(REF_DAC_1_ADDR, address_vector));
-refDAC_2 <= register_vector(get_local_addr(REF_DAC_2_ADDR, address_vector));
+refDAC_1 <= register_vector(REF_DAC_1_LOC_ADDR);
+refDAC_2 <= register_vector(REF_DAC_2_LOC_ADDR);
 
-holdoff <= register_vector(get_local_addr(PRESC_M3_M2_ADDR, address_vector)) &
-           register_vector(get_local_addr(PRESC_M1_M0_ADDR, address_vector));
+holdoff <= register_vector(PRESC_M3_M2_LOC_ADDR) &
+           register_vector(PRESC_M1_M0_LOC_ADDR);
 
-config_vector_1 <=  register_vector( get_local_addr(CONFIG_CITIROC_1_35_ADDR, address_vector) )(23 downto 0) &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_34_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_33_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_32_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_31_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_30_ADDR,  address_vector) )             & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_29_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_28_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_27_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_26_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_25_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_24_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_23_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_22_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_21_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_20_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_19_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_18_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_17_ADDR,  address_vector) )             & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_16_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_15_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_14_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_13_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_12_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_11_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_10_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_9_ADDR, address_vector) )               &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_8_ADDR, address_vector) )               &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_7_ADDR, address_vector) )               &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_6_ADDR, address_vector) )               &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_5_ADDR, address_vector) )               &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_4_ADDR,  address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_3_ADDR, address_vector) )               &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_2_ADDR, address_vector) )               &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_1_ADDR, address_vector) )               &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_0_ADDR, address_vector) );
+config_vector_1 <=  register_vector(CONFIG_CITIROC_1_35_LOC_ADDR)(23 downto 0) &
+                    register_vector(CONFIG_CITIROC_1_34_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_1_33_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_1_32_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_1_31_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_1_30_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_1_29_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_1_28_LOC_ADDR)              &
+                    register_vector(CONFIG_CITIROC_1_27_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_1_26_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_1_25_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_1_24_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_1_23_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_1_22_LOC_ADDR)              &
+                    register_vector(CONFIG_CITIROC_1_21_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_1_20_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_1_19_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_1_18_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_1_17_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_1_16_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_1_15_LOC_ADDR)              &
+                    register_vector(CONFIG_CITIROC_1_14_LOC_ADDR)              &
+                    register_vector(CONFIG_CITIROC_1_13_LOC_ADDR)              &
+                    register_vector(CONFIG_CITIROC_1_12_LOC_ADDR)              &
+                    register_vector(CONFIG_CITIROC_1_11_LOC_ADDR)              &
+                    register_vector(CONFIG_CITIROC_1_10_LOC_ADDR)              &
+                    register_vector(CONFIG_CITIROC_1_9_LOC_ADDR)               &
+                    register_vector(CONFIG_CITIROC_1_8_LOC_ADDR)               &
+                    register_vector(CONFIG_CITIROC_1_7_LOC_ADDR)               &
+                    register_vector(CONFIG_CITIROC_1_6_LOC_ADDR)               &
+                    register_vector(CONFIG_CITIROC_1_5_LOC_ADDR)               &
+                    register_vector(CONFIG_CITIROC_1_4_LOC_ADDR)               &
+                    register_vector(CONFIG_CITIROC_1_3_LOC_ADDR)               &
+                    register_vector(CONFIG_CITIROC_1_2_LOC_ADDR)               &
+                    register_vector(CONFIG_CITIROC_1_1_LOC_ADDR)               &
+                    register_vector(CONFIG_CITIROC_1_0_LOC_ADDR);
 
-config_vector_2 <=  register_vector( get_local_addr(CONFIG_CITIROC_2_35_ADDR, address_vector) )(23 downto 0) &
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_34_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_33_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_32_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_31_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_30_ADDR,  address_vector) )             & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_29_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_28_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_27_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_26_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_25_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_24_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_23_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_22_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_21_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_20_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_19_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_18_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_17_ADDR,  address_vector) )             & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_16_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_15_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_14_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_13_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_12_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_11_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_10_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_9_ADDR, address_vector) )               &
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_8_ADDR, address_vector) )               & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_7_ADDR, address_vector) )               & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_6_ADDR, address_vector) )               & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_5_ADDR, address_vector) )               & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_4_ADDR, address_vector) )               & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_3_ADDR, address_vector) )               & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_2_ADDR, address_vector) )               &
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_1_ADDR, address_vector) )               & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_0_ADDR, address_vector) );
+config_vector_2 <=  register_vector(CONFIG_CITIROC_2_35_LOC_ADDR)(23 downto 0) &
+                    register_vector(CONFIG_CITIROC_2_34_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_33_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_32_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_31_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_30_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_29_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_28_LOC_ADDR)              &
+                    register_vector(CONFIG_CITIROC_2_27_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_26_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_25_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_24_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_23_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_22_LOC_ADDR)              &
+                    register_vector(CONFIG_CITIROC_2_21_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_20_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_19_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_18_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_17_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_16_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_15_LOC_ADDR)              &
+                    register_vector(CONFIG_CITIROC_2_14_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_13_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_12_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_11_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_10_LOC_ADDR)              & 
+                    register_vector(CONFIG_CITIROC_2_9_LOC_ADDR)               &
+                    register_vector(CONFIG_CITIROC_2_8_LOC_ADDR)               & 
+                    register_vector(CONFIG_CITIROC_2_7_LOC_ADDR)               & 
+                    register_vector(CONFIG_CITIROC_2_6_LOC_ADDR)               & 
+                    register_vector(CONFIG_CITIROC_2_5_LOC_ADDR)               & 
+                    register_vector(CONFIG_CITIROC_2_4_LOC_ADDR)               & 
+                    register_vector(CONFIG_CITIROC_2_3_LOC_ADDR)               & 
+                    register_vector(CONFIG_CITIROC_2_2_LOC_ADDR)               &
+                    register_vector(CONFIG_CITIROC_2_1_LOC_ADDR)               & 
+                    register_vector(CONFIG_CITIROC_2_0_LOC_ADDR);
 
-trigger_mask           <= register_vector( get_local_addr(TRIGGER_MASK_ADDR, address_vector) ); 
-generic_trigger_mask   <= register_vector( get_local_addr(GENERIC_TRIGGER_MASK_ADDR, address_vector) ); 
-PMT_mask_1             <= register_vector( get_local_addr(PMT_1_MASK_ADDR, address_vector) ); 
-PMT_mask_2             <= register_vector( get_local_addr(PMT_2_MASK_ADDR, address_vector) ); 
+trigger_mask           <= register_vector(TRIGGER_MASK_LOC_ADDR); 
+generic_trigger_mask   <= register_vector(GENERIC_TRIGGER_MASK_LOC_ADDR); 
+PMT_mask_1             <= register_vector(PMT_1_MASK_LOC_ADDR); 
+PMT_mask_2             <= register_vector(PMT_2_MASK_LOC_ADDR); 
 
 
 -- Commands
 start_config_1      <= start_config_1_pipe_0 and (not start_config_1_pipe_1);
 start_config_2      <= start_config_2_pipe_0 and (not start_config_2_pipe_1); 
 
-sw_rst              <= sw_rst_pipe_0 and (not sw_rst_pipe_1);--register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(3); 
-pwr_on_citiroc1     <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(4); 
-pwr_on_citiroc2     <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(5); 
+sw_rst              <= sw_rst_pipe_0 and (not sw_rst_pipe_1);
+pwr_on_citiroc1     <= register_vector(CMD_REG_LOC_ADDR)(4); 
+pwr_on_citiroc2     <= register_vector(CMD_REG_LOC_ADDR)(5); 
   
 start_debug         <= start_debug_pipe_0 and (not start_debug_pipe_1);
 
@@ -978,7 +1184,7 @@ begin
         register_vector <= register_vector_reset;
         r_write_done <= '0';
 
-        dpcuDataLenOut <= register_vector_reset(get_local_addr(ACQDATALEN_ADDR, address_vector));
+        dpcuDataLenOut <= register_vector_reset(ACQDATALEN_LOC_ADDR);
         
         sw_rst_pipe_0             <= '0';
         sw_rst_pipe_1             <= '0';
@@ -1016,187 +1222,187 @@ begin
         s_write_done <= '0';
 
     elsif (rising_edge(clk)) then
-        start_config_1_pipe_0     <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(0);
+        start_config_1_pipe_0     <= register_vector(CMD_REG_LOC_ADDR)(0);
         start_config_1_pipe_1     <= start_config_1_pipe_0;
         
-        start_config_2_pipe_0     <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(1);
+        start_config_2_pipe_0     <= register_vector(CMD_REG_LOC_ADDR)(1);
         start_config_2_pipe_1     <= start_config_2_pipe_0;
 
     
-        sw_rst_pipe_0             <= or_reduce(register_vector(get_local_addr(RST_REG_ADDR, address_vector)));
+        sw_rst_pipe_0             <= register_vector(RST_REG_LOC_ADDR)(0);
         sw_rst_pipe_1             <= sw_rst_pipe_0;
         
-        start_debug_pipe_0        <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(6);
+        start_debug_pipe_0        <= register_vector(CMD_REG_LOC_ADDR)(6);
         start_debug_pipe_1        <= start_debug_pipe_0;
         
-        apply_trigger_mask_pipe_0 <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(7);
+        apply_trigger_mask_pipe_0 <= register_vector(CMD_REG_LOC_ADDR)(7);
         apply_trigger_mask_pipe_1 <= apply_trigger_mask_pipe_0;
         
-        apply_PMT_mask_pipe_0     <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(8);
+        apply_PMT_mask_pipe_0     <= register_vector(CMD_REG_LOC_ADDR)(8);
         apply_PMT_mask_pipe_1     <= apply_PMT_mask_pipe_0;
         
-        start_ACQ_pipe_0          <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(9);
+        start_ACQ_pipe_0          <= register_vector(CMD_REG_LOC_ADDR)(9);
         start_ACQ_pipe_1          <= start_ACQ_pipe_0;
         
-        stop_ACQ_pipe_0           <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(10);
+        stop_ACQ_pipe_0           <= register_vector(CMD_REG_LOC_ADDR)(10);
         stop_ACQ_pipe_1           <= stop_ACQ_pipe_0;
         
-        start_cal_pipe_0          <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(11);
+        start_cal_pipe_0          <= register_vector(CMD_REG_LOC_ADDR)(11);
         start_cal_pipe_1          <= start_cal_pipe_0;
         
-        stop_cal_pipe_0           <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(12);
+        stop_cal_pipe_0           <= register_vector(CMD_REG_LOC_ADDR)(12);
         stop_cal_pipe_1           <= stop_cal_pipe_0;
         
-        sendRefDAC_pipe_0         <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(14);
+        sendRefDAC_pipe_0         <= register_vector(CMD_REG_LOC_ADDR)(14);
         sendRefDAC_pipe_1         <= sendRefDAC_pipe_0;
 
         do                        <= register_vector(local_address);
 
         r_write_done              <= s_write_done;
 
-        dpcuDataLenOut            <= register_vector(get_local_addr(ACQDATALEN_ADDR, address_vector));
+        dpcuDataLenOut            <= register_vector(ACQDATALEN_LOC_ADDR);
 
         -- update register vector
-        register_vector(get_local_addr(CLK_REG_ADDR, address_vector))         <= std_logic_vector(clk_counter);
+        register_vector(CLK_REG_LOC_ADDR)         <= std_logic_vector(clk_counter);
         
-        register_vector(get_local_addr(STATUS_REG_ADDR, address_vector))      <=  (31 downto 10 => '0') & -- bits [31:10]
-                                                                                  refDac_status_2       & -- bit  9
-                                                                                  refDac_status_1       & -- bit  8
-                                                                                  dataReadyOutSig       & -- bit  7
-                                                                                  TDAQ_BUSY             & -- bit  6
-                                                                                  DPCU_TRGHOLD          & -- bit  5
-                                                                                  DPCU_BUSY             & -- bit  4
-                                                                                  calibration_state     & -- bit  3
-                                                                                  acquisition_state     & -- bit  2
-                                                                                  config_status_2       & -- bit  1
-                                                                                  config_status_1       ; -- bit  0
+        register_vector(STATUS_REG_LOC_ADDR)      <=  (31 downto 10 => '0') & -- bits [31:10]
+                                                      refDac_status_2       & -- bit  9
+                                                      refDac_status_1       & -- bit  8
+                                                      dataReadyOutSig       & -- bit  7
+                                                      TDAQ_BUSY             & -- bit  6
+                                                      DPCU_TRGHOLD          & -- bit  5
+                                                      DPCU_BUSY             & -- bit  4
+                                                      calibration_state     & -- bit  3
+                                                      acquisition_state     & -- bit  2
+                                                      config_status_2       & -- bit  1
+                                                      config_status_1       ; -- bit  0
 
-        register_vector(get_local_addr(PMT_RATE_31_ADDR, address_vector))     <= PMT_rate(1023 downto  992);
-        register_vector(get_local_addr(PMT_RATE_30_ADDR, address_vector))     <= PMT_rate(991  downto  960);
-        register_vector(get_local_addr(PMT_RATE_29_ADDR, address_vector))     <= PMT_rate(959  downto  928);
-        register_vector(get_local_addr(PMT_RATE_28_ADDR, address_vector))     <= PMT_rate(927  downto  896);
-        register_vector(get_local_addr(PMT_RATE_27_ADDR, address_vector))     <= PMT_rate(895  downto  864);
-        register_vector(get_local_addr(PMT_RATE_26_ADDR, address_vector))     <= PMT_rate(863  downto  832);
-        register_vector(get_local_addr(PMT_RATE_25_ADDR, address_vector))     <= PMT_rate(831  downto  800);
-        register_vector(get_local_addr(PMT_RATE_24_ADDR, address_vector))     <= PMT_rate(799  downto  768);
-        register_vector(get_local_addr(PMT_RATE_23_ADDR, address_vector))     <= PMT_rate(767  downto  736);
-        register_vector(get_local_addr(PMT_RATE_22_ADDR, address_vector))     <= PMT_rate(735  downto  704);
-        register_vector(get_local_addr(PMT_RATE_21_ADDR, address_vector))     <= PMT_rate(703  downto  672);
-        register_vector(get_local_addr(PMT_RATE_20_ADDR, address_vector))     <= PMT_rate(671  downto  640);
-        register_vector(get_local_addr(PMT_RATE_19_ADDR, address_vector))     <= PMT_rate(639  downto  608);
-        register_vector(get_local_addr(PMT_RATE_18_ADDR, address_vector))     <= PMT_rate(607  downto  576);
-        register_vector(get_local_addr(PMT_RATE_17_ADDR, address_vector))     <= PMT_rate(575  downto  544);
-        register_vector(get_local_addr(PMT_RATE_16_ADDR, address_vector))     <= PMT_rate(543  downto  512);
-        register_vector(get_local_addr(PMT_RATE_15_ADDR, address_vector))     <= PMT_rate(511  downto  480);
-        register_vector(get_local_addr(PMT_RATE_14_ADDR, address_vector))     <= PMT_rate(479  downto  448);
-        register_vector(get_local_addr(PMT_RATE_13_ADDR, address_vector))     <= PMT_rate(447  downto  416);
-        register_vector(get_local_addr(PMT_RATE_12_ADDR, address_vector))     <= PMT_rate(415  downto  384);
-        register_vector(get_local_addr(PMT_RATE_11_ADDR, address_vector))     <= PMT_rate(383  downto  352);
-        register_vector(get_local_addr(PMT_RATE_10_ADDR, address_vector))     <= PMT_rate(351  downto  320);
-        register_vector(get_local_addr(PMT_RATE_09_ADDR, address_vector))     <= PMT_rate(319  downto  288);
-        register_vector(get_local_addr(PMT_RATE_08_ADDR, address_vector))     <= PMT_rate(287  downto  256);
-        register_vector(get_local_addr(PMT_RATE_07_ADDR, address_vector))     <= PMT_rate(255  downto  224);
-        register_vector(get_local_addr(PMT_RATE_06_ADDR, address_vector))     <= PMT_rate(223  downto  192);
-        register_vector(get_local_addr(PMT_RATE_05_ADDR, address_vector))     <= PMT_rate(191  downto  160);
-        register_vector(get_local_addr(PMT_RATE_04_ADDR, address_vector))     <= PMT_rate(159  downto  128);
-        register_vector(get_local_addr(PMT_RATE_03_ADDR, address_vector))     <= PMT_rate(127  downto   96);
-        register_vector(get_local_addr(PMT_RATE_02_ADDR, address_vector))     <= PMT_rate(95   downto   64);
-        register_vector(get_local_addr(PMT_RATE_01_ADDR, address_vector))     <= PMT_rate(63   downto   32);
-        register_vector(get_local_addr(PMT_RATE_00_ADDR, address_vector))     <= PMT_rate(31   downto    0);
+        register_vector(PMT_RATE_31_LOC_ADDR)     <= PMT_rate(1023 downto  992);
+        register_vector(PMT_RATE_30_LOC_ADDR)     <= PMT_rate(991  downto  960);
+        register_vector(PMT_RATE_29_LOC_ADDR)     <= PMT_rate(959  downto  928);
+        register_vector(PMT_RATE_28_LOC_ADDR)     <= PMT_rate(927  downto  896);
+        register_vector(PMT_RATE_27_LOC_ADDR)     <= PMT_rate(895  downto  864);
+        register_vector(PMT_RATE_26_LOC_ADDR)     <= PMT_rate(863  downto  832);
+        register_vector(PMT_RATE_25_LOC_ADDR)     <= PMT_rate(831  downto  800);
+        register_vector(PMT_RATE_24_LOC_ADDR)     <= PMT_rate(799  downto  768);
+        register_vector(PMT_RATE_23_LOC_ADDR)     <= PMT_rate(767  downto  736);
+        register_vector(PMT_RATE_22_LOC_ADDR)     <= PMT_rate(735  downto  704);
+        register_vector(PMT_RATE_21_LOC_ADDR)     <= PMT_rate(703  downto  672);
+        register_vector(PMT_RATE_20_LOC_ADDR)     <= PMT_rate(671  downto  640);
+        register_vector(PMT_RATE_19_LOC_ADDR)     <= PMT_rate(639  downto  608);
+        register_vector(PMT_RATE_18_LOC_ADDR)     <= PMT_rate(607  downto  576);
+        register_vector(PMT_RATE_17_LOC_ADDR)     <= PMT_rate(575  downto  544);
+        register_vector(PMT_RATE_16_LOC_ADDR)     <= PMT_rate(543  downto  512);
+        register_vector(PMT_RATE_15_LOC_ADDR)     <= PMT_rate(511  downto  480);
+        register_vector(PMT_RATE_14_LOC_ADDR)     <= PMT_rate(479  downto  448);
+        register_vector(PMT_RATE_13_LOC_ADDR)     <= PMT_rate(447  downto  416);
+        register_vector(PMT_RATE_12_LOC_ADDR)     <= PMT_rate(415  downto  384);
+        register_vector(PMT_RATE_11_LOC_ADDR)     <= PMT_rate(383  downto  352);
+        register_vector(PMT_RATE_10_LOC_ADDR)     <= PMT_rate(351  downto  320);
+        register_vector(PMT_RATE_09_LOC_ADDR)     <= PMT_rate(319  downto  288);
+        register_vector(PMT_RATE_08_LOC_ADDR)     <= PMT_rate(287  downto  256);
+        register_vector(PMT_RATE_07_LOC_ADDR)     <= PMT_rate(255  downto  224);
+        register_vector(PMT_RATE_06_LOC_ADDR)     <= PMT_rate(223  downto  192);
+        register_vector(PMT_RATE_05_LOC_ADDR)     <= PMT_rate(191  downto  160);
+        register_vector(PMT_RATE_04_LOC_ADDR)     <= PMT_rate(159  downto  128);
+        register_vector(PMT_RATE_03_LOC_ADDR)     <= PMT_rate(127  downto   96);
+        register_vector(PMT_RATE_02_LOC_ADDR)     <= PMT_rate(95   downto   64);
+        register_vector(PMT_RATE_01_LOC_ADDR)     <= PMT_rate(63   downto   32);
+        register_vector(PMT_RATE_00_LOC_ADDR)     <= PMT_rate(31   downto    0);
 
-        register_vector(get_local_addr(MASK_RATE_00_ADDR, address_vector))    <= mask_rate(31  downto    0);
-        register_vector(get_local_addr(MASK_RATE_01_ADDR, address_vector))    <= mask_rate(63  downto   32);
-        register_vector(get_local_addr(MASK_RATE_02_ADDR, address_vector))    <= mask_rate(95  downto   64);
-        register_vector(get_local_addr(MASK_RATE_03_ADDR, address_vector))    <= mask_rate(127 downto   96);
-        register_vector(get_local_addr(MASK_RATE_04_ADDR, address_vector))    <= mask_rate(159 downto  128);
-        register_vector(get_local_addr(MASK_RATE_05_ADDR, address_vector))    <= mask_rate(191 downto  160);
-        register_vector(get_local_addr(MASK_RATE_06_ADDR, address_vector))    <= mask_rate(223 downto  192);
-        register_vector(get_local_addr(MASK_RATE_07_ADDR, address_vector))    <= mask_rate(255 downto  224);
-        register_vector(get_local_addr(MASK_RATE_08_ADDR, address_vector))    <= mask_rate(287 downto  256);
-        register_vector(get_local_addr(MASK_RATE_09_ADDR, address_vector))    <= mask_rate(319 downto  288);
+        register_vector(MASK_RATE_00_LOC_ADDR)    <= mask_rate(31  downto    0);
+        register_vector(MASK_RATE_01_LOC_ADDR)    <= mask_rate(63  downto   32);
+        register_vector(MASK_RATE_02_LOC_ADDR)    <= mask_rate(95  downto   64);
+        register_vector(MASK_RATE_03_LOC_ADDR)    <= mask_rate(127 downto   96);
+        register_vector(MASK_RATE_04_LOC_ADDR)    <= mask_rate(159 downto  128);
+        register_vector(MASK_RATE_05_LOC_ADDR)    <= mask_rate(191 downto  160);
+        register_vector(MASK_RATE_06_LOC_ADDR)    <= mask_rate(223 downto  192);
+        register_vector(MASK_RATE_07_LOC_ADDR)    <= mask_rate(255 downto  224);
+        register_vector(MASK_RATE_08_LOC_ADDR)    <= mask_rate(287 downto  256);
+        register_vector(MASK_RATE_09_LOC_ADDR)    <= mask_rate(319 downto  288);
 
-        register_vector(get_local_addr(PCKTS_IN_FIFO_ADDR, address_vector))   <= std_logic_vector(to_unsigned(fifoPckCnt,32));
+        register_vector(PCKTS_IN_FIFO_LOC_ADDR)   <= std_logic_vector(to_unsigned(fifoPckCnt,32));
 
-        register_vector(get_local_addr(ACQDATA0_ADDR, address_vector))        <= regAcqData(2303 downto 2272);
-        register_vector(get_local_addr(ACQDATA1_ADDR, address_vector))        <= regAcqData(2271 downto 2240);
-        register_vector(get_local_addr(ACQDATA2_ADDR, address_vector))        <= regAcqData(2239 downto 2208);
-        register_vector(get_local_addr(ACQDATA3_ADDR, address_vector))        <= regAcqData(2207 downto 2176);
-        register_vector(get_local_addr(ACQDATA4_ADDR, address_vector))        <= regAcqData(2175 downto 2144);
-        register_vector(get_local_addr(ACQDATA5_ADDR, address_vector))        <= regAcqData(2143 downto 2112);
-        register_vector(get_local_addr(ACQDATA6_ADDR, address_vector))        <= regAcqData(2111 downto 2080);
-        register_vector(get_local_addr(ACQDATA7_ADDR, address_vector))        <= regAcqData(2079 downto 2048);
-        register_vector(get_local_addr(ACQDATA8_ADDR, address_vector))        <= regAcqData(2047 downto 2016);
-        register_vector(get_local_addr(ACQDATA9_ADDR, address_vector))        <= regAcqData(2015 downto 1984);
-        register_vector(get_local_addr(ACQDATA10_ADDR, address_vector))       <= regAcqData(1983 downto 1952);
-        register_vector(get_local_addr(ACQDATA11_ADDR, address_vector))       <= regAcqData(1951 downto 1920);
-        register_vector(get_local_addr(ACQDATA12_ADDR, address_vector))       <= regAcqData(1919 downto 1888);
-        register_vector(get_local_addr(ACQDATA13_ADDR, address_vector))       <= regAcqData(1887 downto 1856);
-        register_vector(get_local_addr(ACQDATA14_ADDR, address_vector))       <= regAcqData(1855 downto 1824);
-        register_vector(get_local_addr(ACQDATA15_ADDR, address_vector))       <= regAcqData(1823 downto 1792);
-        register_vector(get_local_addr(ACQDATA16_ADDR, address_vector))       <= regAcqData(1791 downto 1760);
-        register_vector(get_local_addr(ACQDATA17_ADDR, address_vector))       <= regAcqData(1759 downto 1728);
-        register_vector(get_local_addr(ACQDATA18_ADDR, address_vector))       <= regAcqData(1727 downto 1696);
-        register_vector(get_local_addr(ACQDATA19_ADDR, address_vector))       <= regAcqData(1695 downto 1664);
-        register_vector(get_local_addr(ACQDATA20_ADDR, address_vector))       <= regAcqData(1663 downto 1632);
-        register_vector(get_local_addr(ACQDATA21_ADDR, address_vector))       <= regAcqData(1631 downto 1600);
-        register_vector(get_local_addr(ACQDATA22_ADDR, address_vector))       <= regAcqData(1599 downto 1568);
-        register_vector(get_local_addr(ACQDATA23_ADDR, address_vector))       <= regAcqData(1567 downto 1536);
-        register_vector(get_local_addr(ACQDATA24_ADDR, address_vector))       <= regAcqData(1535 downto 1504);
-        register_vector(get_local_addr(ACQDATA25_ADDR, address_vector))       <= regAcqData(1503 downto 1472);
-        register_vector(get_local_addr(ACQDATA26_ADDR, address_vector))       <= regAcqData(1471 downto 1440);
-        register_vector(get_local_addr(ACQDATA27_ADDR, address_vector))       <= regAcqData(1439 downto 1408);
-        register_vector(get_local_addr(ACQDATA28_ADDR, address_vector))       <= regAcqData(1407 downto 1376);
-        register_vector(get_local_addr(ACQDATA29_ADDR, address_vector))       <= regAcqData(1375 downto 1344);
-        register_vector(get_local_addr(ACQDATA30_ADDR, address_vector))       <= regAcqData(1343 downto 1312);
-        register_vector(get_local_addr(ACQDATA31_ADDR, address_vector))       <= regAcqData(1311 downto 1280);
-        register_vector(get_local_addr(ACQDATA32_ADDR, address_vector))       <= regAcqData(1279 downto 1248);
-        register_vector(get_local_addr(ACQDATA33_ADDR, address_vector))       <= regAcqData(1247 downto 1216);
-        register_vector(get_local_addr(ACQDATA34_ADDR, address_vector))       <= regAcqData(1215 downto 1184);
-        register_vector(get_local_addr(ACQDATA35_ADDR, address_vector))       <= regAcqData(1183 downto 1152);
-        register_vector(get_local_addr(ACQDATA36_ADDR, address_vector))       <= regAcqData(1151 downto 1120);
-        register_vector(get_local_addr(ACQDATA37_ADDR, address_vector))       <= regAcqData(1119 downto 1088);
-        register_vector(get_local_addr(ACQDATA38_ADDR, address_vector))       <= regAcqData(1087 downto 1056);
-        register_vector(get_local_addr(ACQDATA39_ADDR, address_vector))       <= regAcqData(1055 downto 1024);
-        register_vector(get_local_addr(ACQDATA40_ADDR, address_vector))       <= regAcqData(1023 downto 992);
-        register_vector(get_local_addr(ACQDATA41_ADDR, address_vector))       <= regAcqData(991  downto 960);
-        register_vector(get_local_addr(ACQDATA42_ADDR, address_vector))       <= regAcqData(959  downto 928);
-        register_vector(get_local_addr(ACQDATA43_ADDR, address_vector))       <= regAcqData(927  downto 896);
-        register_vector(get_local_addr(ACQDATA44_ADDR, address_vector))       <= regAcqData(895  downto 864);
-        register_vector(get_local_addr(ACQDATA45_ADDR, address_vector))       <= regAcqData(863  downto 832);
-        register_vector(get_local_addr(ACQDATA46_ADDR, address_vector))       <= regAcqData(831  downto 800);
-        register_vector(get_local_addr(ACQDATA47_ADDR, address_vector))       <= regAcqData(799  downto 768);
-        register_vector(get_local_addr(ACQDATA48_ADDR, address_vector))       <= regAcqData(767  downto 736);
-        register_vector(get_local_addr(ACQDATA49_ADDR, address_vector))       <= regAcqData(735  downto 704);
-        register_vector(get_local_addr(ACQDATA50_ADDR, address_vector))       <= regAcqData(703  downto 672);
-        register_vector(get_local_addr(ACQDATA51_ADDR, address_vector))       <= regAcqData(671  downto 640);
-        register_vector(get_local_addr(ACQDATA52_ADDR, address_vector))       <= regAcqData(639  downto 608);
-        register_vector(get_local_addr(ACQDATA53_ADDR, address_vector))       <= regAcqData(607  downto 576);
-        register_vector(get_local_addr(ACQDATA54_ADDR, address_vector))       <= regAcqData(575  downto 544);
-        register_vector(get_local_addr(ACQDATA55_ADDR, address_vector))       <= regAcqData(543  downto 512);
-        register_vector(get_local_addr(ACQDATA56_ADDR, address_vector))       <= regAcqData(511  downto 480);
-        register_vector(get_local_addr(ACQDATA57_ADDR, address_vector))       <= regAcqData(479  downto 448);
-        register_vector(get_local_addr(ACQDATA58_ADDR, address_vector))       <= regAcqData(447  downto 416);
-        register_vector(get_local_addr(ACQDATA59_ADDR, address_vector))       <= regAcqData(415  downto 384);
-        register_vector(get_local_addr(ACQDATA60_ADDR, address_vector))       <= regAcqData(383  downto 352);
-        register_vector(get_local_addr(ACQDATA61_ADDR, address_vector))       <= regAcqData(351  downto 320);
-        register_vector(get_local_addr(ACQDATA62_ADDR, address_vector))       <= regAcqData(319  downto 288);
-        register_vector(get_local_addr(ACQDATA63_ADDR, address_vector))       <= regAcqData(287  downto 256);
-        register_vector(get_local_addr(ACQDATA64_ADDR, address_vector))       <= regAcqData(255  downto 224);
-        register_vector(get_local_addr(ACQDATA65_ADDR, address_vector))       <= regAcqData(223  downto 192);
-        register_vector(get_local_addr(ACQDATA66_ADDR, address_vector))       <= regAcqData(191  downto 160);
-        register_vector(get_local_addr(ACQDATA67_ADDR, address_vector))       <= regAcqData(159  downto 128);
-        register_vector(get_local_addr(ACQDATA68_ADDR, address_vector))       <= regAcqData(127  downto 96);
-        register_vector(get_local_addr(ACQDATA69_ADDR, address_vector))       <= regAcqData(95   downto 64);
-        register_vector(get_local_addr(ACQDATA70_ADDR, address_vector))       <= regAcqData(63   downto 32);
-        register_vector(get_local_addr(ACQDATA71_ADDR, address_vector))       <= regAcqData(31   downto 0);
+        register_vector(ACQDATA0_LOC_ADDR)        <= regAcqData(2303 downto 2272);
+        register_vector(ACQDATA1_LOC_ADDR)        <= regAcqData(2271 downto 2240);
+        register_vector(ACQDATA2_LOC_ADDR)        <= regAcqData(2239 downto 2208);
+        register_vector(ACQDATA3_LOC_ADDR)        <= regAcqData(2207 downto 2176);
+        register_vector(ACQDATA4_LOC_ADDR)        <= regAcqData(2175 downto 2144);
+        register_vector(ACQDATA5_LOC_ADDR)        <= regAcqData(2143 downto 2112);
+        register_vector(ACQDATA6_LOC_ADDR)        <= regAcqData(2111 downto 2080);
+        register_vector(ACQDATA7_LOC_ADDR)        <= regAcqData(2079 downto 2048);
+        register_vector(ACQDATA8_LOC_ADDR)        <= regAcqData(2047 downto 2016);
+        register_vector(ACQDATA9_LOC_ADDR)        <= regAcqData(2015 downto 1984);
+        register_vector(ACQDATA10_LOC_ADDR)       <= regAcqData(1983 downto 1952);
+        register_vector(ACQDATA11_LOC_ADDR)       <= regAcqData(1951 downto 1920);
+        register_vector(ACQDATA12_LOC_ADDR)       <= regAcqData(1919 downto 1888);
+        register_vector(ACQDATA13_LOC_ADDR)       <= regAcqData(1887 downto 1856);
+        register_vector(ACQDATA14_LOC_ADDR)       <= regAcqData(1855 downto 1824);
+        register_vector(ACQDATA15_LOC_ADDR)       <= regAcqData(1823 downto 1792);
+        register_vector(ACQDATA16_LOC_ADDR)       <= regAcqData(1791 downto 1760);
+        register_vector(ACQDATA17_LOC_ADDR)       <= regAcqData(1759 downto 1728);
+        register_vector(ACQDATA18_LOC_ADDR)       <= regAcqData(1727 downto 1696);
+        register_vector(ACQDATA19_LOC_ADDR)       <= regAcqData(1695 downto 1664);
+        register_vector(ACQDATA20_LOC_ADDR)       <= regAcqData(1663 downto 1632);
+        register_vector(ACQDATA21_LOC_ADDR)       <= regAcqData(1631 downto 1600);
+        register_vector(ACQDATA22_LOC_ADDR)       <= regAcqData(1599 downto 1568);
+        register_vector(ACQDATA23_LOC_ADDR)       <= regAcqData(1567 downto 1536);
+        register_vector(ACQDATA24_LOC_ADDR)       <= regAcqData(1535 downto 1504);
+        register_vector(ACQDATA25_LOC_ADDR)       <= regAcqData(1503 downto 1472);
+        register_vector(ACQDATA26_LOC_ADDR)       <= regAcqData(1471 downto 1440);
+        register_vector(ACQDATA27_LOC_ADDR)       <= regAcqData(1439 downto 1408);
+        register_vector(ACQDATA28_LOC_ADDR)       <= regAcqData(1407 downto 1376);
+        register_vector(ACQDATA29_LOC_ADDR)       <= regAcqData(1375 downto 1344);
+        register_vector(ACQDATA30_LOC_ADDR)       <= regAcqData(1343 downto 1312);
+        register_vector(ACQDATA31_LOC_ADDR)       <= regAcqData(1311 downto 1280);
+        register_vector(ACQDATA32_LOC_ADDR)       <= regAcqData(1279 downto 1248);
+        register_vector(ACQDATA33_LOC_ADDR)       <= regAcqData(1247 downto 1216);
+        register_vector(ACQDATA34_LOC_ADDR)       <= regAcqData(1215 downto 1184);
+        register_vector(ACQDATA35_LOC_ADDR)       <= regAcqData(1183 downto 1152);
+        register_vector(ACQDATA36_LOC_ADDR)       <= regAcqData(1151 downto 1120);
+        register_vector(ACQDATA37_LOC_ADDR)       <= regAcqData(1119 downto 1088);
+        register_vector(ACQDATA38_LOC_ADDR)       <= regAcqData(1087 downto 1056);
+        register_vector(ACQDATA39_LOC_ADDR)       <= regAcqData(1055 downto 1024);
+        register_vector(ACQDATA40_LOC_ADDR)       <= regAcqData(1023 downto 992);
+        register_vector(ACQDATA41_LOC_ADDR)       <= regAcqData(991  downto 960);
+        register_vector(ACQDATA42_LOC_ADDR)       <= regAcqData(959  downto 928);
+        register_vector(ACQDATA43_LOC_ADDR)       <= regAcqData(927  downto 896);
+        register_vector(ACQDATA44_LOC_ADDR)       <= regAcqData(895  downto 864);
+        register_vector(ACQDATA45_LOC_ADDR)       <= regAcqData(863  downto 832);
+        register_vector(ACQDATA46_LOC_ADDR)       <= regAcqData(831  downto 800);
+        register_vector(ACQDATA47_LOC_ADDR)       <= regAcqData(799  downto 768);
+        register_vector(ACQDATA48_LOC_ADDR)       <= regAcqData(767  downto 736);
+        register_vector(ACQDATA49_LOC_ADDR)       <= regAcqData(735  downto 704);
+        register_vector(ACQDATA50_LOC_ADDR)       <= regAcqData(703  downto 672);
+        register_vector(ACQDATA51_LOC_ADDR)       <= regAcqData(671  downto 640);
+        register_vector(ACQDATA52_LOC_ADDR)       <= regAcqData(639  downto 608);
+        register_vector(ACQDATA53_LOC_ADDR)       <= regAcqData(607  downto 576);
+        register_vector(ACQDATA54_LOC_ADDR)       <= regAcqData(575  downto 544);
+        register_vector(ACQDATA55_LOC_ADDR)       <= regAcqData(543  downto 512);
+        register_vector(ACQDATA56_LOC_ADDR)       <= regAcqData(511  downto 480);
+        register_vector(ACQDATA57_LOC_ADDR)       <= regAcqData(479  downto 448);
+        register_vector(ACQDATA58_LOC_ADDR)       <= regAcqData(447  downto 416);
+        register_vector(ACQDATA59_LOC_ADDR)       <= regAcqData(415  downto 384);
+        register_vector(ACQDATA60_LOC_ADDR)       <= regAcqData(383  downto 352);
+        register_vector(ACQDATA61_LOC_ADDR)       <= regAcqData(351  downto 320);
+        register_vector(ACQDATA62_LOC_ADDR)       <= regAcqData(319  downto 288);
+        register_vector(ACQDATA63_LOC_ADDR)       <= regAcqData(287  downto 256);
+        register_vector(ACQDATA64_LOC_ADDR)       <= regAcqData(255  downto 224);
+        register_vector(ACQDATA65_LOC_ADDR)       <= regAcqData(223  downto 192);
+        register_vector(ACQDATA66_LOC_ADDR)       <= regAcqData(191  downto 160);
+        register_vector(ACQDATA67_LOC_ADDR)       <= regAcqData(159  downto 128);
+        register_vector(ACQDATA68_LOC_ADDR)       <= regAcqData(127  downto 96);
+        register_vector(ACQDATA69_LOC_ADDR)       <= regAcqData(95   downto 64);
+        register_vector(ACQDATA70_LOC_ADDR)       <= regAcqData(63   downto 32);
+        register_vector(ACQDATA71_LOC_ADDR)       <= regAcqData(31   downto 0);
 
-        register_vector(get_local_addr(BOARD_TEMP_ADDR, address_vector))      <= board_temp;
+        register_vector(BOARD_TEMP_LOC_ADDR)      <= board_temp;
 
         if writeDataLen = '1' and DPCU_BUSY = '1' then
-            register_vector(get_local_addr(ACQDATALEN_ADDR, address_vector))  <= x"00000048";
+            register_vector(ACQDATALEN_LOC_ADDR)  <= x"00000048";
         end if;
 
-        if register_vector(get_local_addr(ACQDATALEN_ADDR, address_vector)) = x"00000048" then
+        if register_vector(ACQDATALEN_LOC_ADDR) = x"00000048" then
             dataReadyOutSig <= '1';
         else
             dataReadyOutSig <= '0';

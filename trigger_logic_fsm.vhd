@@ -103,6 +103,13 @@ port(
 );
 end component;
 
+component BUFF is
+port(
+    A : in  std_logic;
+    Y : out std_logic
+);
+end component;
+
 constant TRG_LENGHT : integer := 19; -- Number of clock cycles 200MHz
 --constant TRG_LENGHT : integer := 18; -- Number of clock cycles 192MHz
 --constant TRG_LENGHT : integer := 9; -- Number of clock cycles 96MHz
@@ -162,6 +169,10 @@ signal  rise_1, rise_2  : std_logic_vector(31 downto 0);
 
 signal  s_trgExtPulse,
         s_trgExt100ns   : std_logic;
+
+attribute syn_replicate : boolean;
+
+attribute syn_replicate of reset_counter : signal is false;
 
 --attribute syn_keep : boolean;
 --attribute syn_preserve : boolean;

@@ -1026,44 +1026,38 @@ hb_rstb_psc <= RST_FROM_SUPERVISOR and s_pwr_on_citiroc2;
 -- Uscite verso CITIROC
 ---------------------------------------------------
 
-select_reg_1 <= s_select_reg_1 and s_pwr_on_citiroc1; -- '0' al reset, non è necessario metterlo in and con pwrOnCit
-SR_IN_SR_1   <= s_SR_IN_SR_1 and s_pwr_on_citiroc1;
-RST_B_SR_1   <= s_RST_B_SR_1 and s_pwr_on_citiroc1;
---CLK_SR_1     <= s_CLK_SR_1 and s_pwr_on_citiroc1; -- '0' al reset, non è necessario metterlo in and con pwrOnCit
-load_1       <= s_load_1 and s_pwr_on_citiroc1; -- '0' al reset, non è necessario metterlo in and con pwrOnCit
+select_reg_1 <= s_select_reg_1 and s_pwr_on_citiroc1;
+SR_IN_SR_1   <= s_SR_IN_SR_1   and s_pwr_on_citiroc1;
+RST_B_SR_1   <= s_RST_B_SR_1   and s_pwr_on_citiroc1;
+load_1       <= s_load_1       and s_pwr_on_citiroc1;
 
 select_reg_2 <= s_select_reg_2 and s_pwr_on_citiroc2;
-SR_IN_SR_2   <= s_SR_IN_SR_2 and s_pwr_on_citiroc2;
-RST_B_SR_2   <= s_RST_B_SR_2 and s_pwr_on_citiroc2;
---CLK_SR_2     <= s_CLK_SR_2 and s_pwr_on_citiroc2; -- '0' al reset, non è necessario metterlo in and con pwrOnCit
-load_2       <= s_load_2 and s_pwr_on_citiroc2; -- '0' al reset, non è necessario metterlo in and con pwrOnCit
+SR_IN_SR_2   <= s_SR_IN_SR_2   and s_pwr_on_citiroc2;
+RST_B_SR_2   <= s_RST_B_SR_2   and s_pwr_on_citiroc2;
+load_2       <= s_load_2       and s_pwr_on_citiroc2;
 
 ---------------------------------------------------
 
 s_trigger_in_1 <= trigger_in_1;
 s_trigger_in_2 <= trigger_in_2;
 
-s_SDATA_hg_1 <= SDATA_hg_1;
-s_SDATA_lg_1 <= SDATA_lg_1;
-CS_1 <= s_CS_1;
---SCLK_1 <= s_SCLK_1;
+s_SDATA_hg_1 <= SDATA_hg_1 and s_pwr_on_citiroc1;
+s_SDATA_lg_1 <= SDATA_lg_1 and s_pwr_on_citiroc1;
+CS_1         <= s_CS_1     and s_pwr_on_citiroc1;
 
-hold_hg_1 <= s_hold_hg_1 and s_pwr_on_citiroc1; -- '0' al reset, non è necessario metterlo in and con pwrOnCit
-hold_lg_1 <= s_hold_lg_1 and s_pwr_on_citiroc1; -- '0' al reset, non è necessario metterlo in and con pwrOnCit
+hold_hg_1 <= s_hold_hg_1 and s_pwr_on_citiroc1;
+hold_lg_1 <= s_hold_lg_1 and s_pwr_on_citiroc1;
 
---CLK_READ_1   <= s_CLK_READ_1 and s_pwr_on_citiroc1; -- '0' al reset, non è necessario metterlo in and con pwrOnCit
 SR_IN_READ_1 <= s_SR_IN_READ_1 and s_pwr_on_citiroc1;
 RST_B_READ_1 <= s_RST_B_READ_1 and s_pwr_on_citiroc1;
 
-s_SDATA_hg_2 <= SDATA_hg_2;
-s_SDATA_lg_2 <= SDATA_lg_2;
-CS_2 <= s_CS_2;
---SCLK_2 <= s_SCLK_2;
+s_SDATA_hg_2 <= SDATA_hg_2 and s_pwr_on_citiroc2;
+s_SDATA_lg_2 <= SDATA_lg_2 and s_pwr_on_citiroc2;
+CS_2         <= s_CS_2     and s_pwr_on_citiroc2;
 
 hold_hg_2 <= s_hold_hg_2 and s_pwr_on_citiroc2;
 hold_lg_2 <= s_hold_lg_2 and s_pwr_on_citiroc2;
 
---CLK_READ_2   <= s_CLK_READ_2 and s_pwr_on_citiroc2; -- '0' al reset, non è necessario metterlo in and con pwrOnCit
 SR_IN_READ_2 <= s_SR_IN_READ_2 and s_pwr_on_citiroc2;
 RST_B_READ_2 <= s_RST_B_READ_2 and s_pwr_on_citiroc2;
 
@@ -1160,7 +1154,7 @@ port map(
     config_status_1 => s_config_status_1,
     config_status_2 => s_config_status_2,
 
-    sw_rst => s_sw_rst,
+    sw_rst => swRst,
 
     select_reg_1 => s_select_reg_1,
     SR_IN_SR_1 => s_SR_IN_SR_1,
@@ -1223,6 +1217,8 @@ port map(
     debug_triggerIN => s_start_debug
 );
 
+
+-- mettere il reset di ppsCounter su una linea di quadrant clock
 ppsCounterInst: ppsCounter
 generic map(
     clkFreq        => 48.0e6,
@@ -1256,6 +1252,7 @@ acqData(2303 downto 0) <= x"4645"             &
                           s_mask_rate         &
                           x"4748";
 
+-- swRst deve essere su una linea globale!!!!! altrimenti usa 2-tile implementation!
 inst_spwFIFOInterface: spwFIFOInterface
 generic map(
     fifoWidth      => 576,
@@ -1297,6 +1294,8 @@ writeDataLenBuff <= writeDataLen;
     --Y => writeDataLenBuff
 --);
 
+
+-- swRst deve essere ASSOLUTAMENTE su una linea globale!!!
 inst_spwFIFO: spwFIFO
 port map(
     CLK      => s_clock48M,
@@ -1607,7 +1606,7 @@ ODDR_CLK_READ_1: DDR_OUT
 port map(
     DR  => '0',
     DF  => '1',
-    CLR => s_CLK_READ_1,
+    CLR => not s_CLK_READ_1,
     CLK => clk200k_sig,
     Q   => CLK_READ_1_toBuf
 );
@@ -1622,7 +1621,7 @@ ODDR_CLK_READ_2: DDR_OUT
 port map(
     DR  => '0',
     DF  => '1',
-    CLR => s_CLK_READ_2,
+    CLR => not s_CLK_READ_2,
     CLK => clk200k_sig,
     Q   => CLK_READ_2_toBuf
 );
@@ -1637,7 +1636,7 @@ ODDR_SCLK_1: DDR_OUT
 port map(
     DR  => '0',
     DF  => '1',
-    CLR => s_SCLK_1,
+    CLR => not s_SCLK_1,
     CLK => s_clock24MBuff,
     Q   => SCLK_1_toBuf
 );
@@ -1652,7 +1651,7 @@ ODDR_SCLK_2: DDR_OUT
 port map(
     DR  => '0',
     DF  => '1',
-    CLR => s_SCLK_2,
+    CLR => not s_SCLK_2,
     CLK => s_clock24MBuff,
     Q   => SCLK_2_toBuf
 );
@@ -1667,7 +1666,7 @@ ODRR_citirocClkSR1: DDR_OUT
 port map(
     DR => '0',
     DF => '1',
-    CLR   => s_CLK_SR_1,
+    CLR   => not s_CLK_SR_1,
     CLK   => clk200k_sig,
     Q     => CLK_SR_1_toBuf
 );
@@ -1682,7 +1681,7 @@ ODRR_citirocClkSR2: DDR_OUT
 port map(
     DR => '0',
     DF => '1',
-    CLR   => s_CLK_SR_2,
+    CLR   => not s_CLK_SR_2,
     CLK   => clk200k_sig,
     Q     => CLK_SR_2_toBuf
 );

@@ -9,6 +9,8 @@ port(
     clk200k           : in std_logic;
     reset             : in std_logic;
 
+    enable            : in std_logic;
+
     configure_command : in std_logic;
     config_vector     : in std_logic_vector(1143 downto 0);
 
@@ -68,13 +70,8 @@ signal PROBE_reg: std_logic_vector(255 downto 0);
 
 begin
 
-RST_B_SR <= RST_B_SR_sig;
-select_reg <= select_reg_sig;
-
 Data_Conf <= config_vector;
 PROBE_reg <= (others => '0');
-
-CLK_SR <= CLK_SR_sig;
 
 SYNC_PROC: process(reset, clk200k)
 begin
@@ -83,8 +80,7 @@ begin
         select_reg_sig <= '0';
         SR_IN_SR       <= '1'; 
         RST_B_SR_sig   <= '1'; -- attivo basso
---        CLK_SR_sig     <= '0'; -- attivo sul fronte di salita 
-        CLK_SR_sig     <= '1'; -- pilota l'ingresso CLR di DDR_OUT quindi è attivo basso
+        CLK_SR_sig     <= '0'; -- attivo sul fronte di salita 
         state0_sig     <= '1';
         idle           <= '0';
         load           <= '0';
@@ -106,7 +102,11 @@ begin
 
     case pres_state is
         when power_off =>
-            next_state <= state0;
+            if enable = '1' then
+                next_state <= state0;
+            else
+                next_state  <= power_off;
+            end if;
 
         when state0 =>
             if state0_cnt < 100000 then 
@@ -176,8 +176,7 @@ begin
         select_reg_i       <= '0'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= '1'; 
         RST_B_SR_i         <= '1'; -- attivo basso
---        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
-        CLK_SR_i           <= '1'; -- attivo basso
+        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
         state0_sig_i       <= '1';
         idle_i             <= '0';
         load_i             <= '0';
@@ -186,8 +185,7 @@ begin
         select_reg_i       <= '0'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= '1'; 
         RST_B_SR_i         <= '1'; -- attivo basso
---        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
-        CLK_SR_i           <= '1'; -- attivo basso
+        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
         state0_sig_i       <= '1';
         idle_i             <= '0';
         load_i             <= '0';
@@ -196,8 +194,7 @@ begin
         select_reg_i       <= '0'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= '1'; 
         RST_B_SR_i         <= '0'; -- attivo basso
---        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
-        CLK_SR_i           <= '1'; -- attivo basso
+        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
         state0_sig_i       <= '0';
         idle_i             <= '0';
         load_i             <= '0';
@@ -206,8 +203,7 @@ begin
         select_reg_i       <= '1'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= '1'; 
         RST_B_SR_i         <= '0'; -- attivo basso
---        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
-        CLK_SR_i           <= '1'; -- attivo basso
+        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
         state0_sig_i       <= '0';
         idle_i             <= '0';
         load_i             <= '0';
@@ -216,8 +212,7 @@ begin
         select_reg_i       <= '1'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= Data_Conf(bit_nr); ------------------------------------------------------------
         RST_B_SR_i         <= '1'; -- attivo basso
---        CLK_SR_i           <= '1'; ---------------------------------------------------------------- -- attivo sul fronte di salita 
-        CLK_SR_i           <= '0'; -- attivo basso
+        CLK_SR_i           <= '1'; ---------------------------------------------------------------- -- attivo sul fronte di salita 
         state0_sig_i       <= '0';
         idle_i             <= '0';
         load_i             <= '0';
@@ -226,8 +221,7 @@ begin
         select_reg_i       <= '1'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= '1'; 
         RST_B_SR_i         <= '1'; -- attivo basso
---        CLK_SR_i           <= '1'; -- attivo sul fronte di salita ------------------------------------------------
-        CLK_SR_i           <= '0'; -- attivo basso
+        CLK_SR_i           <= '1'; -- attivo sul fronte di salita ------------------------------------------------
         state0_sig_i       <= '0';
         idle_i             <= '0';
         load_i             <= '0';
@@ -236,8 +230,7 @@ begin
         select_reg_i       <= '1'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= '1'; 
         RST_B_SR_i         <= '1'; -- attivo basso
---        CLK_SR_i           <= '0'; -- attivo sul fronte di salita ------------------------------------------------
-        CLK_SR_i           <= '1'; -- attivo basso
+        CLK_SR_i           <= '0'; -- attivo sul fronte di salita ------------------------------------------------
         state0_sig_i       <= '0';
         idle_i             <= '0';
         load_i             <= '0';
@@ -246,8 +239,7 @@ begin
         select_reg_i       <= '1'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= '1'; 
         RST_B_SR_i         <= '1'; -- attivo basso
---        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
-        CLK_SR_i           <= '1'; -- attivo basso
+        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
         state0_sig_i       <= '0';
         idle_i             <= '0';
         load_i             <= '1';
@@ -256,8 +248,7 @@ begin
         select_reg_i       <= '0'; -- 0 probe reg, 1 slow control reg !!!!!!!!!!!!!!!!!!!!!!
         SR_IN_SR_i         <= PROBE_reg(probe_bit_nr); 
         RST_B_SR_i         <= '1'; -- attivo basso
---        CLK_SR_i           <= '1'; -- attivo sul fronte di salita 
-        CLK_SR_i           <= '0'; -- attivo basso
+        CLK_SR_i           <= '1'; -- attivo sul fronte di salita 
         state0_sig_i       <= '0';
         idle_i             <= '0';
         load_i             <= '0';
@@ -266,8 +257,7 @@ begin
         select_reg_i       <= '1'; -- 0 probe reg, 1 slow control reg 
         SR_IN_SR_i         <= '1'; 
         RST_B_SR_i         <= '1'; -- attivo basso
---        CLK_SR_i           <= '0'; -- attivo sul fronte di salita !!!!!!!!!!!!!!!!!!!!!! ancora abilitato
-        CLK_SR_i           <= '1'; -- attivo basso
+        CLK_SR_i           <= '0'; -- attivo sul fronte di salita !!!!!!!!!!!!!!!!!!!!!! ancora abilitato
         state0_sig_i       <= '0';
         idle_i             <= '0';
         load_i             <= '0';
@@ -276,8 +266,7 @@ begin
         select_reg_i       <= '0'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= PROBE_reg(probe_bit_nr); 
         RST_B_SR_i         <= '1'; -- attivo basso
---        CLK_SR_i           <= '1'; -- attivo sul fronte di salita ------------------------------------------------
-        CLK_SR_i           <= '0'; -- attivo basso
+        CLK_SR_i           <= '1'; -- attivo sul fronte di salita ------------------------------------------------
         state0_sig_i       <= '0';
         idle_i             <= '0';
         load_i             <= '0';
@@ -286,8 +275,7 @@ begin
         select_reg_i       <= '1'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= '1'; 
         RST_B_SR_i         <= '1'; -- attivo basso
---        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
-        CLK_SR_i           <= '1'; -- attivo basso
+        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
         state0_sig_i       <= '0';
         idle_i             <= '1';
         load_i             <= '0';
@@ -296,8 +284,7 @@ begin
         select_reg_i       <= '1'; -- 0 probe reg, 1 slow control reg
         SR_IN_SR_i         <= '1'; 
         RST_B_SR_i         <= '1'; -- attivo basso
---        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
-        CLK_SR_i           <= '1'; -- attivo basso
+        CLK_SR_i           <= '0'; -- attivo sul fronte di salita 
         state0_sig_i       <= '0';
         idle_i             <= '0';
         load_i             <= '0';
@@ -308,10 +295,12 @@ end process;
 
 initStateCounter: process(reset, idle_i, clk200k, state0_sig, state0_cnt) -- usa come clk200k lo stesso clk200k usato dalla memoria e per la configurazione della easiroc
 begin
-    if reset='1' or idle_i = '1' then 
+    if reset='1' then--or idle_i = '1' then 
         state0_cnt <= 0;
     elsif rising_edge(clk200k) then
-        if state0_sig = '1' then -- il contatore è abilitato solo nello stato iniziale
+        if idle_i = '1' then
+            state0_cnt <= 0;
+        elsif enable = '1' and state0_sig = '1' then -- il contatore ? abilitato solo nello stato iniziale
             state0_cnt <= state0_cnt + 1;		
         end if;
     end if;
@@ -321,10 +310,12 @@ end process;
 
 rstWidthCounter: process(reset, clk200k, RST_B_SR_sig, reset_cnt, idle_i) -- usa come clk200k lo stesso clk200k usato dalla memoria e per la configurazione della easiroc
 begin
-    if reset='1' or idle_i = '1' then 
+    if reset='1' then--or idle_i = '1' then 
         reset_cnt <= 0;
     elsif rising_edge(clk200k) then
-        if RST_B_SR_sig = '0' then -- il contatore è abilitato solo negli stati di reset (config_state)
+        if idle_i = '1' then
+            reset_cnt <= 0;
+        elsif enable = '1' and RST_B_SR_sig = '0' then -- il contatore ? abilitato solo negli stati di reset (config_state)
             reset_cnt <= reset_cnt + 1;		
         end if;
     end if;
@@ -339,9 +330,7 @@ begin
     elsif rising_edge(clk200k) then
         if (RST_B_SR_sig = '0') then -- il contatore viene resettato ogni volta che si resettano i registri
             bit_nr <= 0;	
-        --elsif (CLK_SR_sig = '1' and select_reg_sig = '1') then -- il contatore è abilitato solo nello stato di configurazione e limitrofi (config_state, config_to_idle)
-        -- cambiando la polarità di CLK_SR_sig anche questo va cambiato
-        elsif (CLK_SR_sig = '0' and select_reg_sig = '1') then -- il contatore è abilitato solo nello stato di configurazione e limitrofi (config_state, config_to_idle)
+        elsif (CLK_SR_sig = '1' and select_reg_sig = '1') then -- il contatore ? abilitato solo nello stato di configurazione e limitrofi (config_state, config_to_idle)
             if bit_nr < DATA_WIDTH - 1  then
                 bit_nr <= bit_nr + 1;
             end if;
@@ -358,14 +347,16 @@ begin
     elsif rising_edge(clk200k) then
         if (RST_B_SR_sig = '0') then -- il contatore viene resettato ogni volta che si resettano i registri
             probe_bit_nr <= 0;
-        --elsif (CLK_SR_sig = '1' and select_reg_sig = '0') then -- il contatore è abilitato solo nello stato di probe (probe_state)
-        -- cambiando la polarità di CLK_SR_sig anche questo va cambiato
-        elsif (CLK_SR_sig = '0' and select_reg_sig = '0') then -- il contatore è abilitato solo nello stato di probe (probe_state)
+        elsif (CLK_SR_sig = '1' and select_reg_sig = '0') then -- il contatore ? abilitato solo nello stato di probe (probe_state)
             if probe_bit_nr < PROBE_WIDTH - 1  then
                 probe_bit_nr <= probe_bit_nr + 1;
             end if;
         end if;
     end if;
 end process;
+
+CLK_SR <= CLK_SR_sig;
+RST_B_SR <= RST_B_SR_sig;
+select_reg <= select_reg_sig;
 
 end Behavioral;

@@ -145,6 +145,10 @@ signal  TR1,
         LAT_4,
         BOT_00                   : std_logic;
 
+attribute syn_replicate : boolean;
+
+attribute syn_replicate of reset_counter : signal is false;
+
 begin
 
 TR1    <= plane(0) or plane(1) or plane(2) or plane(3) or plane(4);

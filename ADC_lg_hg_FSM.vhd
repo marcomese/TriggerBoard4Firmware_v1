@@ -76,8 +76,7 @@ SYNC_PROC: process (clock,reset)
 			pres_state <= wait_state;
 
             CS_sig    <= '1' ;  -- attivo basso
---			SCLK_sig  <= '0' ;  -- attivo sul fronte di salita
-            SCLK_sig  <= '1' ;  -- pilota l'ingresso CLR di DDR_OUT quindi è attivo basso
+			SCLK_sig  <= '0' ;  -- attivo sul fronte di salita
             store_sig <= '0' ;
 
 		elsif clock'event and clock='1' then
@@ -138,36 +137,31 @@ begin
 if next_state = wait_state then --  sistema in attesa
 
             CS_i        <= '1' ;  -- attivo basso
---			SCLK_i      <= '0' ;  -- attivo sul fronte di salita
-			SCLK_i      <= '1' ;  -- attivo basso
+			SCLK_i      <= '0' ;  -- attivo sul fronte di salita
             store_sig_i <= '0' ;
 
 elsif next_state = start_read_state then -- 1 colpo di clock
 
             CS_i        <= '1' ;  -- attivo basso
---			SCLK_i      <= '1' ;  -- attivo sul fronte di salita
-			SCLK_i      <= '0' ;  -- attivo basso
+			SCLK_i      <= '1' ;  -- attivo sul fronte di salita
             store_sig_i <= '0' ;            
 
 elsif next_state = read_state then -- 14 colpi di clock
 
             CS_i        <= '0' ;  -- attivo basso
---			SCLK_i      <= '1' ;  -- attivo sul fronte di salita
-			SCLK_i      <= '0' ;  -- attivo basso
+			SCLK_i      <= '1' ;  -- attivo sul fronte di salita
             store_sig_i <= '0' ;
 
 elsif next_state = store_state then 
 
             CS_i        <= '1' ;  -- attivo basso -----------------------------corretto????????
---			SCLK_i      <= '0' ;  -- attivo sul fronte di salita
-			SCLK_i      <= '1' ;  -- attivo basso
+			SCLK_i      <= '0' ;  -- attivo sul fronte di salita
             store_sig_i <= '1' ;
 
 else
 
             CS_i        <= '1' ;  -- attivo basso
---			SCLK_i      <= '0' ;  -- attivo sul fronte di salita
-			SCLK_i      <= '1' ;  -- attivo basso
+			SCLK_i      <= '0' ;  -- attivo sul fronte di salita
             store_sig_i <= '0' ;
 
 end if; 
@@ -239,7 +233,7 @@ begin
    elsif (clock = '1' and clock'event) then
 			if (CS_sig = '1') then -- il contatore viene resettato ogni volta che si resetta il registro
 				bit_nr <= 0;	
-			elsif (CS_sig = '0') then -- il contatore è abilitato solo nello stato di lettura 
+			elsif (CS_sig = '0') then -- il contatore ? abilitato solo nello stato di lettura 
 				if bit_nr < ADC_BIT_NR - 1  then
 					bit_nr <= bit_nr + 1;
 				end if;
