@@ -244,6 +244,7 @@ generic(
 port(
     clk            : in  std_logic;
     rst            : in  std_logic;
+    enable         : in  std_logic;
     ppsIn          : in  std_logic;
     counterOut     : out std_logic_vector((ppsCountWidth+fineCountWidth)-1 downto 0)
 );
@@ -362,6 +363,20 @@ port (
 
     debug_triggerIN   : in std_logic
 
+);
+end component;
+
+component aliveDeadTCnt is
+port(
+    clock      : in  std_logic;
+    clock200k  : in  std_logic;
+    reset      : in  std_logic;
+    trgInhibit : in  std_logic;
+    acqState   : in  std_logic;
+    trigger    : in  std_logic;
+    aliveCount : out std_logic_vector(31 downto 0);
+    deadCount  : out std_logic_vector(31 downto 0);
+    lostCount  : out std_logic_vector(15 downto 0)
 );
 end component;
 
@@ -581,6 +596,7 @@ generic(
 port(
     clk24M     : in  std_logic;
     rst        : in  std_logic;
+    enable     : in  std_logic;
 	dacHGVal   : in  std_logic_vector(15 downto 0);
     dacLGVal   : in  std_logic_vector(15 downto 0);
     enableSclk : out std_logic;
@@ -835,7 +851,7 @@ signal fifoDVLD     : std_logic;
 
 signal rstCIT1out, rstCIT2out : std_logic;
 
-constant zeros288   : std_logic_vector(287 downto 0) := (others => '0');
+constant zeros208   : std_logic_vector(207 downto 0) := (others => '0');
 
 signal writeDone    : std_logic;
 signal spwCtrlBusy  : std_logic;
@@ -881,6 +897,11 @@ signal  wdiEdge,
         startConversion,
         temp1Completed,
         temp2Completed       : std_logic;
+
+signal  aliveCount,
+        deadCount            : std_logic_vector(31 downto 0);
+
+signal  lostCount            : std_logic_vector(15 downto 0);
 
 --attribute syn_keep     : boolean;
 --attribute syn_preserve : boolean;
@@ -1217,8 +1238,6 @@ port map(
     debug_triggerIN => s_start_debug
 );
 
-
--- mettere il reset di ppsCounter su una linea di quadrant clock
 ppsCounterInst: ppsCounter
 generic map(
     clkFreq        => 48.0e6,
@@ -1228,7 +1247,8 @@ generic map(
 )
 port map(
     clk            => s_clock48M,
-    rst            => (not s_acquisition_state),
+    rst            => swRst,
+    enable         => s_acquisition_state,
     ppsIn          => dpcuPPSSync,
     counterOut     => ppsCount
 );
@@ -1242,17 +1262,32 @@ begin
     end if;
 end process;
 
+aliveDeadinst: aliveDeadTCnt
+port map(
+    clock      => s_clock48M,
+    clock200k  => clk200k_sig,
+    reset      => swRst,
+    trgInhibit => trgInhibit,
+    acqState   => s_acquisition_state,
+    trigger    => extendedTriggerOut,
+    aliveCount => aliveCount,
+    deadCount  => deadCount,
+    lostCount  => lostCount
+);
+
 acqData(2303 downto 0) <= x"4645"             &
                           trigCounter         &
                           ppsCountSync        &
                           adcDataOut          &
-                          zeros288            &
+                          zeros208            &
                           s_trigger_flag_1    &
                           s_trigger_flag_2    &
                           s_mask_rate         &
+                          aliveCount          &
+                          deadCount           &
+                          lostCount           &
                           x"4748";
 
--- swRst deve essere su una linea globale!!!!! altrimenti usa 2-tile implementation!
 inst_spwFIFOInterface: spwFIFOInterface
 generic map(
     fifoWidth      => 576,
@@ -1261,7 +1296,7 @@ generic map(
 )
 port map(
     clk            => s_clock48M,
-    rst            => swRst,--s_global_rst,
+    rst            => swRst,
 
     adcDataReady   => dataReady,
     acqData        => acqData,
@@ -1288,14 +1323,6 @@ port map(
 
 writeDataLenBuff <= writeDataLen;
 
---wDataLenBuff: CLKINT
---port map(
-    --A => writeDataLen,
-    --Y => writeDataLenBuff
---);
-
-
--- swRst deve essere ASSOLUTAMENTE su una linea globale!!!
 inst_spwFIFO: spwFIFO
 port map(
     CLK      => s_clock48M,
@@ -1520,7 +1547,8 @@ generic map(
 )
 port map(
     clk24M     => s_clock24MBuff,
-    rst        => rstCIT1out,
+    rst        => s_global_rst,
+    enable     => rstCIT1out,
 	dacHGVal   => s_refDAC1(31 downto 16),
     dacLGVal   => s_refDAC1(15 downto 0),
     enableSclk => enableSclk_1,
@@ -1538,7 +1566,8 @@ generic map(
 )
 port map(
     clk24M   => s_clock24MBuff,
-    rst      => rstCIT2out,
+    rst      => s_global_rst,
+    enable   => rstCIT2out,
 	dacHGVal => s_refDAC2(31 downto 16),
     dacLGVal => s_refDAC2(15 downto 0),
     enableSclk => enableSclk_2,

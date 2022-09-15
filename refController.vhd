@@ -11,6 +11,7 @@ generic(
 port(
     clk24M     : in  std_logic;
     rst        : in  std_logic;
+    enable     : in  std_logic;
 	dacHGVal   : in  std_logic_vector(15 downto 0);
     dacLGVal   : in  std_logic_vector(15 downto 0);
     enableSclk : out std_logic;
@@ -35,6 +36,7 @@ port(
     parallelIN      : in    std_logic_vector(parallelWidth-1 downto 0);
     serialIN        : in    std_logic;
     load            : in    std_logic;
+    clear           : in    std_logic;
     shift           : in    std_logic;
     serialOUT       : out   std_logic;
     shiftDone       : out   std_logic;
@@ -74,7 +76,6 @@ signal  shiftDone,
         syncLGSig, syncLGSigF,
         bufferSout,
         bufferReset, bufferResetF,
-        serializerReset,
         enableSclkSig,
         initSend,initSendF,
         confDoneSig, confDoneSigF  : std_logic;
@@ -135,8 +136,6 @@ syncLG <= syncLGSig;
 
 dout <= bufferSout;
 
-serializerReset <= rst or bufferReset;
-
 confDone <= confDoneSig;
 
 ser: serializer
@@ -150,11 +149,12 @@ port map(
     parallelIN     => bufferData,
     serialIN       => '0',
     load           => load,
+    clear          => bufferReset,
     shift          => shift,
     serialOUT      => bufferSout,
     shiftDone      => shiftDone,
     clk            => clk24M,
-    rst            => serializerReset
+    rst            => rst
 );
 
 ------------- controller FSM
@@ -187,7 +187,11 @@ comb: process(currState, send, shiftDone)
 begin
 	case currState is
         when start =>
+            if enable = '1' then
                 nextState <= initState;
+            else
+                nextState <= start;
+            end if;
 
         when initState =>
                 nextState <= sclkInitEnabled;
@@ -196,7 +200,7 @@ begin
                 nextState <= shiftHGBUF;
 
 		when idle =>
-			if send='1' then
+			if send='1' and enable = '1' then
 				nextState <= loadBUF;
 			else
 				nextState <= idle;

@@ -13,6 +13,7 @@ entity serializer is
         parallelIN      : in    std_logic_vector(parallelWidth-1 downto 0);
         serialIN        : in    std_logic;
         load            : in    std_logic;
+        clear           : in    std_logic;
         shift           : in    std_logic;
         serialOUT       : out   std_logic;
         shiftDone       : out   std_logic;
@@ -122,22 +123,26 @@ end process;
 
 bitCounter: process(all) 
 begin
-    if bitCounterRst = '1' then
+    if rst = '1' then
         bitCountSig  <= 0;
     elsif rising_edge(clk) then
-        if shiftSig = '1' then
+        if clear = '1' or bitCounterRst = '1' then
+            bitCountSig  <= 0;
+        elsif shiftSig = '1' then
             bitCountSig  <= bitCountSig + 1;
         end if;
     end if;
 end process;
 
-memory: process(all)
+memory: process(clk, rst, load, clear, shiftSig)
 begin
     if rst = '1' then
         dataSig <= resetValue;
     elsif clk = '1' and clk'event then
         if load = '1' then
             dataSig <= parallelIN;
+        elsif clear = '1' then
+            dataSig <= resetValue;
         elsif shiftSig = '1' and shiftDirection = '0' then
             dataSig <= dataSig(dataSig'length-2 downto 0) & serialIN;
         elsif shiftSig = '1' and shiftDirection = '1' then

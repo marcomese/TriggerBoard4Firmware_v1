@@ -12,6 +12,7 @@ generic(
 port(
     clk            : in  std_logic;
     rst            : in  std_logic;
+    enable         : in  std_logic;
     ppsIn          : in  std_logic;
     counterOut     : out std_logic_vector((ppsCountWidth+fineCountWidth)-1 downto 0)
 );
@@ -61,7 +62,9 @@ begin
     if rst = '1' then
         ppsCounter <= 0;
     elsif rising_edge(clk) then
-        if ppsRising = '1' then
+        if enable = '0' then
+            ppsCounter <= 0;
+        elsif enable = '1' and ppsRising = '1' then
             ppsCounter <= ppsCounter + 1;
         end if;
     end if;
@@ -72,9 +75,9 @@ begin
     if rst = '1' then
         fineCounter <= 0;
     elsif rising_edge(clk) then
-        if ppsRising = '1' then
+        if enable = '0' or ppsRising = '1' then
             fineCounter <= 0;
-        elsif fineElapsed = '1' then
+        elsif enable = '1' and fineElapsed = '1' then
             fineCounter <= fineCounter + 1;
         end if;
     end if;
@@ -86,7 +89,7 @@ begin
         resCounter  <= 0;
         fineElapsed <= '0';
     elsif rising_edge(clk) then
-        if ppsRising = '1' then
+        if ppsRising = '1' or enable = '0' then
             resCounter <= 0;
             fineElapsed <= '0';
         else
