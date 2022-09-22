@@ -42,8 +42,10 @@ signal counterRst, counterRstF : std_logic;
 component counter5Bit is
 port(
     Aclr   : in    std_logic;
+    Sload  : in    std_logic;
     Clock  : in    std_logic;
     Enable : in    std_logic;
+    Data   : in    std_logic_vector(4 downto 0);
     Q      : out   std_logic_vector(4 downto 0)
 );
 end component;
@@ -102,9 +104,11 @@ end process;
 
 trgLenCounterInst: counter5Bit
 port map(
-    Aclr   => counterRst,
+    Aclr   => reset,
+    Sload  => counterRst,
     Clock  => clock,
     Enable => trg,
+    Data   => (others => '0'),
     Q      => count
 );
 

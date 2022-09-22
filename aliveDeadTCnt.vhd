@@ -21,18 +21,19 @@ architecture architecture_aliveDeadTCnt of aliveDeadTCnt is
 signal  ALIVE_TIME_count,
         DEAD_TIME_count,
         ALIVE_TIME,
-        DEAD_TIME,
-        trigger_count     : std_logic_vector(31 downto 0);
+        DEAD_TIME         : std_logic_vector(31 downto 0);
 
 signal  lost,
         lost_count        : std_logic_vector(15 downto 0);
 
 signal  live,
+        dead,
         liveCntRst,
         deadCntRst,
         lostCntRst,
         liveCntStored,
         deadCntStored,
+        triggerRise,
         trgInhibFall      : std_logic;
 
 attribute syn_replicate : boolean;
@@ -85,6 +86,17 @@ deadCntRst <= reset or deadCntStored;
 
 lostCntRst <= reset or not trgInhibit;
 
+triggerRisingInst: edgeDetector
+generic map(
+    edge      => '1'
+)
+port map(
+    clk       => clock,
+    rst       => reset,
+    signalIn  => trigger,
+    signalOut => triggerRise
+);
+
 trgInhibFallingInst: edgeDetector
 generic map(
     edge      => '0'
@@ -100,29 +112,25 @@ LIVE_dead_register: process(clock, reset, acqState, trgInhibFall, trigger)
 begin
     if reset = '1' then
         live <= '0';
+        dead <= '0';
     elsif rising_edge(clock) then
         if acqState = '1' then
-            if trigger = '1' then
+            if triggerRise = '1' then
                 live <= '0';
+                dead <= '1';
             elsif trgInhibFall = '1' then 
                 live <= '1';
+                dead <= '0';
             else
                 live <= live;
+                dead <= dead;
             end if;
+        else
+            live <= '0';
+            dead <= '0';
         end if;
     end if;
 end process;
-
---ALIVE_COUNTER: process (clock200k, reset, trgInhibit) 
---begin
-   --if reset= '1' then 
-      --ALIVE_TIME_count <= (OTHERS => '0');
-    --elsif rising_edge(clock200k) then
-        --if live = '1' and dead = '0' then 
-            --ALIVE_TIME_count <= ALIVE_TIME_count + 1;
-        --end if;       
-   --end if;
---end process;
 
 aliveCounter: counter32Bit
 port map(
@@ -132,22 +140,11 @@ port map(
     Q      => ALIVE_TIME_count
 );
 
---DEAD_counter: process (clock200k, reset, trgInhibit, trigger) 
---begin
-   --if reset= '1' or (trgInhibit = '0' and trigger = '1') then 
-      --DEAD_TIME_count <= (OTHERS => '0');
-    --elsif rising_edge(clock200k) then
-        --if trgInhibit = '1' then 
-            --DEAD_TIME_count <= DEAD_TIME_count + 1;  
-        --end if;       
-   --end if;
---end process;
-
 deadCounter: counter32Bit
 port map(
     Aclr   => deadCntRst,
     Clock  => clock200k,
-    Enable => not live,
+    Enable => dead,
     Q      => DEAD_TIME_count
 );
 
@@ -156,8 +153,8 @@ begin
     if reset='1' then
         ALIVE_TIME <= (OTHERS => '0');
         liveCntStored <= '0';
-elsif rising_edge(clock) then
-        if trigger = '1' then
+    elsif rising_edge(clock) then
+        if triggerRise = '1' then
             ALIVE_TIME <= ALIVE_TIME_count;
             liveCntStored <= '1';
         else
@@ -193,18 +190,5 @@ port map(
     Enable => acqState and (not live) and trigger,
     Q      => lost_count
 );
-
---lost_trg_counter: process(clock, reset, trgInhibit, trigger) 
---begin
-   --if reset= '1' or (trgInhibit = '0' and trigger = '1') then 
-      --lost_count <= (OTHERS => '0');
-    --elsif rising_edge(clock) then
-        --if acqStateIn = '1' and dead = '1' and trigger = '1' then 
-            --lost_count <= lost_count + 1;
-        --else
-            --lost_count <= (OTHERS => '0');
-        --end if;       
-   --end if;
---end process;
 
 end architecture_aliveDeadTCnt;

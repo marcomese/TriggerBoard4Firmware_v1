@@ -68,8 +68,8 @@ port (
     pwr_on_citiroc1 : in std_logic;
     pwr_on_citiroc2 : in std_logic;
 
-    rstCIT1out : out std_logic;
-    rstCIT2out : out std_logic;
+    enCIT1out : out std_logic;
+    enCIT2out : out std_logic;
 
     trigger_in_1    : in std_logic_vector(31 downto 0);
     trigger_in_2    : in std_logic_vector(31 downto 0);    
@@ -103,6 +103,8 @@ port (
     adcDataOut        : out std_logic_vector(1535 downto 0);
 
     trgExtIn          : in std_logic;
+
+    rate1SecOut       : out std_logic;
 
     holdoff           : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
@@ -219,6 +221,8 @@ port(
     trigger_flag_2       : out std_logic_vector(31 downto 0);			
 
     trgExtIn             : in  std_logic;
+
+    rate1SecOut          : out std_logic;
 
     holdoff              : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
@@ -398,7 +402,7 @@ begin
     end if;
 end process;
 
-rstCIT1out <= enCIT1;
+enCIT1out <= enCIT1;
 
 configCit1Inst: config_CITIROC_1
 port map(  
@@ -449,11 +453,11 @@ begin
     if rst = '1' then
         enCIT2 <= '0';
     elsif rising_edge(clock200k) then
-        enCIT2 <= pwr_on_citiroc1;
+        enCIT2 <= pwr_on_citiroc2;
     end if;
 end process;
 
-rstCIT2out <= enCIT2;
+enCIT2out <= enCIT2;
 
 configCit2Inst: config_CITIROC_1
 port map(  
@@ -593,6 +597,8 @@ port map (
     trigger_flag_2       => s_trigger_flag_2,			
 
     trgExtIn             => trgExtIn,
+
+    rate1SecOut          => rate1SecOut,
 
     holdoff              => holdoff,
 

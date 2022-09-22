@@ -322,8 +322,8 @@ port (
     pwr_on_citiroc1 : in std_logic;
     pwr_on_citiroc2 : in std_logic;
 
-    rstCIT1out : out std_logic;
-    rstCIT2out : out std_logic;
+    enCIT1out : out std_logic;
+    enCIT2out : out std_logic;
 
     trigger_in_1    : in std_logic_vector(31 downto 0);
     trigger_in_2    : in std_logic_vector(31 downto 0);
@@ -358,6 +358,8 @@ port (
     adcDataOut        : out std_logic_vector(1535 downto 0);
 
     trgExtIn          : in std_logic;
+
+    rate1SecOut       : out std_logic;
 
     holdoff           : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
@@ -485,19 +487,24 @@ port(
 );
 end component;
 
-component AD7814_T_IF_0 is
-  port(-------------------------------------------------------------	  
-	  Clr : in std_logic;-- Active Low	async
-	  clk : in std_logic;-- Fatt.div. /x interno ..
-	  -- settare costante in funzione del sys_clk esterno ..
-	  Start     : in std_logic;-- Active High	pulse  
-	  Completed : out std_logic;-- Active High	pulse
-	  Data_acquired: out std_logic_vector(9 downto 0);--10b Data out..
-    -- serial I/F :
-    Data_in : in std_logic;
-    CS_out  : out std_logic;    
-    Clk_out : out std_logic  	   	  
-   );---------------------------------------------------------------
+component tempSensorRead is
+generic(
+    clkFreq      : real;
+    sclkFreq     : real;
+    sDataWidth   : natural;
+    tempWidth    : natural
+);
+port(
+    clk          : in  std_logic;
+    rst          : in  std_logic;
+    enableIn     : in  std_logic;
+    startConvIn  : in  std_logic;
+    sDataIn      : in  std_logic;
+    dataReadyOut : out std_logic;
+    sclkOut      : out std_logic;
+    csOut        : out std_logic;
+    dataOut      : out std_logic_vector(tempWidth-1 downto 0)
+);
 end component;
 
 component register_file is
@@ -545,6 +552,8 @@ port(
     stop_ACQ            : out std_logic; -- attivo alto (impulso lungo almeno un colpo di clock)
     start_cal           : out std_logic; -- attivo alto (impulso lungo almeno un colpo di clock)
     stop_cal            : out std_logic; -- attivo alto (impulso lungo almeno un colpo di clock)
+
+    enableTsens         : out std_logic;
 
     -- Segnali da/verso DPCU e TDAQ
 --    dataReady           : in  std_logic;
@@ -687,6 +696,9 @@ end component;
 constant concurrentTriggers : natural := 6;
 constant prescaledTriggers  : natural := 4;
 constant holdOffBits        : natural := 16;
+
+constant tSDataWidth        : natural := 16;
+constant tempWidth          : natural := 10;
 
 signal  wdRst,
         wdi,
@@ -849,7 +861,7 @@ signal fifoEMPTY    : std_logic;
 signal fifoWACK     : std_logic;
 signal fifoDVLD     : std_logic;
 
-signal rstCIT1out, rstCIT2out : std_logic;
+signal enCIT1out, enCIT2out : std_logic;
 
 constant zeros208   : std_logic_vector(207 downto 0) := (others => '0');
 
@@ -870,8 +882,7 @@ signal extendedTriggerOut   : std_logic;
 
 signal dpcuDataLenFromSpw   : std_logic_vector(31 downto 0);
 
-signal writeDataLen,
-       writeDataLenBuff     : std_logic;
+signal writeDataLen         : std_logic;
 
 signal  dataReadyOutSig,
         dataReadyOutSigBuff : std_logic;
@@ -893,8 +904,11 @@ signal  CLK_READ_1_toBuf,
 signal  tempData,
         s_board_temp         : std_logic_vector(31 downto 0);
 
-signal  wdiEdge,
-        startConversion,
+signal  rate1SecSig,
+        rate1SecSigRise,
+        enableTsens,
+        tempCsOut1,
+        tempCsOut2,
         temp1Completed,
         temp2Completed       : std_logic;
 
@@ -1062,8 +1076,8 @@ load_2       <= s_load_2       and s_pwr_on_citiroc2;
 s_trigger_in_1 <= trigger_in_1;
 s_trigger_in_2 <= trigger_in_2;
 
-s_SDATA_hg_1 <= SDATA_hg_1 and s_pwr_on_citiroc1;
-s_SDATA_lg_1 <= SDATA_lg_1 and s_pwr_on_citiroc1;
+s_SDATA_hg_1 <= SDATA_hg_1;
+s_SDATA_lg_1 <= SDATA_lg_1;
 CS_1         <= s_CS_1     and s_pwr_on_citiroc1;
 
 hold_hg_1 <= s_hold_hg_1 and s_pwr_on_citiroc1;
@@ -1072,8 +1086,8 @@ hold_lg_1 <= s_hold_lg_1 and s_pwr_on_citiroc1;
 SR_IN_READ_1 <= s_SR_IN_READ_1 and s_pwr_on_citiroc1;
 RST_B_READ_1 <= s_RST_B_READ_1 and s_pwr_on_citiroc1;
 
-s_SDATA_hg_2 <= SDATA_hg_2 and s_pwr_on_citiroc2;
-s_SDATA_lg_2 <= SDATA_lg_2 and s_pwr_on_citiroc2;
+s_SDATA_hg_2 <= SDATA_hg_2;
+s_SDATA_lg_2 <= SDATA_lg_2;
 CS_2         <= s_CS_2     and s_pwr_on_citiroc2;
 
 hold_hg_2 <= s_hold_hg_2 and s_pwr_on_citiroc2;
@@ -1197,8 +1211,8 @@ port map(
     pwr_on_citiroc1 => s_pwr_on_citiroc1,
     pwr_on_citiroc2 => s_pwr_on_citiroc2,
 
-    rstCIT1out => rstCIT1out,
-    rstCIT2out => rstCIT2out,
+    enCIT1out => enCIT1out,
+    enCIT2out => enCIT2out,
 
     trigger_in_1 => s_trigger_in_1,
     trigger_in_2 => s_trigger_in_2,
@@ -1232,6 +1246,8 @@ port map(
     adcDataOut => adcDataOut,
 
     trgExtIn => trgExt,
+
+    rate1SecOut => rate1SecSig,
 
     holdoff => holdoff,
 
@@ -1321,8 +1337,6 @@ port map(
     fifoDVLD       => fifoDVLD
 );
 
-writeDataLenBuff <= writeDataLen;
-
 inst_spwFIFO: spwFIFO
 port map(
     CLK      => s_clock48M,
@@ -1369,167 +1383,149 @@ port map(
     o_txdata            => s_txdata
 );
 
-wdiEdgeDetInst: edgeDetector
+startTConvSigInst: edgeDetector
 generic map(
     edge      => '1'
 )
 port map(
     clk       => s_clock24MBuff,
     rst       => s_global_rst,
-    signalIn  => wdi,
-    signalOut => wdiEdge
+    signalIn  => rate1SecSig,
+    signalOut => rate1SecSigRise
 );
 
-startConversionCounterInst: counter4Bit
+temp1Inst: tempSensorRead
+generic map(
+    clkFreq       => 24.0e6,
+    sclkFreq      => 750.0e3,
+    sDataWidth    => tSDataWidth,
+    tempWidth     => tempWidth
+)
 port map(
-    Aclr   => s_global_rst,
-    Clock  => s_clock24MBuff,
-    Tcnt   => startConversion,
-    Enable => wdiEdge,
-    Q      => open
-);
-
-instTempSens1: AD7814_T_IF_0
- port map(
-    Clr           => not s_global_rst,
     clk           => s_clock24MBuff,
-
-    Start         => startConversion,
-    Completed     => temp1Completed,
-    Data_acquired => tempData(9 downto 0),
-
-    Data_in       => TSENS_DOUT_1,
-    CS_out        => TSENS_CS_N_1,
-    Clk_out       => TSENS_SCLK_1
+    rst           => s_global_rst,
+    enableIn      => enableTsens,
+    startConvIn   => rate1SecSigRise,
+    sDataIn       => TSENS_DOUT_1,
+    dataReadyOut  => temp1Completed,
+    sclkOut       => TSENS_SCLK_1,
+    csOut         => TSENS_CS_N_1,
+    dataOut       => tempData(9 downto 0)
 );
 
 tempData(15 downto 10) <= (others => '0');
 
-tDataReg1: process(s_clock24MBuff, s_global_rst)
-begin
-    if s_global_rst = '1' then
-        s_board_temp(15 downto 0) <= (others => '0');
-    elsif rising_edge(s_clock24MBuff) then
-        if temp1Completed = '1' then
-            s_board_temp(15 downto 0) <= tempData(15 downto 0);
-        end if;
-    end if;
-end process;
-
-instTempSens2: AD7814_T_IF_0
- port map(
-    Clr           => not s_global_rst,
+temp2Inst: tempSensorRead
+generic map(
+    clkFreq       => 24.0e6,
+    sclkFreq      => 750.0e3,
+    sDataWidth    => tSDataWidth,
+    tempWidth     => tempWidth
+)
+port map(
     clk           => s_clock24MBuff,
-
-    Start         => startConversion,
-    Completed     => temp2Completed,
-    Data_acquired => tempData(25 downto 16),
-
-    Data_in       => TSENS_DOUT_2,
-    CS_out        => TSENS_CS_N_2,
-    Clk_out       => TSENS_SCLK_2
+    rst           => s_global_rst,
+    enableIn      => enableTsens,
+    startConvIn   => temp1Completed,
+    sDataIn       => TSENS_DOUT_2,
+    dataReadyOut  => temp2Completed,
+    sclkOut       => TSENS_SCLK_2,
+    csOut         => TSENS_CS_N_2,
+    dataOut       => tempData(25 downto 16)
 );
 
 tempData(31 downto 26) <= (others => '0');
 
-tDataReg2: process(s_clock24MBuff, s_global_rst)
+tDataReg: process(s_clock24MBuff, s_global_rst)
 begin
     if s_global_rst = '1' then
-        s_board_temp(31 downto 16) <= (others => '0');
+        s_board_temp <= (others => '0');
     elsif rising_edge(s_clock24MBuff) then
         if temp2Completed = '1' then
-            s_board_temp(31 downto 16) <= tempData(31 downto 16);
+            s_board_temp <= tempData;
         end if;
     end if;
 end process;
 
-
 inst_register_file: register_file
-  generic map (
-
+generic map(
     sysid => x"33CC33CC",
     refDac1Def => refDac1Def,
     refDac2Def => refDac2Def,
     prescaledTriggers => prescaledTriggers,
     holdOffBits => holdOffBits
-  )
+)
+port map(
+    clk => s_clock48M,
+    rst => s_global_rst,
+    we => s_we,
+    en => '1',
+    addr => s_addr,
+    di => s_di,
+    do => s_do,
+    o_write_done  => writeDone,
+    i_busy => spwCtrlBusy,
 
-  port map (
-        clk => s_clock48M,
-        rst => s_global_rst,
-        we => s_we,
-        en => '1',
-        addr => s_addr,
-        di => s_di,
-        do => s_do,
-        o_write_done  => writeDone,
-        i_busy => spwCtrlBusy,
+    -- DAC piedistalli
+    refDAC_1 => s_refDAC1,
+    refDAC_2 => s_refDAC2,
 
-        -- DAC piedistalli
-        refDAC_1 => s_refDAC1,
-        refDAC_2 => s_refDAC2,
+    config_vector_1 => s_config_vector_1,
+    config_vector_2 => s_config_vector_2,
 
-        config_vector_1 => s_config_vector_1,
-        config_vector_2 => s_config_vector_2,
+    trigger_mask => s_trigger_mask,
+    generic_trigger_mask => s_generic_trigger_mask,
+    PMT_mask_1 => s_PMT_mask_1,
+    PMT_mask_2 => s_PMT_mask_2,
 
-        trigger_mask => s_trigger_mask,
-        generic_trigger_mask => s_generic_trigger_mask,
-        PMT_mask_1 => s_PMT_mask_1,
-        PMT_mask_2 => s_PMT_mask_2,
+    start_config_1 => s_start_config_1,
+    start_config_2 => s_start_config_2,
 
-        start_config_1 => s_start_config_1,
-        start_config_2 => s_start_config_2,
+    sw_rst => s_sw_rst,
+    pwr_on_citiroc1 => s_pwr_on_citiroc1,
+    pwr_on_citiroc2 => s_pwr_on_citiroc2,
+    start_debug => s_start_debug,
+    apply_trigger_mask => s_apply_trigger_mask,
+    apply_PMT_mask => s_apply_PMT_mask,
+    start_ACQ => s_start_ACQ,
+    stop_ACQ => s_stop_ACQ,
+    start_cal => s_start_cal,
+    stop_cal => s_stop_cal,
 
-        sw_rst => s_sw_rst,
-        pwr_on_citiroc1 => s_pwr_on_citiroc1,
-        pwr_on_citiroc2 => s_pwr_on_citiroc2,
-        start_debug => s_start_debug,
-        apply_trigger_mask => s_apply_trigger_mask,
-        apply_PMT_mask => s_apply_PMT_mask,
-        start_ACQ => s_start_ACQ,
-        stop_ACQ => s_stop_ACQ,
-        start_cal => s_start_cal,
-        stop_cal => s_stop_cal,
+    enableTsens => enableTsens,
 
-        -- Segnali da/verso DPCU e TDAQ
-        TDAQ_BUSY    => tdaqBusyInSync,
-        DPCU_TRGHOLD => dpcuTrgHoldSync,
-        DPCU_BUSY    => dpcuBusyInSync,
-        dataReadyOut => dataReadyOutSig,
+    -- Segnali da/verso DPCU e TDAQ
+    TDAQ_BUSY    => tdaqBusyInSync,
+    DPCU_TRGHOLD => dpcuTrgHoldSync,
+    DPCU_BUSY    => dpcuBusyInSync,
+    dataReadyOut => dataReadyOutSig,
 
-        -- DAC piedistalli
-        sendRefDAC => s_sendRefDAC,
+    -- DAC piedistalli
+    sendRefDAC => s_sendRefDAC,
 
-        config_status_1 => s_config_status_1,
-        config_status_2 => s_config_status_2,
-        acquisition_state => s_acquisition_state,
-        calibration_state => s_calibration_state,
+    config_status_1 => s_config_status_1,
+    config_status_2 => s_config_status_2,
+    acquisition_state => s_acquisition_state,
+    calibration_state => s_calibration_state,
 
-        refDac_status_1 => s_confDoneCIT1,
-        refDac_status_2 => s_confDoneCIT2,
+    refDac_status_1 => s_confDoneCIT1,
+    refDac_status_2 => s_confDoneCIT2,
 
-        fifoPckCnt => pcktCounter,
+    fifoPckCnt => pcktCounter,
 
-        writeDataLen => writeDataLenBuff,
-        dpcuDataLenOut => dpcuDataLenFromSpw,
+    writeDataLen => writeDataLen,
+    dpcuDataLenOut => dpcuDataLenFromSpw,
 
-        regAcqData => regAcqData,
+    regAcqData => regAcqData,
 
-        holdoff => holdoff,
+    holdoff => holdoff,
 
-        PMT_rate => s_PMT_rate,
-        mask_rate => s_mask_rate,
-        board_temp => s_board_temp
-
-  );
+    PMT_rate => s_PMT_rate,
+    mask_rate => s_mask_rate,
+    board_temp => s_board_temp
+);
 
 dataReadyOutSigBuff <= dataReadyOutSig;
-
---dataRdyBuff: CLKINT
---port map(
-    --A => dataReadyOutSig,
-    --Y => dataReadyOutSigBuff
---);
 
 pulseExpand_inst1: pulseExpand
 port map(
@@ -1548,7 +1544,7 @@ generic map(
 port map(
     clk24M     => s_clock24MBuff,
     rst        => s_global_rst,
-    enable     => rstCIT1out,
+    enable     => enCIT1out,
 	dacHGVal   => s_refDAC1(31 downto 16),
     dacLGVal   => s_refDAC1(15 downto 0),
     enableSclk => enableSclk_1,
@@ -1565,17 +1561,17 @@ generic map(
     resetLGVal => refDac2Def(15 downto 0)
 )
 port map(
-    clk24M   => s_clock24MBuff,
-    rst      => s_global_rst,
-    enable   => rstCIT2out,
-	dacHGVal => s_refDAC2(31 downto 16),
-    dacLGVal => s_refDAC2(15 downto 0),
+    clk24M     => s_clock24MBuff,
+    rst        => s_global_rst,
+    enable     => enCIT2out,
+	dacHGVal   => s_refDAC2(31 downto 16),
+    dacLGVal   => s_refDAC2(15 downto 0),
     enableSclk => enableSclk_2,
-    send     => s_sendRefDAC_24M,
-    confDone => s_confDoneCIT2,
-    dout     => refDacDIN_2,
-    syncHG   => s_refDacSync2HG,
-    syncLG   => s_refDacSync2LG
+    send       => s_sendRefDAC_24M,
+    confDone   => s_confDoneCIT2,
+    dout       => refDacDIN_2,
+    syncHG     => s_refDacSync2HG,
+    syncLG     => s_refDacSync2LG
 );
 
 refDacSYNC_HG_1 <= s_refDacSync1HG;

@@ -96,7 +96,7 @@ begin
     end if;
 end process;
 
-fsm: process(pres_state, reset_cnt, bit_nr, probe_bit_nr, configure_command, state0_cnt)
+fsm: process(pres_state, reset_cnt, bit_nr, probe_bit_nr, configure_command, state0_cnt, enable)
 begin
     next_state <= pres_state;
 

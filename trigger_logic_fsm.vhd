@@ -39,6 +39,8 @@ port(
 
     holdoff              : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
+    rate1SecOut          : out std_logic;
+
     trg_to_DAQ_EASI      : out std_logic  -- attivo alto
 );
 end TRIGGER_logic_FSM;
@@ -100,13 +102,6 @@ port(
     Clock  : in    std_logic;
     Enable : in    std_logic;
     Q      : out   std_logic_vector(15 downto 0)
-);
-end component;
-
-component BUFF is
-port(
-    A : in  std_logic;
-    Y : out std_logic
 );
 end component;
 
@@ -187,6 +182,8 @@ attribute syn_replicate of reset_counter : signal is false;
 --attribute syn_keep     of trigger_PMTmasked_2 : signal is true;
 
 begin
+
+rate1SecOut <= rate_time_sig;
 
 sincronizzatore1 : for i in 0 to 31 generate
 begin
@@ -401,16 +398,16 @@ port map(
     trg_int => trigger
 );
 
-mask_rate <= X"0009" & mask_rate_9_sig &
-             X"0008" & mask_rate_8_sig &
-             X"0007" & mask_rate_7_sig &
-             X"0006" & mask_rate_6_sig &
-             X"0005" & mask_rate_5_sig &
-             X"0004" & mask_rate_4_sig &
-             X"0003" & mask_rate_3_sig &
-             X"0002" & mask_rate_2_sig &
-             X"0001" & mask_rate_1_sig &
-             X"0000" & mask_rate_0_sig;
+mask_rate <= X"C09C" & mask_rate_9_sig &
+             X"C08C" & mask_rate_8_sig &
+             X"C07C" & mask_rate_7_sig &
+             X"C06C" & mask_rate_6_sig &
+             X"C05C" & mask_rate_5_sig &
+             X"C04C" & mask_rate_4_sig &
+             X"C03C" & mask_rate_3_sig &
+             X"C02C" & mask_rate_2_sig &
+             X"C01C" & mask_rate_1_sig &
+             X"C00C" & mask_rate_0_sig;
 
 trigger_flag_register: process(reset, clock, acquisition_state, calibration_state)
 begin
