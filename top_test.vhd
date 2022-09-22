@@ -367,6 +367,20 @@ port (
 );
 end component;
 
+component aliveDeadTCnt is
+port(
+    clock      : in  std_logic;
+    clock200k  : in  std_logic;
+    reset      : in  std_logic;
+    trgInhibit : in  std_logic;
+    acqState   : in  std_logic;
+    trigger    : in  std_logic;
+    aliveCount : out std_logic_vector(31 downto 0);
+    deadCount  : out std_logic_vector(31 downto 0);
+    lostCount  : out std_logic_vector(15 downto 0)
+);
+end component;
+
 component spwFIFOInterface is
 generic(
     fifoWidth           : natural;
@@ -837,7 +851,7 @@ signal fifoDVLD     : std_logic;
 
 signal rstCIT1out, rstCIT2out : std_logic;
 
-constant zeros288   : std_logic_vector(287 downto 0) := (others => '0');
+constant zeros208   : std_logic_vector(207 downto 0) := (others => '0');
 
 signal writeDone    : std_logic;
 signal spwCtrlBusy  : std_logic;
@@ -886,6 +900,11 @@ signal  rate1SecSig,
         tempCsOut2,
         temp1Completed,
         temp2Completed       : std_logic;
+
+signal  aliveCount,
+        deadCount            : std_logic_vector(31 downto 0);
+
+signal  lostCount            : std_logic_vector(15 downto 0);
 
 --attribute syn_keep     : boolean;
 --attribute syn_preserve : boolean;
@@ -1253,14 +1272,30 @@ begin
     end if;
 end process;
 
+aliveDeadinst: aliveDeadTCnt
+port map(
+    clock      => s_clock48M,
+    clock200k  => clk200k_sig,
+    reset      => swRst,
+    trgInhibit => trgInhibit,
+    acqState   => s_acquisition_state,
+    trigger    => extendedTriggerOut,
+    aliveCount => aliveCount,
+    deadCount  => deadCount,
+    lostCount  => lostCount
+);
+
 acqData(2303 downto 0) <= x"4645"             &
                           trigCounter         &
                           ppsCountSync        &
                           adcDataOut          &
-                          zeros288            &
+                          zeros208            &
                           s_trigger_flag_1    &
                           s_trigger_flag_2    &
                           s_mask_rate         &
+                          aliveCount          &
+                          deadCount           &
+                          lostCount           &
                           x"4748";
 
 inst_spwFIFOInterface: spwFIFOInterface
