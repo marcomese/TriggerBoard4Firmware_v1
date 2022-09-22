@@ -39,6 +39,8 @@ port(
 
     holdoff              : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
+    rate1SecOut          : out std_logic;
+
     trg_to_DAQ_EASI      : out std_logic  -- attivo alto
 );
 end TRIGGER_logic_FSM;
@@ -176,6 +178,8 @@ signal  s_trgExtPulse,
 --attribute syn_keep     of trigger_PMTmasked_2 : signal is true;
 
 begin
+
+rate1SecOut <= rate_time_sig;
 
 sincronizzatore1 : for i in 0 to 31 generate
 begin

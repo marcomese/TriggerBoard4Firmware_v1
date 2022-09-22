@@ -104,6 +104,8 @@ port (
 
     trgExtIn          : in std_logic;
 
+    rate1SecOut       : out std_logic;
+
     holdoff           : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
     debug_triggerIN   : in std_logic
@@ -217,6 +219,8 @@ port(
     trigger_flag_2       : out std_logic_vector(31 downto 0);			
 
     trgExtIn             : in  std_logic;
+
+    rate1SecOut          : out std_logic;
 
     holdoff              : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
@@ -557,6 +561,8 @@ port map (
     trigger_flag_2       => s_trigger_flag_2,			
 
     trgExtIn             => trgExtIn,
+
+    rate1SecOut          => rate1SecOut,
 
     holdoff              => holdoff,
 

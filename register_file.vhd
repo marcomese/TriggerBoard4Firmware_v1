@@ -50,6 +50,8 @@ port(
     start_cal           : out std_logic; -- attivo alto (impulso lungo almeno un colpo di clock)
     stop_cal            : out std_logic; -- attivo alto (impulso lungo almeno un colpo di clock)
 
+    enableTsens         : out std_logic;
+
     -- Segnali da/verso DPCU e TDAQ
 --    dataReady           : in  std_logic;
     TDAQ_BUSY           : in  std_logic;
@@ -960,6 +962,8 @@ stop_cal            <= stop_cal_pipe_0 and (not stop_cal_pipe_1);
 sendRefDAC          <= sendRefDAC_pipe_0 and (not sendRefDAC_pipe_1);
 
 local_address       <= get_local_addr(addr, address_vector);
+
+enableTsens         <= register_vector(get_local_addr(CMD_REG_ADDR, address_vector))(2);
 
 clk_counter_proc : process (clk, rst)
 begin
