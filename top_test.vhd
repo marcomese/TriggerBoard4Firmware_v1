@@ -1184,7 +1184,7 @@ port map(
     config_status_1 => s_config_status_1,
     config_status_2 => s_config_status_2,
 
-    sw_rst => s_sw_rst,
+    sw_rst => swRst,--s_sw_rst,
 
     select_reg_1 => s_select_reg_1,
     SR_IN_SR_1 => s_SR_IN_SR_1,
