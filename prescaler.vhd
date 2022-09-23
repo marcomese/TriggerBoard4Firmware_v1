@@ -22,8 +22,10 @@ architecture architecture_prescaler of prescaler is
 component counter16Bit is
 port(
     Aclr   : in  std_logic;
+    Sload  : in  std_logic;
     Clock  : in  std_logic;
     Enable : in  std_logic;
+    Data   : in  std_logic_vector(15 downto 0);
     Q      : out std_logic_vector(15 downto 0)
 );
 end component;
@@ -59,9 +61,11 @@ end process;
 
 holdoffCounterInst: counter16Bit
 port map(
-    Aclr   => rst or clearCount,
+    Aclr   => rst,
+    Sload  => clearCount,
     Clock  => clk,
     Enable => triggerIn,
+    Data   => (others => '0'),
     Q      => holdOffCountVec
 );
 

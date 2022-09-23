@@ -112,7 +112,7 @@ port map(
     signalOut => trgInhibFall
 );
 
-LIVE_dead_register: process(clock, reset, acqState, trgInhibFall, trigger)
+LIVE_dead_register: process(clock, reset, acqState, trgInhibFall, triggerRise)
 begin
     if reset = '1' then
         live <= '0';

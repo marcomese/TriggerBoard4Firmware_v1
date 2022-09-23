@@ -99,8 +99,10 @@ end component;
 component counter16Bit is
 port(
     Aclr   : in    std_logic;
+    Sload  : in    std_logic;
     Clock  : in    std_logic;
     Enable : in    std_logic;
+    Data   : in    std_logic_vector(15 downto 0);
     Q      : out   std_logic_vector(15 downto 0)
 );
 end component;
@@ -257,9 +259,11 @@ PMT_counter_process1 : for i in 0 to 31 generate
 begin
 counter1_trigger_i: counter16Bit
 port map(
-    Aclr   => reset_counter,
+    Aclr   => reset,
+    Sload  => reset_counter,
     Clock  => clock,
     Enable => rise_1(i),
+    Data   => (others => '0'),
     Q      => count_pmt_1(i)
 );
 end generate PMT_counter_process1;
@@ -268,9 +272,11 @@ PMT_counter_process2 : for i in 0 to 31 generate
 begin
 counter2_trigger_i: counter16Bit
 port map(
-    Aclr   => reset_counter,
+    Aclr   => reset,
+    Sload  => reset_counter,
     Clock  => clock,
     Enable => rise_2(i),
+    Data   => (others => '0'),
     Q      => count_pmt_2(i)
 );
 end generate PMT_counter_process2;

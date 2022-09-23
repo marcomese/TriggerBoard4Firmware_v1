@@ -62,8 +62,10 @@ end component;
 component counter16Bit is
 port(
     Aclr   : in    std_logic;
+    Sload  : in    std_logic;
     Clock  : in    std_logic;
     Enable : in    std_logic;
+    Data   : in    std_logic_vector(15 downto 0);
     Q      : out   std_logic_vector(15 downto 0)
 );
 end component;
@@ -277,13 +279,29 @@ begin
     end if;
 end process;
 
-maskCounterGen: for i in 0 to maskNum-1 generate
+prescMaskCounterGen: for i in 0 to prescaledTriggers-1 generate
+begin
+  countPresc_NInst: counter16Bit
+    port map(
+        Aclr   => reset,
+        Sload  => reset_counter,
+        Clock  => clock,
+        Enable => trigger_prescaled(i),
+        Data   => (others => '0'),
+        Q      => count_n(i)
+    );
+end generate;
+
+maskCounterGen: for i in 0 to concurrentTriggers-1 generate
+begin
     count_NInst: counter16Bit
     port map(
-        Aclr   => reset_counter,
+        Aclr   => reset,
+        Sload  => reset_counter,
         Clock  => clock,
-        Enable => start_readers and rise(i),
-        Q      => count_n(i)
+        Enable => trigger_int_vec(i),
+        Data   => (others => '0'),
+        Q      => count_n(i+prescaledTriggers)
     );
 end generate;
 

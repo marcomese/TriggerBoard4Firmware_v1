@@ -896,8 +896,6 @@ signal  tempData,
 signal  rate1SecSig,
         rate1SecSigRise,
         enableTsens,
-        tempCsOut1,
-        tempCsOut2,
         temp1Completed,
         temp2Completed       : std_logic;
 
