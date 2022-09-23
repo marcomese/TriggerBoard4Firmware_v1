@@ -24,8 +24,7 @@ port(
     i_busy                : in std_logic;
 
     -- configuration
-    config_vector_1       : out std_logic_vector(1143 downto 0);
-    config_vector_2       : out std_logic_vector(1143 downto 0);
+    config_vector         : out std_logic_vector(1143 downto 0);
 
     -- DAC piedistalli
     refDAC_1              : out std_logic_vector(31 downto 0); -- refDAC_1_HG (31 downto 16) refDAC_1_LG (15 downto 0)
@@ -160,42 +159,6 @@ constant CONFIG_CITIROC_1_32_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 
 constant CONFIG_CITIROC_1_33_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000002A";
 constant CONFIG_CITIROC_1_34_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000002B";
 constant CONFIG_CITIROC_1_35_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000002C";
-constant CONFIG_CITIROC_2_0_ADDR      : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000002D";
-constant CONFIG_CITIROC_2_1_ADDR      : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000002E";
-constant CONFIG_CITIROC_2_2_ADDR      : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000002F";
-constant CONFIG_CITIROC_2_3_ADDR      : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000030";
-constant CONFIG_CITIROC_2_4_ADDR      : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000031";
-constant CONFIG_CITIROC_2_5_ADDR      : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000032";
-constant CONFIG_CITIROC_2_6_ADDR      : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000033";
-constant CONFIG_CITIROC_2_7_ADDR      : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000034";
-constant CONFIG_CITIROC_2_8_ADDR      : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000035";
-constant CONFIG_CITIROC_2_9_ADDR      : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000036";
-constant CONFIG_CITIROC_2_10_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000037";
-constant CONFIG_CITIROC_2_11_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000038";
-constant CONFIG_CITIROC_2_12_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000039";
-constant CONFIG_CITIROC_2_13_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000003A";
-constant CONFIG_CITIROC_2_14_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000003B";
-constant CONFIG_CITIROC_2_15_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000003C";
-constant CONFIG_CITIROC_2_16_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000003D";
-constant CONFIG_CITIROC_2_17_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000003E";
-constant CONFIG_CITIROC_2_18_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000003F";
-constant CONFIG_CITIROC_2_19_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000040";
-constant CONFIG_CITIROC_2_20_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000041";
-constant CONFIG_CITIROC_2_21_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000042";
-constant CONFIG_CITIROC_2_22_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000043";
-constant CONFIG_CITIROC_2_23_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000044";
-constant CONFIG_CITIROC_2_24_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000045";
-constant CONFIG_CITIROC_2_25_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000046";
-constant CONFIG_CITIROC_2_26_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000047";
-constant CONFIG_CITIROC_2_27_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000048";
-constant CONFIG_CITIROC_2_28_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000049";
-constant CONFIG_CITIROC_2_29_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000004A";
-constant CONFIG_CITIROC_2_30_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000004B";
-constant CONFIG_CITIROC_2_31_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000004C";
-constant CONFIG_CITIROC_2_32_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000004D";
-constant CONFIG_CITIROC_2_33_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000004E";
-constant CONFIG_CITIROC_2_34_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000004F";
-constant CONFIG_CITIROC_2_35_ADDR     : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000050";
 constant TRIGGER_MASK_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000051";
 constant GENERIC_TRIGGER_MASK_ADDR    : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000052";
 constant PMT_1_MASK_ADDR              : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000053";
@@ -340,7 +303,8 @@ constant PRESC_M1_M0_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 
 -- tolgo 32 registri pmt_rate (234-32=202)
 -- aggiungo un registro MASK_RATE_9 (202+1=203)
 -- aggiungo due registri per i prescaler (203+2=205)
-constant REGISTER_FILE_LENGTH    : integer := 205;
+-- rimuovo i registri di configurazione del citiroc 2 (205-36=169)
+constant REGISTER_FILE_LENGTH    : integer := 169;
 
 -- define the map of the address this is used to get the local address of the register
 constant address_vector : addr_vector_t(0 to REGISTER_FILE_LENGTH - 1) :=
@@ -388,42 +352,6 @@ constant address_vector : addr_vector_t(0 to REGISTER_FILE_LENGTH - 1) :=
     (addr => CONFIG_CITIROC_1_33_ADDR,  mode => RW),
     (addr => CONFIG_CITIROC_1_34_ADDR,  mode => RW),
     (addr => CONFIG_CITIROC_1_35_ADDR,  mode => RW),  
-    (addr => CONFIG_CITIROC_2_0_ADDR,   mode => RW),
-    (addr => CONFIG_CITIROC_2_1_ADDR,   mode => RW),
-    (addr => CONFIG_CITIROC_2_2_ADDR,   mode => RW),
-    (addr => CONFIG_CITIROC_2_3_ADDR,   mode => RW),
-    (addr => CONFIG_CITIROC_2_4_ADDR,   mode => RW),
-    (addr => CONFIG_CITIROC_2_5_ADDR,   mode => RW),
-    (addr => CONFIG_CITIROC_2_6_ADDR,   mode => RW),
-    (addr => CONFIG_CITIROC_2_7_ADDR,   mode => RW),
-    (addr => CONFIG_CITIROC_2_8_ADDR,   mode => RW),
-    (addr => CONFIG_CITIROC_2_9_ADDR,   mode => RW),
-    (addr => CONFIG_CITIROC_2_10_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_11_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_12_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_13_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_14_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_15_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_16_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_17_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_18_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_19_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_20_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_21_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_22_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_23_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_24_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_25_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_26_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_27_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_28_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_29_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_30_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_31_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_32_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_33_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_34_ADDR,  mode => RW),
-    (addr => CONFIG_CITIROC_2_35_ADDR,  mode => RW),  
     (addr => TRIGGER_MASK_ADDR,         mode => RW),         
     (addr => GENERIC_TRIGGER_MASK_ADDR, mode => RW),     
     (addr => PMT_1_MASK_ADDR,           mode => RW),    
@@ -601,45 +529,6 @@ constant register_vector_reset : mem_t(0 to REGISTER_FILE_LENGTH - 1) :=
     x"00000000",  -- CONFIG_CITIROC_1_34_ADDR    (DAC06_t -> DAC13_t)
     x"20000000",  -- CONFIG_CITIROC_1_35_ADDR    (HoldDelay | DAC00_t -> DAC05_t)
 
-    -- citiroc 2 configuration registers  -- l'ho configurato in modo da avere DAC_code_1 = "0011110000" e DAC_code_2 = "0011110000"
-                                          -- cos? e' possibile riconoscere se viene configurato o meno
-    x"E1B9563B",  -- CONFIG_CITIROC_2_0_ADDR     (DAC_code_1(4 downto 0) | DAC_code_2(9 downto 0) -> EN_32_trigg)
-    x"85CD0BE6",  -- CONFIG_CITIROC_2_1_ADDR     (PreAMP_config30(3 downto 0) | PreAMP_config31(14 downto 0) | Temp -> DAC_PP_2 (8bit) | DAC_code_1(9 downto 5))
-    x"A17342E6",  -- CONFIG_CITIROC_2_2_ADDR     (PreAMP_config28(5 downto 0) -> PreAMP_config30(14 downto 4))
-    x"685CD0B9",  -- CONFIG_CITIROC_2_3_ADDR     (PreAMP_config26(7 downto 0) -> PreAMP_config28(14 downto 6)) 
-    x"9A17342E",  -- CONFIG_CITIROC_2_4_ADDR     (PreAMP_config24(9 downto 0) -> PreAMP_config26(14 downto 8))
-    x"E685CD0B",  -- CONFIG_CITIROC_2_5_ADDR     (PreAMP_config22(11 downto 0) -> PreAMP_config24(14 downto 10))
-    x"B9A17342",  -- CONFIG_CITIROC_2_6_ADDR     (PreAMP_config20(13 downto 0) -> PreAMP_config22(14 downto 12))
-    x"2E685CD0",  -- CONFIG_CITIROC_2_7_ADDR     (PreAMP_config17(0) -> PreAMP_config20(14))
-    x"0B9A1734",  -- CONFIG_CITIROC_2_8_ADDR     (PreAMP_config15(2 downto 0) -> PreAMP_config17(14 downto 1))
-    x"42E685CD",  -- CONFIG_CITIROC_2_9_ADDR     (PreAMP_config13(4 downto 0) -> PreAMP_config15(14 downto 3))     
-    x"D0B9A173",  -- CONFIG_CITIROC_2_10_ADDR    (PreAMP_config11(6 downto 0) -> PreAMP_config13(14 downto 5))
-    x"342E685C",  -- CONFIG_CITIROC_2_11_ADDR    (PreAMP_config09(8 downto 0) -> PreAMP_config11(14 downto 7)) 
-    x"CD0B9A17",  -- CONFIG_CITIROC_2_12_ADDR    (PreAMP_config07(10 downto 0) -> PreAMP_config09(14 downto 9))
-    x"7342E685",  -- CONFIG_CITIROC_2_13_ADDR    (PreAMP_config05(12 downto 0) -> PreAMP_config07(14 downto 11))
-    x"5CD0B9A1",  -- CONFIG_CITIROC_2_14_ADDR    (PreAMP_config03(14 downto 0) -> PreAMP_config05(14 downto 13))
-    x"17342E68",  -- CONFIG_CITIROC_2_15_ADDR    (PreAMP_config00(1 downto 0) -> PreAMP_config02(14 downto 0))
-    x"80402B9A",  -- CONFIG_CITIROC_2_16_ADDR    (DAC29_in(0) -> DAC31_in(8 downto 0) | PreAMP_config00(14 downto 2))
-    x"04020100",  -- CONFIG_CITIROC_2_17_ADDR    (DAC26_in(5 downto 0) -> DAC29_in(8 downto 1))
-    x"40201008",  -- CONFIG_CITIROC_2_18_ADDR    (DAC22_in(1 downto 0) -> DAC26_in(8 downto 6))
-    x"02010080",  -- CONFIG_CITIROC_2_19_ADDR    (DAC19_in(6 downto 0) -> DAC22_in(8 downto 2))
-    x"20100804",  -- CONFIG_CITIROC_2_20_ADDR    (DAC15_in(2 downto 0) -> DAC19_in(8 downto 7))
-    x"01008040",  -- CONFIG_CITIROC_2_21_ADDR    (DAC12_in(7 downto 0) -> DAC15_in(8 downto 3))
-    x"10080402",  -- CONFIG_CITIROC_2_22_ADDR    (DAC08_in(3 downto 0) -> DAC12_in(8))
-    x"00804020",  -- CONFIG_CITIROC_2_23_ADDR    (DAC05_in(8 downto 0) -> DAC08_in(8 downto 4))
-    x"08040201",  -- CONFIG_CITIROC_2_24_ADDR    (DAC01_in(4 downto 0) -> DAC04_in(8 downto 0))
-    x"630F6010",  -- CONFIG_CITIROC_2_25_ADDR    (Fast_Shaper_PP -> DAC01_in(8 downto 5)
-    x"FFFF8145",  -- CONFIG_CITIROC_2_26_ADDR    (discriMask(16 downto 0) | HG_TeH -> EN_Fast_Shaper )
-    x"00957FFF",  -- CONFIG_CITIROC_2_27_ADDR    (DAC30 | DAC31 | EN_discri -> discriMask(31 downto 17))
-    x"00000000",  -- CONFIG_CITIROC_2_28_ADDR    (DAC22 -> DAC29)
-    x"00000000",  -- CONFIG_CITIROC_2_29_ADDR    (DAC14 -> DAC21)
-    x"00000000",  -- CONFIG_CITIROC_2_30_ADDR    (DAC06 -> DAC13)
-    x"00000000",  -- CONFIG_CITIROC_2_31_ADDR    (DAC30_t -> DAC31_t | DAC00 -> DAC05)
-    x"00000000",  -- CONFIG_CITIROC_2_32_ADDR    (DAC22_t -> DAC29_t)
-    x"00000000",  -- CONFIG_CITIROC_2_33_ADDR    (DAC14_t -> DAC21_t)
-    x"00000000",  -- CONFIG_CITIROC_2_34_ADDR    (DAC06_t -> DAC13_t)
-    x"20000000",  -- CONFIG_CITIROC_2_35_ADDR    (HoldDelay | DAC00_t -> DAC05_t)  
-    
     -- trigger mask registers  
     x"00000000",  -- TRIGGER_MASK_ADDR            
     x"00000000",  -- GENERIC_TRIGGER_MASK_ADDR    
@@ -862,7 +751,7 @@ refDAC_2 <= register_vector(get_local_addr(REF_DAC_2_ADDR, address_vector));
 holdoff <= register_vector(get_local_addr(PRESC_M3_M2_ADDR, address_vector)) &
            register_vector(get_local_addr(PRESC_M1_M0_ADDR, address_vector));
 
-config_vector_1 <=  register_vector( get_local_addr(CONFIG_CITIROC_1_35_ADDR, address_vector) )(23 downto 0) &
+config_vector   <=  register_vector( get_local_addr(CONFIG_CITIROC_1_35_ADDR, address_vector) )(23 downto 0) &
                     register_vector( get_local_addr(CONFIG_CITIROC_1_34_ADDR, address_vector) )              & 
                     register_vector( get_local_addr(CONFIG_CITIROC_1_33_ADDR, address_vector) )              & 
                     register_vector( get_local_addr(CONFIG_CITIROC_1_32_ADDR, address_vector) )              & 
@@ -898,43 +787,6 @@ config_vector_1 <=  register_vector( get_local_addr(CONFIG_CITIROC_1_35_ADDR, ad
                     register_vector( get_local_addr(CONFIG_CITIROC_1_2_ADDR, address_vector) )               &
                     register_vector( get_local_addr(CONFIG_CITIROC_1_1_ADDR, address_vector) )               &
                     register_vector( get_local_addr(CONFIG_CITIROC_1_0_ADDR, address_vector) );
-
-config_vector_2 <=  register_vector( get_local_addr(CONFIG_CITIROC_2_35_ADDR, address_vector) )(23 downto 0) &
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_34_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_33_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_32_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_31_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_30_ADDR,  address_vector) )             & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_29_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_28_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_27_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_26_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_25_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_24_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_23_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_22_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_21_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_20_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_19_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_18_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_17_ADDR,  address_vector) )             & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_16_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_15_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_14_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_13_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_12_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_11_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_10_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_9_ADDR, address_vector) )               &
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_8_ADDR, address_vector) )               & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_7_ADDR, address_vector) )               & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_6_ADDR, address_vector) )               & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_5_ADDR, address_vector) )               & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_4_ADDR, address_vector) )               & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_3_ADDR, address_vector) )               & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_2_ADDR, address_vector) )               &
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_1_ADDR, address_vector) )               & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_2_0_ADDR, address_vector) );
 
 trigger_mask           <= register_vector( get_local_addr(TRIGGER_MASK_ADDR, address_vector) ); 
 generic_trigger_mask   <= register_vector( get_local_addr(GENERIC_TRIGGER_MASK_ADDR, address_vector) ); 

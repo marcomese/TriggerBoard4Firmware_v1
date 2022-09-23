@@ -312,8 +312,7 @@ port (
 	CLK_SR_2       : out std_logic;
     load_2         : out std_logic;
 
-    config_vector_1 : in std_logic_vector(1143 downto 0);
-    config_vector_2 : in std_logic_vector(1143 downto 0);
+    config_vector  : in std_logic_vector(1143 downto 0);
 
     configure_command_1 : in std_logic;
     configure_command_2 : in std_logic;
@@ -516,8 +515,7 @@ port(
     i_busy                : in std_logic;
 
     -- configuration
-    config_vector_1       : out std_logic_vector(1143 downto 0);
-    config_vector_2       : out std_logic_vector(1143 downto 0);
+    config_vector         : out std_logic_vector(1143 downto 0);
 
     -- DAC piedistalli
     refDAC_1              : out std_logic_vector(31 downto 0); -- refDAC_1_HG (31 downto 16) refDAC_1_LG (15 downto 0)
@@ -792,8 +790,7 @@ signal s_mask_rate       : std_logic_vector(319 downto 0);
 signal s_trigger_flag_1,
        s_trigger_flag_2  : std_logic_vector(31 downto 0);
 
-signal s_config_vector_1 : std_logic_vector(1143 downto 0);
-signal s_config_vector_2 : std_logic_vector(1143 downto 0);
+signal s_config_vector   : std_logic_vector(1143 downto 0);
 
 ---------------------------------------------------
 -- Segnali per spwstream
@@ -1195,8 +1192,7 @@ port map(
     CLK_SR_2 => s_CLK_SR_2,
     load_2 => s_load_2,
 
-    config_vector_1 => s_config_vector_1,
-    config_vector_2 => s_config_vector_2,
+    config_vector => s_config_vector,
 
     configure_command_1 => s_start_config_1,
     configure_command_2 => s_start_config_2,
@@ -1470,8 +1466,7 @@ port map(
     refDAC_1 => s_refDAC1,
     refDAC_2 => s_refDAC2,
 
-    config_vector_1 => s_config_vector_1,
-    config_vector_2 => s_config_vector_2,
+    config_vector => s_config_vector,
 
     trigger_mask => s_trigger_mask,
     generic_trigger_mask => s_generic_trigger_mask,

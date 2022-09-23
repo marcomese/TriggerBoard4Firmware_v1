@@ -59,8 +59,7 @@ port (
 	CLK_SR_2       : out std_logic;
     load_2         : out std_logic;
 
-    config_vector_1 : in std_logic_vector(1143 downto 0);
-    config_vector_2 : in std_logic_vector(1143 downto 0);
+    config_vector  : in std_logic_vector(1143 downto 0);
 
     configure_command_1 : in std_logic;
     configure_command_2 : in std_logic;
@@ -269,8 +268,7 @@ signal s_trigger_flag_1,
 signal s_pmt_rate : std_logic_vector(1023 downto 0);
 signal s_mask_rate : std_logic_vector(319 downto 0);
 
-signal s_config_vector_1 : std_logic_vector(1143 downto 0);
-signal s_config_vector_2 : std_logic_vector(1143 downto 0);
+signal s_config_vector : std_logic_vector(1143 downto 0);
 
 signal conf_comm_200k_1, conf_comm_200k_2 : std_logic;
 
@@ -294,8 +292,7 @@ begin
 
 clk <= clockSYS;
 
-s_config_vector_1 <= config_vector_1;
-s_config_vector_2 <= config_vector_2;
+s_config_vector <= config_vector;
 
 maskedTrigger <= trigger_interno_sig and (not triggerInhibit);
 triggerOUT <= maskedTrigger;
@@ -389,7 +386,7 @@ port map(
     reset             => rstCIT1,
 
     configure_command => conf_comm_200k_1, 
-    config_vector     => s_config_vector_1,
+    config_vector     => s_config_vector,
 
     idle              => idle_1_sig,
     load              => load_1,
@@ -431,7 +428,7 @@ port map(
     reset             => rstCIT2,
 
     configure_command => conf_comm_200k_2, 
-    config_vector     => s_config_vector_2,
+    config_vector     => s_config_vector,
 
     idle              => idle_2_sig,
     load              => load_2,
