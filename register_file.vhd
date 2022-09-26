@@ -661,8 +661,8 @@ constant register_vector_reset : mem_t(0 to REGISTER_FILE_LENGTH - 1) :=
     x"00000000", -- ACQDATA70
     x"00000000", -- ACQDATA71
     x"00000000", -- MASK_RATE_9
-    x"00000000", -- PRESC_M3_M2
-    x"00000000", -- PRESC_M1_M0
+    x"00010001", -- PRESC_M3_M2
+    x"00010001", -- PRESC_M1_M0
     x"00000000"
 );
     
