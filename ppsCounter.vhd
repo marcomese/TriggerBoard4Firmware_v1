@@ -12,6 +12,7 @@ generic(
 port(
     clk            : in  std_logic;
     rst            : in  std_logic;
+    enable         : in  std_logic;
     ppsIn          : in  std_logic;
     counterOut     : out std_logic_vector((ppsCountWidth+fineCountWidth)-1 downto 0)
 );
@@ -61,45 +62,62 @@ begin
     if rst = '1' then
         ppsCounter <= 0;
     elsif rising_edge(clk) then
-        if ppsRising = '1' then
-            ppsCounter <= ppsCounter + 1;
+        if enable = '1' then
+            if ppsRising = '1' then
+                ppsCounter <= ppsCounter + 1;
+            else
+                ppsCounter <= ppsCounter;
+            end if;
+        else
+            ppsCounter <= 0;
         end if;
     end if;
 end process;
 
-fineCounterInst: process(clk, rst, ppsRising, fineElapsed)
+fineCounterInst: process(clk, rst, ppsRising, fineElapsed, enable)
 begin
     if rst = '1' then
         fineCounter <= 0;
     elsif rising_edge(clk) then
-        if ppsRising = '1' then
+        if enable = '1' then
+            if ppsRising = '1' then
+                fineCounter <= 0;
+            elsif fineElapsed = '1' then
+                fineCounter <= fineCounter + 1;
+            else
+                fineCounter <= fineCounter;
+            end if;
+        else
             fineCounter <= 0;
-        elsif fineElapsed = '1' then
-            fineCounter <= fineCounter + 1;
         end if;
     end if;
 end process;
 
-resCounterInst: process(clk, rst, resCounter, ppsRising)
+resCounterInst: process(clk, rst, resCounter, ppsRising, enable)
 begin
     if rst = '1' then
         resCounter  <= 0;
         fineElapsed <= '0';
     elsif rising_edge(clk) then
-        if ppsRising = '1' then
-            resCounter <= 0;
-            fineElapsed <= '0';
-        else
-            if resCounter = fineCount-1 then
+        if enable = '1' then
+            if ppsRising = '1' then
                 resCounter <= 0;
                 fineElapsed <= '0';
-            elsif resCounter = fineCount-2 then
-                resCounter <= resCounter + 1;
-                fineElapsed <= '1';
             else
-                resCounter <= resCounter + 1;
-                fineElapsed <= '0';
+                if resCounter = fineCount-1 then
+                    resCounter <= 0;
+                    fineElapsed <= '0';
+                elsif resCounter = fineCount-2 then
+                    resCounter <= resCounter + 1;
+                    fineElapsed <= '1';
+                else
+                    resCounter <= resCounter + 1;
+                    fineElapsed <= '0';
+                end if;
             end if;
+        else
+            resCounter <= 0;
+            fineElapsed <= '0';
         end if;
     end if;
 end process;

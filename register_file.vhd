@@ -72,7 +72,6 @@ port(
 
     fifoPckCnt          : in  natural;
 
-    dpcuDataLenOut      : out std_logic_vector(31   downto 0);
     writeDataLen        : in   std_logic;
 
     regAcqData          : in  std_logic_vector(2303  downto 0);
@@ -832,8 +831,6 @@ begin
         register_vector <= register_vector_reset;
         r_write_done <= '0';
 
-        dpcuDataLenOut <= register_vector_reset(get_local_addr(ACQDATALEN_ADDR, address_vector));
-        
         sw_rst_pipe_0             <= '0';
         sw_rst_pipe_1             <= '0';
 
@@ -906,8 +903,6 @@ begin
         do                        <= register_vector(local_address);
 
         r_write_done              <= s_write_done;
-
-        dpcuDataLenOut            <= register_vector(get_local_addr(ACQDATALEN_ADDR, address_vector));
 
         -- update register vector
         register_vector(get_local_addr(CLK_REG_ADDR, address_vector))         <= std_logic_vector(clk_counter);

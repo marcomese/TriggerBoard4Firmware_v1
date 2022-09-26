@@ -244,6 +244,7 @@ generic(
 port(
     clk            : in  std_logic;
     rst            : in  std_logic;
+    enable         : in  std_logic;
     ppsIn          : in  std_logic;
     counterOut     : out std_logic_vector((ppsCountWidth+fineCountWidth)-1 downto 0)
 );
@@ -563,7 +564,6 @@ port(
 
     fifoPckCnt          : in  natural;
 
-    dpcuDataLenOut      : out std_logic_vector(31   downto 0);
     writeDataLen        : in   std_logic;
 
     regAcqData          : in  std_logic_vector(2303  downto 0);
@@ -864,8 +864,6 @@ signal  dpcuPPSSync,
         tdaqBusyInSync      : std_logic; 
 
 signal extendedTriggerOut   : std_logic;
-
-signal dpcuDataLenFromSpw   : std_logic_vector(31 downto 0);
 
 signal writeDataLen,
        writeDataLenBuff     : std_logic;
@@ -1254,7 +1252,8 @@ generic map(
 )
 port map(
     clk            => s_clock48M,
-    rst            => (not s_acquisition_state),
+    rst            => s_global_rst,
+    enable         => s_acquisition_state,
     ppsIn          => dpcuPPSSync,
     counterOut     => ppsCount
 );
@@ -1511,7 +1510,6 @@ port map(
     fifoPckCnt => pcktCounter,
 
     writeDataLen => writeDataLenBuff,
-    dpcuDataLenOut => dpcuDataLenFromSpw,
 
     regAcqData => regAcqData,
 
