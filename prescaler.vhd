@@ -1,8 +1,6 @@
 library IEEE;
-use IEEE.NUMERIC_STD.ALL;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.MATH_REAL.ALL;
-use IEEE.STD_LOGIC_MISC.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 entity prescaler is
 generic(
@@ -30,34 +28,15 @@ port(
 );
 end component;
 
-constant maxHoldoff      : natural := natural(2**holdoffBits-1);
+signal   holdoffCount : std_logic_vector(holdoffBits-1 downto 0);
 
-signal   holdoffCount    : natural range 0 to maxHoldoff-1;
-
-signal   holdoffCountVec : std_logic_vector(holdoffBits-1 downto 0);
-
-signal   clearCount      : std_logic;
+signal   clearCount   : std_logic;
 
 begin
 
 triggerOut <= clearCount;
 
-holdoffCount <= to_integer(unsigned(holdoffCountVec));
-
-clearProc: process(clk, rst, holdoffCount, holdoff)
-begin
-    if rst = '1' then
-        clearCount <= '0';
-    elsif rising_edge(clk) then
-        if holdoffCount /= 0 and holdoffCount = unsigned(holdoff) then
-            clearCount <= '1';
-        else
-            clearCount <= '0';
-        end if;
-    end if;
-end process;
-
--- per migliorare il timing uso un contatore look-ahead!!!
+clearCount <= '1' when (unsigned(holdoffCount) /= 0 and holdoffCount = holdoff) else '0';
 
 holdoffCounterInst: counter16Bit
 port map(
@@ -66,7 +45,7 @@ port map(
     Clock  => clk,
     Enable => triggerIn,
     Data   => (others => '0'),
-    Q      => holdOffCountVec
+    Q      => holdOffCount
 );
 
 end architecture_prescaler;
