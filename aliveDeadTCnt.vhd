@@ -84,9 +84,9 @@ deadCount  <= DEAD_TIME;
 
 lostCount  <= lost;
 
-liveCntRst <= deadCntStored;--liveCntStored;--reset or liveCntStored;
+liveCntRst <= reset or deadCntStored;--liveCntStored;--reset or liveCntStored;
 
-deadCntRst <= liveCntStored;--deadCntStored;--reset or deadCntStored;
+deadCntRst <= reset or liveCntStored;--deadCntStored;--reset or deadCntStored;
 
 lostCntRst <= not trgInhibit;--reset or not trgInhibit;
 
@@ -139,20 +139,20 @@ end process;
 aliveCounter: counterLiveDead
 port map(
     Aclr   => reset,
-    Sload  => liveCntRst,
+--    Sload  => liveCntRst,
     Clock  => clock200k,
     Enable => live,
-    Data   => (others => '0'),
+--    Data   => (others => '0'),
     Q      => ALIVE_TIME_count
 );
 
 deadCounter: counterLiveDead
 port map(
     Aclr   => reset,
-    Sload  => deadCntRst,
+--    Sload  => deadCntRst,
     Clock  => clock200k,
     Enable => dead,
-    Data   => (others => '0'),
+--    Data   => (others => '0'),
     Q      => DEAD_TIME_count
 );
 
@@ -194,10 +194,10 @@ end process;
 lostCounterInst: counterLostTrg
 port map(
     Aclr   => reset,
---    Sload  => lostCntRst,
+    Sload  => lostCntRst,
     Clock  => clock,
     Enable => acqState and (not live) and trigger,
---    Data   => (others => '0'),
+    Data   => (others => '0'),
     Q      => lost_count
 );
 
