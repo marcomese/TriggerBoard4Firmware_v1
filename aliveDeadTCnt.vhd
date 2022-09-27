@@ -68,10 +68,10 @@ end component;
 component counterLiveDead is
 port(
     Aclr   : in    std_logic;
-    Sload  : in    std_logic;
+--    Sload  : in    std_logic;
     Clock  : in    std_logic;
     Enable : in    std_logic;
-    Data   : in    std_logic_vector(31 downto 0);
+--    Data   : in    std_logic_vector(31 downto 0);
     Q      : out   std_logic_vector(31 downto 0)
 );
 end component;
@@ -84,9 +84,9 @@ deadCount  <= DEAD_TIME;
 
 lostCount  <= lost;
 
-liveCntRst <= liveCntStored;--reset or liveCntStored;
+liveCntRst <= deadCntStored;--liveCntStored;--reset or liveCntStored;
 
-deadCntRst <= deadCntStored;--reset or deadCntStored;
+deadCntRst <= liveCntStored;--deadCntStored;--reset or deadCntStored;
 
 lostCntRst <= not trgInhibit;--reset or not trgInhibit;
 
@@ -194,10 +194,10 @@ end process;
 lostCounterInst: counterLostTrg
 port map(
     Aclr   => reset,
-    Sload  => lostCntRst,
+--    Sload  => lostCntRst,
     Clock  => clock,
     Enable => acqState and (not live) and trigger,
-    Data   => (others => '0'),
+--    Data   => (others => '0'),
     Q      => lost_count
 );
 
