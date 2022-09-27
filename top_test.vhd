@@ -278,6 +278,8 @@ port (
     triggerInhibit : in std_logic;
     triggerOUT     : out std_logic;
 
+    turrets        : out std_logic_vector(4 downto 0);
+
     PMT_mask_1      : in  std_logic_vector(31 downto 0);
     PMT_mask_2      : in  std_logic_vector(31 downto 0);
     generic_trigger_mask : in std_logic_vector(31 downto 0);	
@@ -901,6 +903,8 @@ signal  aliveCount,
 
 signal  lostCount            : std_logic_vector(15 downto 0);
 
+signal  s_turrets            : std_logic_vector(4 downto 0);
+
 --attribute syn_keep     : boolean;
 --attribute syn_preserve : boolean;
 --
@@ -1002,11 +1006,11 @@ TRG     <= extendedTriggerOut;
 -----------------------------------------------------------
 -- !!!!!!! DA MODIFICARE CON TRIGGER VERSO TORRETTE (PLANE(x)) !!!!!!! --
 TRG_EVT <= extendedTriggerOut;
-TRG_1   <= extendedTriggerOut;
-TRG_2   <= extendedTriggerOut;
-TRG_3   <= extendedTriggerOut;
-TRG_4   <= extendedTriggerOut;
-TRG_5   <= extendedTriggerOut;
+TRG_1   <= s_turrets(0);
+TRG_2   <= s_turrets(1);
+TRG_3   <= s_turrets(2);
+TRG_4   <= s_turrets(3);
+TRG_5   <= s_turrets(4);
 -----------------------------------------------------------
 -----------------------------------------------------------
 
@@ -1158,6 +1162,8 @@ port map(
     triggerInhibit => trgInhibit,
     triggerOUT => trigger_interno_sig,
 
+    turrets => s_turrets,
+
     PMT_mask_1           => s_PMT_mask_1,
     PMT_mask_2           => s_PMT_mask_2,
     generic_trigger_mask => s_generic_trigger_mask,
@@ -1301,7 +1307,7 @@ generic map(
 )
 port map(
     clk            => s_clock48M,
-    rst            => swRst,--s_global_rst,
+    rst            => swRst,
 
     adcDataReady   => dataReady,
     acqData        => acqData,
@@ -1327,12 +1333,6 @@ port map(
 );
 
 writeDataLenBuff <= writeDataLen;
-
---wDataLenBuff: CLKINT
---port map(
-    --A => writeDataLen,
-    --Y => writeDataLenBuff
---);
 
 inst_spwFIFO: spwFIFO
 port map(

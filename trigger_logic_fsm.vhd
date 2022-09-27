@@ -41,6 +41,8 @@ port(
 
     rate1SecOut          : out std_logic;
 
+    turrets              : out std_logic_vector(4 downto 0);
+
     trg_to_DAQ_EASI      : out std_logic  -- attivo alto
 );
 end TRIGGER_logic_FSM;
@@ -180,6 +182,8 @@ signal  s_trgExtPulse,
 begin
 
 rate1SecOut <= rate_time_sig;
+
+turrets(4 downto 0) <= plane(4 downto 0);
 
 sincronizzatore1 : for i in 0 to 31 generate
 begin

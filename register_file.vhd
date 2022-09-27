@@ -116,7 +116,7 @@ type addr_vector_t is array (natural range <>) of addr_t;
 -- control registers
 constant ID_REG_ADDR                  : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000000";
 constant STATUS_REG_ADDR              : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000001";
-constant RST_REG_ADDR                 : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000003";
+constant RST_REG_ADDR                 : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000003"; -- 0x0DA00DA0
 constant CLK_REG_ADDR                 : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000004";
 constant RW_REG_ADDR                  : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000005";
 constant CMD_REG_ADDR                 : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000008";
