@@ -59,12 +59,34 @@ port(
 );
 end component;
 
-component counter16Bit is
+component counter16BitSload is
 port(
     Aclr   : in    std_logic;
+    Sload  : in    std_logic;
     Clock  : in    std_logic;
     Enable : in    std_logic;
+    Data   : in    std_logic_vector(15 downto 0);
     Q      : out   std_logic_vector(15 downto 0)
+);
+end component;
+
+component prescaler18Bit is
+port(
+    clk         : in  std_logic;
+    rst         : in  std_logic;
+    holdoff     : in  std_logic_vector(17 downto 0);
+    triggerIn   : in  std_logic;
+    triggerOut  : out std_logic
+);
+end component;
+
+component prescaler14Bit is
+port(
+    clk         : in  std_logic;
+    rst         : in  std_logic;
+    holdoff     : in  std_logic_vector(13 downto 0);
+    triggerIn   : in  std_logic;
+    triggerOut  : out std_logic
 );
 end component;
 
@@ -277,13 +299,29 @@ begin
     end if;
 end process;
 
-maskCounterGen: for i in 0 to maskNum-1 generate
-    count_NInst: counter16Bit
+prescMaskCounterGen: for i in 0 to prescaledTriggers-1 generate
+begin
+    countPresc_NInst: counter16BitSload
     port map(
-        Aclr   => reset_counter,
+        Aclr   => reset,
+        Sload  => reset_counter,
         Clock  => clock,
-        Enable => start_readers and rise(i),
+        Enable => start_readers and trigger_prescaled(i),
+        Data   => (others => '0'),
         Q      => count_n(i)
+    );
+end generate;
+
+maskCounterGen: for i in 0 to concurrentTriggers-1 generate
+begin
+    count_NInst: counter16BitSload
+    port map(
+        Aclr   => reset,
+        Sload  => reset_counter,
+        Clock  => clock,
+        Enable => start_readers and trigger_int_vec(i),
+        Data   => (others => '0'),
+        Q      => count_n(i+prescaledTriggers)
     );
 end generate;
 
@@ -341,7 +379,26 @@ begin
     end process;
 end generate;
 
-prescGen: for i in 0 to prescaledTriggers-1 generate
+presc18BitInst: prescaler18Bit
+port map(
+    clk         => clock,
+    rst         => reset,
+    holdoff     => holdoff(17 downto 0),
+    triggerIn   => trigger_int_vec(0),
+    triggerOut  => trigger_prescaled(0)
+);
+
+presc14BitInst: prescaler14Bit
+port map(
+    clk         => clock,
+    rst         => reset,
+    holdoff     => holdoff(31 downto 18),
+    triggerIn   => trigger_int_vec(1),
+    triggerOut  => trigger_prescaled(1)
+);
+
+
+prescGen: for i in 2 to prescaledTriggers-1 generate
 begin
     prescInst: prescaler
     generic map(
