@@ -1291,12 +1291,12 @@ acqData(2303 downto 0) <= x"4645"             &
                           ppsCountSync        &
                           adcDataOut          &
                           zeros208            &
+                          lostCount           &
+                          aliveCount          &
+                          deadCount           &
                           s_trigger_flag_1    &
                           s_trigger_flag_2    &
                           s_mask_rate         &
-                          aliveCount          &
-                          deadCount           &
-                          lostCount           &
                           x"4748";
 
 inst_spwFIFOInterface: spwFIFOInterface
