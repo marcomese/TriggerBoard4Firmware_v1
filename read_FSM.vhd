@@ -77,22 +77,41 @@ port(
 );
 end component;
 
+component pulseExpand is
+    Port ( clkOrig : in  STD_LOGIC;
+           clkDest : in  STD_LOGIC;
+           rst : in  STD_LOGIC;
+           pulseIN : in  STD_LOGIC;
+           pulseOUT : out  STD_LOGIC);
+end component;
+
 signal  RST_B_READ_sig,
         enable_adc_sig,
         fineconv_sig        : std_logic;
 
 signal  ext_channels_nr_sig : std_logic_vector(4 downto 0);
 
+signal  readCmdSig : std_logic;
+
 begin
 
 RST_B_READ  <= RST_B_READ_sig;
 
+readCmdExpand: pulseExpand
+port map(
+    clkOrig  => clock,
+    clkDest  => clock24M,
+    rst      => reset,
+    pulseIN  => trigger_int,
+    pulseOUT => readCmdSig
+);
+
 acdReadChannels: READ_CHANNELS_FSM 
 port map(
     reset           => reset,
-    clock           => clock,
+    clock           => clock24M,
     clock200        => clock200,
-    read_command    => trigger_int,
+    read_command    => readCmdSig,
 
     hold_B          => hold_B,
     CLK_READ        => CLK_READ,
