@@ -290,10 +290,12 @@ port (
     acquisition_state : out std_logic;
     calibration_state : out std_logic;
 
-    PMT_rate            : out std_logic_vector(1023 downto 0);
+    PMT_rate          : out std_logic_vector(1023 downto 0);
     mask_rate         : out std_logic_vector(319 downto 0);
     trigger_flag_1    : out std_logic_vector(31 downto 0);
     trigger_flag_2    : out std_logic_vector(31 downto 0);
+
+    triggerID         : out std_logic_vector(7 downto 0);
 
     config_status_1 : out std_logic;
     config_status_2 : out std_logic;
@@ -846,7 +848,7 @@ signal fifoDVLD     : std_logic;
 
 signal rstCIT1out, rstCIT2out : std_logic;
 
-constant zeros360   : std_logic_vector(359 downto 0) := (others => '0');
+constant zeros352   : std_logic_vector(351 downto 0) := (others => '0');
 
 signal writeDone    : std_logic;
 signal spwCtrlBusy  : std_logic;
@@ -904,6 +906,8 @@ signal  s_turrets            : std_logic_vector(4 downto 0);
 signal  s_turretsFlags       : std_logic_vector(7 downto 0);
 
 signal  s_turretsCounters    : std_logic_vector(159 downto 0);
+
+signal  s_triggerID          : std_logic_vector(7 downto 0);
 
 begin
 
@@ -1168,6 +1172,8 @@ port map(
     trigger_flag_1 => s_trigger_flag_1,
     trigger_flag_2 => s_trigger_flag_2,
 
+    triggerID => s_triggerID,
+
     config_status_1 => s_config_status_1,
     config_status_2 => s_config_status_2,
 
@@ -1275,8 +1281,9 @@ port map(
 acqData(2303 downto 0) <= x"4645"             &
                           trigCounter         &
                           ppsCountSync        &
+                          s_triggerID         &
                           adcDataOut          &
-                          zeros360            &
+                          zeros352            &
                           lostCount           &
                           aliveCount          &
                           deadCount           &

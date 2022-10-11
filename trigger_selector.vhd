@@ -22,6 +22,8 @@ port(
     trigger_mask         : in  std_logic_vector(31 downto 0);
     start_readers        : in  std_logic;
 
+    triggerID            : out std_logic_vector(7 downto 0);
+
     apply_trigger_mask   : in  std_logic;
 
     rate_time_sig	     : in  std_logic; --1 secondo	
@@ -167,7 +169,11 @@ signal  TR1,
         LAT_4,
         BOT_00                   : std_logic;
 
+signal  triggerIDSig             : std_logic_vector(7 downto 0);
+
 begin
+
+triggerID <= triggerIDSig;
 
 TR1    <= plane(0) or plane(1) or plane(2) or plane(3) or plane(4);
 TR1AND <= planeT1And(0) or planeT1And(1) or planeT1And(2) or planeT1And(3) or planeT1And(4);
@@ -415,6 +421,19 @@ end generate;
 
 trigger_int <= or_reduce(trigger_prescaled & 
                          trigger_int_vec(concurrentTriggers-1 downto prescaledTriggers));
+
+triggerIDSig(7 downto 6) <= (others => '0');
+
+trgIDSigReg: process(clock, reset, trigger_int)
+begin
+    if reset = '1' then
+        triggerIDSig(5 downto 0) <= (others => '0');
+    elsif rising_edge(clock) then
+        if trigger_int = '1' then
+            triggerIDSig(5 downto 0) <= trigger_int_vec(concurrentTriggers-1 downto prescaledTriggers) & trigger_prescaled;
+        end if;
+    end if;
+end process;
 
 mux_veto:process(clock, reset, trigger_mask_int, trigger_int, veto_lateral, veto_bottom, trgExtIn)
 begin

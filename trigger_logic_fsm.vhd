@@ -35,6 +35,8 @@ port(
     trigger_flag_1       : out std_logic_vector(31 downto 0);	
     trigger_flag_2       : out std_logic_vector(31 downto 0);			
 
+    triggerID            : out std_logic_vector(7 downto 0);
+
     trgExtIn             : in  std_logic;
 
     holdoff              : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
@@ -88,6 +90,8 @@ port(
     generic_trigger_mask : in  std_logic_vector(31 downto 0);	
     trigger_mask         : in  std_logic_vector(31 downto 0);
     start_readers        : in  std_logic;
+
+    triggerID            : out std_logic_vector(7 downto 0);
 
     apply_trigger_mask   : in  std_logic;
 
@@ -422,6 +426,9 @@ port map(
     generic_trigger_mask => generic_trigger_mask,
     trigger_mask => trigger_mask,
     start_readers => start_readers,
+
+    triggerID => triggerID,
+
     apply_trigger_mask => apply_trigger_mask,
 
     rate_time_sig	=> rise_rate,

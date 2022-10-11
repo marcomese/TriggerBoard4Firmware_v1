@@ -42,10 +42,12 @@ port (
     acquisition_state : out std_logic;
     calibration_state : out std_logic;
 
-    PMT_rate            : out std_logic_vector(1023 downto 0);
+    PMT_rate          : out std_logic_vector(1023 downto 0);
     mask_rate         : out std_logic_vector(319 downto 0);
     trigger_flag_1    : out std_logic_vector(31 downto 0);
     trigger_flag_2    : out std_logic_vector(31 downto 0);
+
+    triggerID         : out std_logic_vector(7 downto 0);
 
     config_status_1 : out std_logic;
     config_status_2 : out std_logic;
@@ -211,6 +213,8 @@ port(
     apply_trigger_mask   : in  std_logic;
     apply_PMT_mask       : in  std_logic;
     start_readers        : in  std_logic;
+
+    triggerID            : out std_logic_vector(7 downto 0);
 
     calibration_state    : in  std_logic;
     acquisition_state    : in  std_logic;
@@ -555,6 +559,8 @@ port map (
     apply_trigger_mask   => apply_trigger_mask,
     apply_PMT_mask       => apply_PMT_mask,
     start_readers        => start_readers_sig,
+
+    triggerID            => triggerID,
 
     calibration_state    => calibration_state_sig,
     acquisition_state    => acquisition_state_sig,
