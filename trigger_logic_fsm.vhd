@@ -43,12 +43,25 @@ port(
 
     turrets              : out std_logic_vector(4 downto 0);
     turretsFlags         : out std_logic_vector(7 downto 0);
+    turretsCounters      : out std_logic_vector(159 downto 0);
 
     trg_to_DAQ_EASI      : out std_logic  -- attivo alto
 );
 end TRIGGER_logic_FSM;
 
 architecture Behavioral of TRIGGER_logic_FSM is
+
+component edgeDetector is
+generic(
+    edge      : std_logic := '0' -- '0' falling, '1' rising
+);
+port(
+    clk       : in  std_logic;
+    rst       : in  std_logic;
+    signalIn  : in  std_logic;
+    signalOut : out std_logic
+);
+end component;
 
 component trigger_extender_100ns is
 port(
@@ -105,6 +118,15 @@ port(
     Clock  : in    std_logic;
     Enable : in    std_logic;
     Q      : out   std_logic_vector(15 downto 0)
+);
+end component;
+
+component counter32Bit is
+port(
+    Aclr   : in    std_logic;
+    Clock  : in    std_logic;
+    Enable : in    std_logic;
+    Q      : out   std_logic_vector(31 downto 0)
 );
 end component;
 
@@ -168,19 +190,11 @@ signal  rise_1, rise_2  : std_logic_vector(31 downto 0);
 signal  s_trgExtPulse,
         s_trgExt100ns   : std_logic;
 
-signal  turretsFlagsSig : std_logic_vector(7 downto 0);
+signal  turretsFlagsSig    : std_logic_vector(7 downto 0);
 
---attribute syn_keep : boolean;
---attribute syn_preserve : boolean;
---
---attribute syn_preserve of trg_to_DAQ_EASI_i   : signal is true;
---attribute syn_keep     of trg_to_DAQ_EASI_i   : signal is true;
---attribute syn_preserve of reset_counter       : signal is true;
---attribute syn_keep     of reset_counter       : signal is true;
---attribute syn_preserve of trigger_PMTmasked_1 : signal is true;
---attribute syn_keep     of trigger_PMTmasked_1 : signal is true;
---attribute syn_preserve of trigger_PMTmasked_2 : signal is true;
---attribute syn_keep     of trigger_PMTmasked_2 : signal is true;
+signal  turretsCountersVal : std_logic_vector(159 downto 0);
+
+signal  turretsCntEn       : std_logic_vector(4 downto 0);
 
 begin
 
@@ -264,37 +278,64 @@ port map(
 
 PMT_counter_process1 : for i in 0 to 31 generate
 begin
-counter1_trigger_i: counter16Bit
-port map(
-    Aclr   => reset_counter,
-    Clock  => clock,
-    Enable => rise_1(i),
-    Q      => count_pmt_1(i)
-);
+    counter1_trigger_i: counter16Bit
+    port map(
+        Aclr   => reset_counter,
+        Clock  => clock,
+        Enable => rise_1(i),
+        Q      => count_pmt_1(i)
+    );
 end generate PMT_counter_process1;
 
 PMT_counter_process2 : for i in 0 to 31 generate
 begin
-counter2_trigger_i: counter16Bit
-port map(
-    Aclr   => reset_counter,
-    Clock  => clock,
-    Enable => rise_2(i),
-    Q      => count_pmt_2(i)
-);
+    counter2_trigger_i: counter16Bit
+    port map(
+        Aclr   => reset_counter,
+        Clock  => clock,
+        Enable => rise_2(i),
+        Q      => count_pmt_2(i)
+    );
 end generate PMT_counter_process2;
+
+turretsCntEnEdge: for i in 0 to 4 generate
+begin
+    turrCntEdge_i: edgeDetector
+    generic map(
+        edge      => '1'
+    )
+    port map(
+        clk       => clock,
+        rst       => reset,
+        signalIn  => plane(i),
+        signalOut => turretsCntEn(i)
+    );
+end generate;
+
+turretsCountersInst: for i in 0 to 4 generate
+begin
+    turretsCounter_i: counter32Bit
+    port map(
+        Aclr   => reset_counter,
+        Clock  => clock,
+        Enable => turretsCntEn(i),
+        Q      => turretsCountersVal(31+(i*32) downto i*32)
+    );
+end generate;
 
 PMT_reg_process : for i in 0 to 31 generate
 begin
     reg_counter_trigger_i: process(reset, clock, rise_rate)
     begin
         if reset='1' then
-            PMT_rate_1(i) <= (others => '0');
-            PMT_rate_2(i) <= (others => '0');
+            PMT_rate_1(i)   <= (others => '0');
+            PMT_rate_2(i)   <= (others => '0');
+            turretsCounters <= (others => '0');
         elsif rising_edge(clock) then
             if rise_rate = '1' then
                 PMT_rate_1(i)(15 downto 0) <= count_pmt_1(i)(15 downto 0);
                 PMT_rate_2(i)(15 downto 0) <= count_pmt_2(i)(15 downto 0);
+                turretsCounters            <= turretsCountersVal;
             end if;
         end if;
     end process;
@@ -426,7 +467,7 @@ begin
         if (acquisition_state = '1' or calibration_state = '1') and trigger = '1' then
             trigger_flag_1              <= trigger_PMTmasked_1;
             trigger_flag_2              <= trigger_PMTmasked_2;
-            turretsFlagsSig(4 downto 0) <= turrets(4 downto 0);
+            turretsFlagsSig(4 downto 0) <= plane(4 downto 0);
         else
             trigger_flag_1              <= trigger_flag_1;
             trigger_flag_2              <= trigger_flag_2;
