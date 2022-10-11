@@ -160,12 +160,6 @@ end top_test;
 
 architecture architecture_top_test of top_test is
 
---constant refDac1Def  : std_logic_vector(31 downto 0) := x"130018C0"; -- HOT CIT1
---constant refDac2Def  : std_logic_vector(31 downto 0) := x"131018B0"; -- HOT CIT2
-
---constant refDac1Def  : std_logic_vector(31 downto 0) := x"18C818C8"; -- COLD CIT1
---constant refDac2Def  : std_logic_vector(31 downto 0) := x"12AC1880"; -- COLD CIT2
-
 constant refDac1Def  : std_logic_vector(31 downto 0) := x"2F002F00"; -- TB4
 constant refDac2Def  : std_logic_vector(31 downto 0) := x"2F002F00"; -- TB4
 
@@ -905,12 +899,6 @@ signal  lostCount            : std_logic_vector(15 downto 0);
 
 signal  s_turrets            : std_logic_vector(4 downto 0);
 
---attribute syn_keep     : boolean;
---attribute syn_preserve : boolean;
---
---attribute syn_keep of s_trigger_mask         : signal is true;
---attribute syn_keep of s_generic_trigger_mask : signal is true;
-
 begin
 
 PWR_ON_1  <= s_pwr_on_citiroc1;
@@ -1003,16 +991,12 @@ PS_global_trig_2 <= extendedTriggerOut;
 
 TRG     <= extendedTriggerOut;
 
------------------------------------------------------------
--- !!!!!!! DA MODIFICARE CON TRIGGER VERSO TORRETTE (PLANE(x)) !!!!!!! --
 TRG_EVT <= extendedTriggerOut;
 TRG_1   <= s_turrets(0);
 TRG_2   <= s_turrets(1);
 TRG_3   <= s_turrets(2);
 TRG_4   <= s_turrets(3);
 TRG_5   <= s_turrets(4);
------------------------------------------------------------
------------------------------------------------------------
 
 wdRst <= not RST_FROM_SUPERVISOR;
 
