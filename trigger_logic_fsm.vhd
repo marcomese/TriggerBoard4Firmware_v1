@@ -42,6 +42,7 @@ port(
     rate1SecOut          : out std_logic;
 
     turrets              : out std_logic_vector(4 downto 0);
+    turretsFlags         : out std_logic_vector(7 downto 0);
 
     trg_to_DAQ_EASI      : out std_logic  -- attivo alto
 );
@@ -167,6 +168,8 @@ signal  rise_1, rise_2  : std_logic_vector(31 downto 0);
 signal  s_trgExtPulse,
         s_trgExt100ns   : std_logic;
 
+signal  turretsFlagsSig : std_logic_vector(7 downto 0);
+
 --attribute syn_keep : boolean;
 --attribute syn_preserve : boolean;
 --
@@ -184,6 +187,8 @@ begin
 rate1SecOut <= rate_time_sig;
 
 turrets(4 downto 0) <= plane(4 downto 0);
+
+turretsFlags <= turretsFlagsSig;
 
 sincronizzatore1 : for i in 0 to 31 generate
 begin
@@ -409,18 +414,23 @@ mask_rate <= X"0009" & mask_rate_9_sig &
              X"0001" & mask_rate_1_sig &
              X"0000" & mask_rate_0_sig;
 
+turretsFlagsSig(7 downto 5) <= (others => '0');
+
 trigger_flag_register: process(reset, clock, acquisition_state, calibration_state)
 begin
     if reset='1' then
-        trigger_flag_1 <= (others=> '0');
-        trigger_flag_2 <= (others=> '0');
+        trigger_flag_1              <= (others=> '0');
+        trigger_flag_2              <= (others=> '0');
+        turretsFlagsSig(4 downto 0) <= (others => '0');
     elsif rising_edge(clock) then
         if (acquisition_state = '1' or calibration_state = '1') and trigger = '1' then
-            trigger_flag_1 <= trigger_PMTmasked_1;
-            trigger_flag_2 <= trigger_PMTmasked_2;
+            trigger_flag_1              <= trigger_PMTmasked_1;
+            trigger_flag_2              <= trigger_PMTmasked_2;
+            turretsFlagsSig(4 downto 0) <= turrets(4 downto 0);
         else
-            trigger_flag_1 <= trigger_flag_1;
-            trigger_flag_2 <= trigger_flag_2;
+            trigger_flag_1              <= trigger_flag_1;
+            trigger_flag_2              <= trigger_flag_2;
+            turretsFlagsSig(4 downto 0) <= turretsFlagsSig(4 downto 0);
         end if;
     end if;
 end process;

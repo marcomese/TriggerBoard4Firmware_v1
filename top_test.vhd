@@ -844,7 +844,7 @@ signal fifoDVLD     : std_logic;
 
 signal rstCIT1out, rstCIT2out : std_logic;
 
-constant zeros208   : std_logic_vector(207 downto 0) := (others => '0');
+constant zeros528   : std_logic_vector(527 downto 0) := (others => '0');
 
 signal writeDone    : std_logic;
 signal spwCtrlBusy  : std_logic;
@@ -1268,13 +1268,12 @@ acqData(2303 downto 0) <= x"4645"             &
                           trigCounter         &
                           ppsCountSync        &
                           adcDataOut          &
-                          zeros208            &
+                          zeros528            &
                           lostCount           &
                           aliveCount          &
                           deadCount           &
                           s_trigger_flag_1    &
                           s_trigger_flag_2    &
-                          s_mask_rate         &
                           x"4748";
 
 inst_spwFIFOInterface: spwFIFOInterface

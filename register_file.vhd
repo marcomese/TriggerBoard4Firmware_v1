@@ -97,6 +97,8 @@ architecture Behavioral of register_file is
 constant DATA_LENGHT        : integer := 32;
 constant ADDR_LENGHT        : integer := 32;
 
+constant RST_WORD           : std_logic_vector(31 downto 0) := x"0DA00DA0";
+
 -- define the memory array
 type mem_t is array (natural range <>) of std_logic_vector(DATA_LENGHT - 1 downto 0);
 
@@ -795,7 +797,7 @@ PMT_mask_2             <= register_vector( get_local_addr(PMT_2_MASK_ADDR, addre
 start_config_1      <= start_config_1_pipe_0 and (not start_config_1_pipe_1);
 start_config_2      <= start_config_2_pipe_0 and (not start_config_2_pipe_1); 
 
-sw_rst              <= sw_rst_pipe_0 and (not sw_rst_pipe_1);--register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(3); 
+sw_rst              <= sw_rst_pipe_0 and (not sw_rst_pipe_1);
 pwr_on_citiroc1     <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(4); 
 pwr_on_citiroc2     <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(5); 
   
@@ -873,7 +875,7 @@ begin
         start_config_2_pipe_0     <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(1);
         start_config_2_pipe_1     <= start_config_2_pipe_0;
     
-        sw_rst_pipe_0             <= or_reduce(register_vector(get_local_addr(RST_REG_ADDR, address_vector)));
+        sw_rst_pipe_0             <= '1' when register_vector(get_local_addr(RST_REG_ADDR, address_vector)) = RST_WORD else '0';
         sw_rst_pipe_1             <= sw_rst_pipe_0;
         
         start_debug_pipe_0        <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(6);
