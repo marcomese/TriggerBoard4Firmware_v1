@@ -273,6 +273,7 @@ port (
     triggerOUT     : out std_logic;
 
     turrets        : out std_logic_vector(4 downto 0);
+    turretsFlags   : out std_logic_vector(7 downto 0);
 
     PMT_mask_1      : in  std_logic_vector(31 downto 0);
     PMT_mask_2      : in  std_logic_vector(31 downto 0);
@@ -844,7 +845,7 @@ signal fifoDVLD     : std_logic;
 
 signal rstCIT1out, rstCIT2out : std_logic;
 
-constant zeros528   : std_logic_vector(527 downto 0) := (others => '0');
+constant zeros520   : std_logic_vector(519 downto 0) := (others => '0');
 
 signal writeDone    : std_logic;
 signal spwCtrlBusy  : std_logic;
@@ -898,6 +899,8 @@ signal  aliveCount,
 signal  lostCount            : std_logic_vector(15 downto 0);
 
 signal  s_turrets            : std_logic_vector(4 downto 0);
+
+signal  s_turretsFlags       : std_logic_vector(7 downto 0);
 
 begin
 
@@ -1141,6 +1144,7 @@ port map(
     triggerOUT => trigger_interno_sig,
 
     turrets => s_turrets,
+    turretsFlags => s_turretsFlags,
 
     PMT_mask_1           => s_PMT_mask_1,
     PMT_mask_2           => s_PMT_mask_2,
@@ -1268,12 +1272,13 @@ acqData(2303 downto 0) <= x"4645"             &
                           trigCounter         &
                           ppsCountSync        &
                           adcDataOut          &
-                          zeros528            &
+                          zeros520            &
                           lostCount           &
                           aliveCount          &
                           deadCount           &
                           s_trigger_flag_1    &
                           s_trigger_flag_2    &
+                          s_turretsFlags      &
                           x"4748";
 
 inst_spwFIFOInterface: spwFIFOInterface
