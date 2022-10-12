@@ -219,13 +219,13 @@ begin
 end process;
 
 -------------------- Costruzione delle configurazioni di trigger --------------------------------
-trgSyncProc: process(clock, reset)
-begin
-    if reset = '1' then
-        veto_lateral <= '0';
-        veto_bottom  <= '0';
-        trigger      <= (others => '0');
-    elsif rising_edge(clock) then
+--trgSyncProc: process(clock, reset)
+--begin
+    --if reset = '1' then
+        --veto_lateral <= '0';
+        --veto_bottom  <= '0';
+        --trigger      <= (others => '0');
+    --elsif rising_edge(clock) then
         veto_lateral <= LAT_1 or LAT_2 or LAT_3 or LAT_4;
 
         veto_bottom  <= BOT_00;
@@ -263,8 +263,8 @@ begin
                         EN1_masked and EN2_masked and
                         LAT_1_masked and LAT_2_masked and LAT_3_masked and LAT_4_masked and
                         BOT_00_masked;
-    end if;
-end process;
+    --end if;
+--end process;
 
 TR1_masked <= TR1 or (not generic_trigger_mask_int(0));
 TR2_masked <= TR2 or (not generic_trigger_mask_int(1));
@@ -364,9 +364,9 @@ mux_trgN_gen: for i in 0 to concurrentTriggers-1 generate
 begin
     mux_triggerN:process(clock, reset, trigger_mask_int)
     begin
-        if reset = '1' then
-            trigger_int_vec(i) <= '0';
-        elsif rising_edge(clock) then
+        --if reset = '1' then
+            --trigger_int_vec(i) <= '0';
+        --elsif rising_edge(clock) then
             case trigger_mask_int((i*4)+3 downto (i*4)) is
                 when X"0"  =>  trigger_int_vec(i) <= '0';
                 when X"1"  =>  trigger_int_vec(i) <= rise(0);
@@ -381,7 +381,7 @@ begin
                 when X"A"  =>  trigger_int_vec(i) <= rise(9);
                 when others => trigger_int_vec(i) <= '0';
             end case;
-        end if;
+--        end if;
     end process;
 end generate;
 
@@ -437,9 +437,9 @@ end process;
 
 mux_veto:process(clock, reset, trigger_mask_int, trigger_int, veto_lateral, veto_bottom, trgExtIn)
 begin
-    if reset = '1' then
-        trg_int <= '0';
-    elsif rising_edge(clock) then
+    --if reset = '1' then
+        --trg_int <= '0';
+    --elsif rising_edge(clock) then
         case trigger_mask_int(31 downto 24) is
             when X"00"  => trg_int <= trigger_int;
             when X"01"  => trg_int <= trigger_int and not veto_lateral;
@@ -448,7 +448,7 @@ begin
             when X"04"  => trg_int <= trgExtIn;
             when others => trg_int <= trigger_int;
         end case;
-    end if;
+--    end if;
 end process;
 
 end Behavioral;

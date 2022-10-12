@@ -384,30 +384,30 @@ end process;
 
 PMT_mask_plane_gen: for i in 0 to 31 generate
 begin
-    syncProc: process(clock, reset)
-    begin
-        if reset = '1' then
-            trigger_PMTmasked_1(i) <= '0';
-            trigger_PMTmasked_2(i) <= '0';
-            plane(i) <= '0';
-        elsif rising_edge(clock) then
+    --syncProc: process(clock, reset)
+    --begin
+        --if reset = '1' then
+            --trigger_PMTmasked_1(i) <= '0';
+            --trigger_PMTmasked_2(i) <= '0';
+            --plane(i) <= '0';
+        --elsif rising_edge(clock) then
             trigger_PMTmasked_1(i) <= trigger_sincro_1(i) and PMT_mask_int_1(i);
             trigger_PMTmasked_2(i) <= trigger_sincro_2(i) and PMT_mask_int_2(i);
             plane(i) <= trigger_PMTmasked_1(i) or trigger_PMTmasked_2(i);
-        end if;
-    end process;
+        --end if;
+    --end process;
 end generate PMT_mask_plane_gen;
 
 planeT1MaskGen: for i in 0 to 4 generate
 begin
-    planeT1MaskProc: process(clock, reset)
-    begin
-        if reset = '1' then
-            planeT1And(i) <= '0';
-        elsif rising_edge(clock) then
+    --planeT1MaskProc: process(clock, reset)
+    --begin
+        --if reset = '1' then
+            --planeT1And(i) <= '0';
+        --elsif rising_edge(clock) then
             planeT1And(i) <= trigger_PMTmasked_1(i) and trigger_PMTmasked_2(i);
-        end if;
-    end process;
+        --end if;
+    --end process;
 end generate;
 
 trigger_selector_component : TRIGGER_selector
