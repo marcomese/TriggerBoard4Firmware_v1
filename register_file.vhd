@@ -9,6 +9,7 @@ generic(
     sysid                 : std_logic_vector(31 downto 0) := x"00000000";
     refDac1Def            : std_logic_vector(31 downto 0);
     refDac2Def            : std_logic_vector(31 downto 0);
+    dataWidth             : natural;
     prescaledTriggers     : natural;
     holdOffBits           : natural
 );
@@ -64,8 +65,8 @@ port(
     -- status register
     config_status_1     : in std_logic; 
     config_status_2     : in std_logic; 
-    acquisition_state   : in std_logic; -- = '1' quando il sistema è in acquisizione
-    calibration_state   : in std_logic; -- = '1' quando il sistema è in calibrazione
+    acquisition_state   : in std_logic; -- = '1' quando il sistema ï¿½ in acquisizione
+    calibration_state   : in std_logic; -- = '1' quando il sistema ï¿½ in calibrazione
 
     refDac_status_1     : in std_logic;
     refDac_status_2     : in std_logic;
@@ -74,7 +75,7 @@ port(
 
     writeDataLen        : in   std_logic;
 
-    regAcqData          : in  std_logic_vector(2303  downto 0);
+    regAcqData          : in  std_logic_vector(dataWidth-1  downto 0);
 
     holdoff             : out std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
@@ -197,15 +198,16 @@ constant PMT_RATE_28_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 
 constant PMT_RATE_29_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000074";
 constant PMT_RATE_30_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000075";
 constant PMT_RATE_31_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000076";
-constant MASK_RATE_00_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000097";
-constant MASK_RATE_01_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000098";
-constant MASK_RATE_02_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000099";
-constant MASK_RATE_03_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000009A";
-constant MASK_RATE_04_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000009B";
-constant MASK_RATE_05_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000009C";
-constant MASK_RATE_06_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000009D";
-constant MASK_RATE_07_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000009E";
-constant MASK_RATE_08_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000009F";
+constant MASK_RATE_00_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000096";
+constant MASK_RATE_01_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000097";
+constant MASK_RATE_02_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000098";
+constant MASK_RATE_03_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000099";
+constant MASK_RATE_04_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000009A";
+constant MASK_RATE_05_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000009B";
+constant MASK_RATE_06_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000009C";
+constant MASK_RATE_07_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000009D";
+constant MASK_RATE_08_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000009E";
+constant MASK_RATE_09_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000009F";
 constant REF_DAC_1_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000A0";
 constant REF_DAC_2_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000A1";
 constant PCKTS_IN_FIFO_ADDR           : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000B2";
@@ -272,18 +274,7 @@ constant ACQDATA58_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 
 constant ACQDATA59_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000EF";
 constant ACQDATA60_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000F0";
 constant ACQDATA61_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000F1";
-constant ACQDATA62_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000F2";
-constant ACQDATA63_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000F3";
-constant ACQDATA64_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000F4";
-constant ACQDATA65_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000F5";
-constant ACQDATA66_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000F6";
-constant ACQDATA67_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000F7";
-constant ACQDATA68_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000F8";
-constant ACQDATA69_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000F9";
-constant ACQDATA70_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000FA";
-constant ACQDATA71_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000FB";
------------ DA SISTEMARE!!!
-constant MASK_RATE_09_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000FC";
+
 constant PRESC_M3_M2_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000FD";
 constant PRESC_M1_M0_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000FE";
 ----------------------------
@@ -305,7 +296,8 @@ constant PRESC_M1_M0_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 
 -- aggiungo due registri per i prescaler (203+2=205)
 -- rimossi i registri di citiroc_2 (205-36=169)
 -- rimosso il registro CAL_FREQ (169-1=168)
-constant REGISTER_FILE_LENGTH    : integer := 168;
+-- ho rimosso 10 registri di dato non utilizzati (168-10=158)
+constant REGISTER_FILE_LENGTH    : integer := 158;
 
 -- define the map of the address this is used to get the local address of the register
 constant address_vector : addr_vector_t(0 to REGISTER_FILE_LENGTH - 1) :=
@@ -399,6 +391,7 @@ constant address_vector : addr_vector_t(0 to REGISTER_FILE_LENGTH - 1) :=
     (addr => MASK_RATE_06_ADDR,         mode => RO),   
     (addr => MASK_RATE_07_ADDR,         mode => RO),   
     (addr => MASK_RATE_08_ADDR,         mode => RO),
+    (addr => MASK_RATE_09_ADDR,         mode => RO),
     (addr => REF_DAC_1_ADDR,            mode => RW),
     (addr => REF_DAC_2_ADDR,            mode => RW),
     (addr => PCKTS_IN_FIFO_ADDR,        mode => RO),
@@ -465,17 +458,6 @@ constant address_vector : addr_vector_t(0 to REGISTER_FILE_LENGTH - 1) :=
     (addr => ACQDATA59_ADDR,            mode => RO),
     (addr => ACQDATA60_ADDR,            mode => RO),
     (addr => ACQDATA61_ADDR,            mode => RO),
-    (addr => ACQDATA62_ADDR,            mode => RO),
-    (addr => ACQDATA63_ADDR,            mode => RO),
-    (addr => ACQDATA64_ADDR,            mode => RO),
-    (addr => ACQDATA65_ADDR,            mode => RO),
-    (addr => ACQDATA66_ADDR,            mode => RO),
-    (addr => ACQDATA67_ADDR,            mode => RO),
-    (addr => ACQDATA68_ADDR,            mode => RO),
-    (addr => ACQDATA69_ADDR,            mode => RO),
-    (addr => ACQDATA70_ADDR,            mode => RO),
-    (addr => ACQDATA71_ADDR,            mode => RO),
-    (addr => MASK_RATE_09_ADDR,         mode => RO),
     (addr => PRESC_M3_M2_ADDR,          mode => RW),
     (addr => PRESC_M1_M0_ADDR,          mode => RW),
     (addr => x"00000000",               mode => RO)  -- defensive
@@ -581,6 +563,7 @@ constant register_vector_reset : mem_t(0 to REGISTER_FILE_LENGTH - 1) :=
     x"00000000",  -- MASK_RATE_06_ADDR            
     x"00000000",  -- MASK_RATE_07_ADDR            
     x"00000000",  -- MASK_RATE_08_ADDR
+    x"00000000", --  MASK_RATE_09_ADDR
     -- DAC piedistalli
     refDac1Def,  -- REF_DAC_1_ADDR
     refDac2Def,  -- REF_DAC_2_ADDR
@@ -649,19 +632,8 @@ constant register_vector_reset : mem_t(0 to REGISTER_FILE_LENGTH - 1) :=
     x"00000000", -- ACQDATA59
     x"00000000", -- ACQDATA60
     x"00000000", -- ACQDATA61
-    x"00000000", -- ACQDATA62
-    x"00000000", -- ACQDATA63
-    x"00000000", -- ACQDATA64
-    x"00000000", -- ACQDATA65
-    x"00000000", -- ACQDATA66
-    x"00000000", -- ACQDATA67
-    x"00000000", -- ACQDATA68
-    x"00000000", -- ACQDATA69
-    x"00000000", -- ACQDATA70
-    x"00000000", -- ACQDATA71
-    x"00000000", -- MASK_RATE_9
-    x"00000000", -- PRESC_M3_M2
-    x"00000000", -- PRESC_M1_M0
+    x"00010001", -- PRESC_M3_M2
+    x"00040001", -- PRESC_M1_M0
     x"00000000"
 );
     
@@ -714,12 +686,6 @@ signal sendRefDAC_pipe_1          : std_logic;
 signal r_write_done, s_write_done : std_logic;
 
 signal dataReadyOutSig            : std_logic;
-
---attribute syn_keep     : boolean;
---attribute syn_preserve : boolean;
---
---attribute syn_keep     of register_vector : signal is true;
---attribute syn_preserve of register_vector : signal is true;
 
 -------------------------------------------------------------------------------
 -- Function prototype
@@ -967,78 +933,68 @@ begin
 
         register_vector(get_local_addr(PCKTS_IN_FIFO_ADDR, address_vector))   <= std_logic_vector(to_unsigned(fifoPckCnt,32));
 
-        register_vector(get_local_addr(ACQDATA0_ADDR, address_vector))        <= regAcqData(2303 downto 2272);
-        register_vector(get_local_addr(ACQDATA1_ADDR, address_vector))        <= regAcqData(2271 downto 2240);
-        register_vector(get_local_addr(ACQDATA2_ADDR, address_vector))        <= regAcqData(2239 downto 2208);
-        register_vector(get_local_addr(ACQDATA3_ADDR, address_vector))        <= regAcqData(2207 downto 2176);
-        register_vector(get_local_addr(ACQDATA4_ADDR, address_vector))        <= regAcqData(2175 downto 2144);
-        register_vector(get_local_addr(ACQDATA5_ADDR, address_vector))        <= regAcqData(2143 downto 2112);
-        register_vector(get_local_addr(ACQDATA6_ADDR, address_vector))        <= regAcqData(2111 downto 2080);
-        register_vector(get_local_addr(ACQDATA7_ADDR, address_vector))        <= regAcqData(2079 downto 2048);
-        register_vector(get_local_addr(ACQDATA8_ADDR, address_vector))        <= regAcqData(2047 downto 2016);
-        register_vector(get_local_addr(ACQDATA9_ADDR, address_vector))        <= regAcqData(2015 downto 1984);
-        register_vector(get_local_addr(ACQDATA10_ADDR, address_vector))       <= regAcqData(1983 downto 1952);
-        register_vector(get_local_addr(ACQDATA11_ADDR, address_vector))       <= regAcqData(1951 downto 1920);
-        register_vector(get_local_addr(ACQDATA12_ADDR, address_vector))       <= regAcqData(1919 downto 1888);
-        register_vector(get_local_addr(ACQDATA13_ADDR, address_vector))       <= regAcqData(1887 downto 1856);
-        register_vector(get_local_addr(ACQDATA14_ADDR, address_vector))       <= regAcqData(1855 downto 1824);
-        register_vector(get_local_addr(ACQDATA15_ADDR, address_vector))       <= regAcqData(1823 downto 1792);
-        register_vector(get_local_addr(ACQDATA16_ADDR, address_vector))       <= regAcqData(1791 downto 1760);
-        register_vector(get_local_addr(ACQDATA17_ADDR, address_vector))       <= regAcqData(1759 downto 1728);
-        register_vector(get_local_addr(ACQDATA18_ADDR, address_vector))       <= regAcqData(1727 downto 1696);
-        register_vector(get_local_addr(ACQDATA19_ADDR, address_vector))       <= regAcqData(1695 downto 1664);
-        register_vector(get_local_addr(ACQDATA20_ADDR, address_vector))       <= regAcqData(1663 downto 1632);
-        register_vector(get_local_addr(ACQDATA21_ADDR, address_vector))       <= regAcqData(1631 downto 1600);
-        register_vector(get_local_addr(ACQDATA22_ADDR, address_vector))       <= regAcqData(1599 downto 1568);
-        register_vector(get_local_addr(ACQDATA23_ADDR, address_vector))       <= regAcqData(1567 downto 1536);
-        register_vector(get_local_addr(ACQDATA24_ADDR, address_vector))       <= regAcqData(1535 downto 1504);
-        register_vector(get_local_addr(ACQDATA25_ADDR, address_vector))       <= regAcqData(1503 downto 1472);
-        register_vector(get_local_addr(ACQDATA26_ADDR, address_vector))       <= regAcqData(1471 downto 1440);
-        register_vector(get_local_addr(ACQDATA27_ADDR, address_vector))       <= regAcqData(1439 downto 1408);
-        register_vector(get_local_addr(ACQDATA28_ADDR, address_vector))       <= regAcqData(1407 downto 1376);
-        register_vector(get_local_addr(ACQDATA29_ADDR, address_vector))       <= regAcqData(1375 downto 1344);
-        register_vector(get_local_addr(ACQDATA30_ADDR, address_vector))       <= regAcqData(1343 downto 1312);
-        register_vector(get_local_addr(ACQDATA31_ADDR, address_vector))       <= regAcqData(1311 downto 1280);
-        register_vector(get_local_addr(ACQDATA32_ADDR, address_vector))       <= regAcqData(1279 downto 1248);
-        register_vector(get_local_addr(ACQDATA33_ADDR, address_vector))       <= regAcqData(1247 downto 1216);
-        register_vector(get_local_addr(ACQDATA34_ADDR, address_vector))       <= regAcqData(1215 downto 1184);
-        register_vector(get_local_addr(ACQDATA35_ADDR, address_vector))       <= regAcqData(1183 downto 1152);
-        register_vector(get_local_addr(ACQDATA36_ADDR, address_vector))       <= regAcqData(1151 downto 1120);
-        register_vector(get_local_addr(ACQDATA37_ADDR, address_vector))       <= regAcqData(1119 downto 1088);
-        register_vector(get_local_addr(ACQDATA38_ADDR, address_vector))       <= regAcqData(1087 downto 1056);
-        register_vector(get_local_addr(ACQDATA39_ADDR, address_vector))       <= regAcqData(1055 downto 1024);
-        register_vector(get_local_addr(ACQDATA40_ADDR, address_vector))       <= regAcqData(1023 downto 992);
-        register_vector(get_local_addr(ACQDATA41_ADDR, address_vector))       <= regAcqData(991  downto 960);
-        register_vector(get_local_addr(ACQDATA42_ADDR, address_vector))       <= regAcqData(959  downto 928);
-        register_vector(get_local_addr(ACQDATA43_ADDR, address_vector))       <= regAcqData(927  downto 896);
-        register_vector(get_local_addr(ACQDATA44_ADDR, address_vector))       <= regAcqData(895  downto 864);
-        register_vector(get_local_addr(ACQDATA45_ADDR, address_vector))       <= regAcqData(863  downto 832);
-        register_vector(get_local_addr(ACQDATA46_ADDR, address_vector))       <= regAcqData(831  downto 800);
-        register_vector(get_local_addr(ACQDATA47_ADDR, address_vector))       <= regAcqData(799  downto 768);
-        register_vector(get_local_addr(ACQDATA48_ADDR, address_vector))       <= regAcqData(767  downto 736);
-        register_vector(get_local_addr(ACQDATA49_ADDR, address_vector))       <= regAcqData(735  downto 704);
-        register_vector(get_local_addr(ACQDATA50_ADDR, address_vector))       <= regAcqData(703  downto 672);
-        register_vector(get_local_addr(ACQDATA51_ADDR, address_vector))       <= regAcqData(671  downto 640);
-        register_vector(get_local_addr(ACQDATA52_ADDR, address_vector))       <= regAcqData(639  downto 608);
-        register_vector(get_local_addr(ACQDATA53_ADDR, address_vector))       <= regAcqData(607  downto 576);
-        register_vector(get_local_addr(ACQDATA54_ADDR, address_vector))       <= regAcqData(575  downto 544);
-        register_vector(get_local_addr(ACQDATA55_ADDR, address_vector))       <= regAcqData(543  downto 512);
-        register_vector(get_local_addr(ACQDATA56_ADDR, address_vector))       <= regAcqData(511  downto 480);
-        register_vector(get_local_addr(ACQDATA57_ADDR, address_vector))       <= regAcqData(479  downto 448);
-        register_vector(get_local_addr(ACQDATA58_ADDR, address_vector))       <= regAcqData(447  downto 416);
-        register_vector(get_local_addr(ACQDATA59_ADDR, address_vector))       <= regAcqData(415  downto 384);
-        register_vector(get_local_addr(ACQDATA60_ADDR, address_vector))       <= regAcqData(383  downto 352);
-        register_vector(get_local_addr(ACQDATA61_ADDR, address_vector))       <= regAcqData(351  downto 320);
-        register_vector(get_local_addr(ACQDATA62_ADDR, address_vector))       <= regAcqData(319  downto 288);
-        register_vector(get_local_addr(ACQDATA63_ADDR, address_vector))       <= regAcqData(287  downto 256);
-        register_vector(get_local_addr(ACQDATA64_ADDR, address_vector))       <= regAcqData(255  downto 224);
-        register_vector(get_local_addr(ACQDATA65_ADDR, address_vector))       <= regAcqData(223  downto 192);
-        register_vector(get_local_addr(ACQDATA66_ADDR, address_vector))       <= regAcqData(191  downto 160);
-        register_vector(get_local_addr(ACQDATA67_ADDR, address_vector))       <= regAcqData(159  downto 128);
-        register_vector(get_local_addr(ACQDATA68_ADDR, address_vector))       <= regAcqData(127  downto 96);
-        register_vector(get_local_addr(ACQDATA69_ADDR, address_vector))       <= regAcqData(95   downto 64);
-        register_vector(get_local_addr(ACQDATA70_ADDR, address_vector))       <= regAcqData(63   downto 32);
-        register_vector(get_local_addr(ACQDATA71_ADDR, address_vector))       <= regAcqData(31   downto 0);
+        register_vector(get_local_addr(ACQDATA0_ADDR, address_vector))        <= regAcqData(dataWidth-1    downto dataWidth-32);
+        register_vector(get_local_addr(ACQDATA1_ADDR, address_vector))        <= regAcqData(dataWidth-33   downto dataWidth-64);
+        register_vector(get_local_addr(ACQDATA2_ADDR, address_vector))        <= regAcqData(dataWidth-65   downto dataWidth-96);
+        register_vector(get_local_addr(ACQDATA3_ADDR, address_vector))        <= regAcqData(dataWidth-97   downto dataWidth-128);
+        register_vector(get_local_addr(ACQDATA4_ADDR, address_vector))        <= regAcqData(dataWidth-129  downto dataWidth-160);
+        register_vector(get_local_addr(ACQDATA5_ADDR, address_vector))        <= regAcqData(dataWidth-161  downto dataWidth-192);
+        register_vector(get_local_addr(ACQDATA6_ADDR, address_vector))        <= regAcqData(dataWidth-193  downto dataWidth-224);
+        register_vector(get_local_addr(ACQDATA7_ADDR, address_vector))        <= regAcqData(dataWidth-225  downto dataWidth-256);
+        register_vector(get_local_addr(ACQDATA8_ADDR, address_vector))        <= regAcqData(dataWidth-257  downto dataWidth-288);
+        register_vector(get_local_addr(ACQDATA9_ADDR, address_vector))        <= regAcqData(dataWidth-289  downto dataWidth-320);
+        register_vector(get_local_addr(ACQDATA10_ADDR, address_vector))       <= regAcqData(dataWidth-321  downto dataWidth-352);
+        register_vector(get_local_addr(ACQDATA11_ADDR, address_vector))       <= regAcqData(dataWidth-353  downto dataWidth-384);
+        register_vector(get_local_addr(ACQDATA12_ADDR, address_vector))       <= regAcqData(dataWidth-385  downto dataWidth-416);
+        register_vector(get_local_addr(ACQDATA13_ADDR, address_vector))       <= regAcqData(dataWidth-417  downto dataWidth-448);
+        register_vector(get_local_addr(ACQDATA14_ADDR, address_vector))       <= regAcqData(dataWidth-449  downto dataWidth-480);
+        register_vector(get_local_addr(ACQDATA15_ADDR, address_vector))       <= regAcqData(dataWidth-481  downto dataWidth-512);
+        register_vector(get_local_addr(ACQDATA16_ADDR, address_vector))       <= regAcqData(dataWidth-513  downto dataWidth-544);
+        register_vector(get_local_addr(ACQDATA17_ADDR, address_vector))       <= regAcqData(dataWidth-545  downto dataWidth-576);
+        register_vector(get_local_addr(ACQDATA18_ADDR, address_vector))       <= regAcqData(dataWidth-577  downto dataWidth-608);
+        register_vector(get_local_addr(ACQDATA19_ADDR, address_vector))       <= regAcqData(dataWidth-609  downto dataWidth-640);
+        register_vector(get_local_addr(ACQDATA20_ADDR, address_vector))       <= regAcqData(dataWidth-641  downto dataWidth-672);
+        register_vector(get_local_addr(ACQDATA21_ADDR, address_vector))       <= regAcqData(dataWidth-673  downto dataWidth-704);
+        register_vector(get_local_addr(ACQDATA22_ADDR, address_vector))       <= regAcqData(dataWidth-705  downto dataWidth-736);
+        register_vector(get_local_addr(ACQDATA23_ADDR, address_vector))       <= regAcqData(dataWidth-737  downto dataWidth-768);
+        register_vector(get_local_addr(ACQDATA24_ADDR, address_vector))       <= regAcqData(dataWidth-769  downto dataWidth-800);
+        register_vector(get_local_addr(ACQDATA25_ADDR, address_vector))       <= regAcqData(dataWidth-801  downto dataWidth-832);
+        register_vector(get_local_addr(ACQDATA26_ADDR, address_vector))       <= regAcqData(dataWidth-833  downto dataWidth-864);
+        register_vector(get_local_addr(ACQDATA27_ADDR, address_vector))       <= regAcqData(dataWidth-865  downto dataWidth-896);
+        register_vector(get_local_addr(ACQDATA28_ADDR, address_vector))       <= regAcqData(dataWidth-897  downto dataWidth-928);
+        register_vector(get_local_addr(ACQDATA29_ADDR, address_vector))       <= regAcqData(dataWidth-929  downto dataWidth-960);
+        register_vector(get_local_addr(ACQDATA30_ADDR, address_vector))       <= regAcqData(dataWidth-961  downto dataWidth-992);
+        register_vector(get_local_addr(ACQDATA31_ADDR, address_vector))       <= regAcqData(dataWidth-993  downto dataWidth-1024);
+        register_vector(get_local_addr(ACQDATA32_ADDR, address_vector))       <= regAcqData(dataWidth-1025 downto dataWidth-1056);
+        register_vector(get_local_addr(ACQDATA33_ADDR, address_vector))       <= regAcqData(dataWidth-1057 downto dataWidth-1088);
+        register_vector(get_local_addr(ACQDATA34_ADDR, address_vector))       <= regAcqData(dataWidth-1089 downto dataWidth-1120);
+        register_vector(get_local_addr(ACQDATA35_ADDR, address_vector))       <= regAcqData(dataWidth-1121 downto dataWidth-1152);
+        register_vector(get_local_addr(ACQDATA36_ADDR, address_vector))       <= regAcqData(dataWidth-1153 downto dataWidth-1184);
+        register_vector(get_local_addr(ACQDATA37_ADDR, address_vector))       <= regAcqData(dataWidth-1185 downto dataWidth-1216);
+        register_vector(get_local_addr(ACQDATA38_ADDR, address_vector))       <= regAcqData(dataWidth-1217 downto dataWidth-1248);
+        register_vector(get_local_addr(ACQDATA39_ADDR, address_vector))       <= regAcqData(dataWidth-1249 downto dataWidth-1280);
+        register_vector(get_local_addr(ACQDATA40_ADDR, address_vector))       <= regAcqData(dataWidth-1281 downto dataWidth-1312);
+        register_vector(get_local_addr(ACQDATA41_ADDR, address_vector))       <= regAcqData(dataWidth-1313 downto dataWidth-1344);
+        register_vector(get_local_addr(ACQDATA42_ADDR, address_vector))       <= regAcqData(dataWidth-1345 downto dataWidth-1376);
+        register_vector(get_local_addr(ACQDATA43_ADDR, address_vector))       <= regAcqData(dataWidth-1377 downto dataWidth-1408);
+        register_vector(get_local_addr(ACQDATA44_ADDR, address_vector))       <= regAcqData(dataWidth-1409 downto dataWidth-1440);
+        register_vector(get_local_addr(ACQDATA45_ADDR, address_vector))       <= regAcqData(dataWidth-1441 downto dataWidth-1472);
+        register_vector(get_local_addr(ACQDATA46_ADDR, address_vector))       <= regAcqData(dataWidth-1473 downto dataWidth-1504);
+        register_vector(get_local_addr(ACQDATA47_ADDR, address_vector))       <= regAcqData(dataWidth-1505 downto dataWidth-1536);
+        register_vector(get_local_addr(ACQDATA48_ADDR, address_vector))       <= regAcqData(dataWidth-1537 downto dataWidth-1568);
+        register_vector(get_local_addr(ACQDATA49_ADDR, address_vector))       <= regAcqData(dataWidth-1569 downto dataWidth-1600);
+        register_vector(get_local_addr(ACQDATA50_ADDR, address_vector))       <= regAcqData(dataWidth-1601 downto dataWidth-1632);
+        register_vector(get_local_addr(ACQDATA51_ADDR, address_vector))       <= regAcqData(dataWidth-1633 downto dataWidth-1664);
+        register_vector(get_local_addr(ACQDATA52_ADDR, address_vector))       <= regAcqData(dataWidth-1665 downto dataWidth-1696);
+        register_vector(get_local_addr(ACQDATA53_ADDR, address_vector))       <= regAcqData(dataWidth-1697 downto dataWidth-1728);
+        register_vector(get_local_addr(ACQDATA54_ADDR, address_vector))       <= regAcqData(dataWidth-1729 downto dataWidth-1760);
+        register_vector(get_local_addr(ACQDATA55_ADDR, address_vector))       <= regAcqData(dataWidth-1761 downto dataWidth-1792);
+        register_vector(get_local_addr(ACQDATA56_ADDR, address_vector))       <= regAcqData(dataWidth-1793 downto dataWidth-1824);
+        register_vector(get_local_addr(ACQDATA57_ADDR, address_vector))       <= regAcqData(dataWidth-1825 downto dataWidth-1856);
+        register_vector(get_local_addr(ACQDATA58_ADDR, address_vector))       <= regAcqData(dataWidth-1857 downto dataWidth-1888);
+        register_vector(get_local_addr(ACQDATA59_ADDR, address_vector))       <= regAcqData(dataWidth-1889 downto dataWidth-1920);
+        register_vector(get_local_addr(ACQDATA60_ADDR, address_vector))       <= regAcqData(dataWidth-1921 downto dataWidth-1952);
+        register_vector(get_local_addr(ACQDATA61_ADDR, address_vector))       <= regAcqData(dataWidth-1953 downto 0);
 
         register_vector(get_local_addr(BOARD_TEMP_ADDR, address_vector))      <= board_temp;
 

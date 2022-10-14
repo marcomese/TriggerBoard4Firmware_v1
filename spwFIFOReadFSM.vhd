@@ -51,18 +51,6 @@ signal  locsCounterRstSig,
         dataReadySig,
         dataReadySigF      : std_logic;
 
---attribute syn_preserve : boolean;
---attribute syn_keep     : boolean;
---
---attribute syn_preserve of dataReadySig      : signal is true;
---attribute syn_preserve of locsCounterEnSig  : signal is true;
---attribute syn_preserve of nextWordSig       : signal is true;
---attribute syn_preserve of locsCounterRstSig : signal is true;
---attribute syn_keep     of dataReadySig      : signal is true;
---attribute syn_keep     of locsCounterEnSig  : signal is true;
---attribute syn_keep     of nextWordSig       : signal is true;
---attribute syn_keep     of locsCounterRstSig : signal is true;
-
 begin
 
 nextWord  <= nextWordSig;

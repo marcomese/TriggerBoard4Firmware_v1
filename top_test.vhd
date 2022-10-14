@@ -163,6 +163,10 @@ architecture architecture_top_test of top_test is
 constant refDac1Def  : std_logic_vector(31 downto 0) := x"2F002F00"; -- TB4
 constant refDac2Def  : std_logic_vector(31 downto 0) := x"2F002F00"; -- TB4
 
+constant dataWidth   : natural := 1984;
+constant fifoWidth   : natural := 496;
+constant fifoDepth   : natural := 40;
+
 component genericSync is
 generic(
     sigNum : natural := 4
@@ -418,8 +422,8 @@ end component;
 
 component spwFIFO is
 port(
-    DATA  : in    std_logic_vector(575 downto 0);
-    Q     : out   std_logic_vector(575 downto 0);
+    DATA  : in    std_logic_vector(fifoWidth-1 downto 0);
+    Q     : out   std_logic_vector(fifoWidth-1 downto 0);
     WE    : in    std_logic;
     RE    : in    std_logic;
     CLK   : in    std_logic;
@@ -501,6 +505,7 @@ generic(
     sysid                 : std_logic_vector(31 downto 0) := x"00000000";
     refDac1Def            : std_logic_vector(31 downto 0);
     refDac2Def            : std_logic_vector(31 downto 0);
+    dataWidth             : natural;
     prescaledTriggers     : natural;
     holdOffBits           : natural
 );
@@ -566,7 +571,7 @@ port(
 
     writeDataLen        : in   std_logic;
 
-    regAcqData          : in  std_logic_vector(2303  downto 0);
+    regAcqData          : in  std_logic_vector(dataWidth-1  downto 0);
 
     holdoff             : out std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
@@ -831,13 +836,13 @@ signal adcDataOut           :  std_logic_vector(1535 downto 0);
 --------------------------------------
 -- Segnali per spwFIFOInterface
 --------------------------------------
-signal acqData      : std_logic_vector(2303 downto 0);
+signal acqData      : std_logic_vector(dataWidth-1 downto 0);
 signal pcktCounter  : natural;
 signal trigCounter  : std_logic_vector(31 downto 0);
-signal regAcqData   : std_logic_vector(2303 downto 0);
+signal regAcqData   : std_logic_vector(dataWidth-1 downto 0);
 
-signal fifoDATA     : std_logic_vector(575 downto 0);
-signal fifoQ        : std_logic_vector(575 downto 0);
+signal fifoDATA     : std_logic_vector(fifoWidth-1 downto 0);
+signal fifoQ        : std_logic_vector(fifoWidth-1 downto 0);
 signal fifoWE       : std_logic;
 signal fifoRE       : std_logic;
 signal fifoFULL     : std_logic;
@@ -847,8 +852,6 @@ signal fifoWACK     : std_logic;
 signal fifoDVLD     : std_logic;
 
 signal rstCIT1out, rstCIT2out : std_logic;
-
-constant zeros352   : std_logic_vector(351 downto 0) := (others => '0');
 
 signal writeDone    : std_logic;
 signal spwCtrlBusy  : std_logic;
@@ -908,6 +911,8 @@ signal  s_turretsFlags       : std_logic_vector(7 downto 0);
 signal  s_turretsCounters    : std_logic_vector(159 downto 0);
 
 signal  s_triggerID          : std_logic_vector(7 downto 0);
+
+signal  crc32                : std_logic_vector(31 downto 0);
 
 begin
 
@@ -1278,25 +1283,27 @@ port map(
     lostCount  => lostCount
 );
 
-acqData(2303 downto 0) <= x"4645"             &
-                          trigCounter         &
-                          ppsCountSync        &
-                          s_triggerID         &
-                          adcDataOut          &
-                          zeros352            &
-                          lostCount           &
-                          aliveCount          &
-                          deadCount           &
-                          s_trigger_flag_1    &
-                          s_trigger_flag_2    &
-                          s_turretsFlags      &
-                          s_turretsCounters   &
-                          x"4748";
+crc32 <= (others => '0'); -- (not implemented yet)
+
+acqData(dataWidth-1 downto 0) <= x"4645"             &
+                                 trigCounter         &
+                                 ppsCountSync        &
+                                 s_triggerID         &
+                                 adcDataOut          &
+                                 lostCount           &
+                                 aliveCount          &
+                                 deadCount           &
+                                 s_trigger_flag_1    &
+                                 s_trigger_flag_2    &
+                                 s_turretsFlags      &
+                                 s_turretsCounters   &
+                                 crc32               &
+                                 x"4748";
 
 inst_spwFIFOInterface: spwFIFOInterface
 generic map(
-    fifoWidth      => 576,
-    fifoDepth      => 40,
+    fifoWidth      => fifoWidth,
+    fifoDepth      => fifoDepth,
     acqDataLen     => acqData'length
 )
 port map(
@@ -1443,6 +1450,7 @@ generic map(
     sysid => x"33CC33CC",
     refDac1Def => refDac1Def,
     refDac2Def => refDac2Def,
+    dataWidth => dataWidth,
     prescaledTriggers => prescaledTriggers,
     holdOffBits => holdOffBits
 )

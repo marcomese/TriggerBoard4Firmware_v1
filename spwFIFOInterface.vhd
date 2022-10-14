@@ -180,16 +180,6 @@ port map(
     Enable => fifoDataReady,
     Q      => triggerCnt
 );
---triggerCounter: process(rst, clk, fifoDataReady, triggerCnt)
---begin
-    --if rst='1' then
-        --triggerCnt <= (others => '0');
-    --elsif rising_edge(clk) then
-        --if fifoDataReady='1' then
-            --triggerCnt <= std_logic_vector(unsigned(triggerCnt) + 1);
-        --end if;
-    --end if;
---end process;
 
 spwFIFOWriteInst: spwFIFOWriteFSM
 generic map(
