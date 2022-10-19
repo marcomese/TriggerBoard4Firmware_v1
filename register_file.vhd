@@ -100,6 +100,8 @@ constant ADDR_LENGHT        : integer := 32;
 
 constant RST_WORD           : std_logic_vector(31 downto 0) := x"0DA00DA0";
 
+constant dataLenConst       : std_logic_vector(31 downto 0) := x"0000003E";
+
 -- define the memory array
 type mem_t is array (natural range <>) of std_logic_vector(DATA_LENGHT - 1 downto 0);
 
@@ -999,10 +1001,10 @@ begin
         register_vector(get_local_addr(BOARD_TEMP_ADDR, address_vector))      <= board_temp;
 
         if writeDataLen = '1' and DPCU_BUSY = '1' then
-            register_vector(get_local_addr(ACQDATALEN_ADDR, address_vector))  <= x"00000048";
+            register_vector(get_local_addr(ACQDATALEN_ADDR, address_vector))  <= dataLenConst;
         end if;
 
-        if register_vector(get_local_addr(ACQDATALEN_ADDR, address_vector)) = x"00000048" then
+        if register_vector(get_local_addr(ACQDATALEN_ADDR, address_vector)) = dataLenConst then
             dataReadyOutSig <= '1';
         else
             dataReadyOutSig <= '0';
