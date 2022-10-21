@@ -172,12 +172,11 @@ begin
     end if;
 end process;
 
-
 triggerCounterInst: counter32Bit
 port map(
     Aclr   => rst,
     Clock  => clk,
-    Enable => fifoDataReady,
+    Enable => startWriteSig,
     Q      => triggerCnt
 );
 

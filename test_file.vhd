@@ -121,11 +121,25 @@ end test_file;
 architecture Behavioral of test_file is
 
 component pulseExpand is
-    Port ( clkOrig : in  STD_LOGIC;
-           clkDest : in  STD_LOGIC;
-           rst : in  STD_LOGIC;
-           pulseIN : in  STD_LOGIC;
-           pulseOUT : out  STD_LOGIC);
+port(
+    clkOrig  : in  std_logic;
+    clkDest  : in  std_logic;
+    rst      : in  std_logic;
+    pulseIN  : in  std_logic;
+    pulseOUT : out std_logic
+);
+end component;
+
+component edgeDetector is
+generic(
+    edge      : std_logic := '0' -- '0' falling, '1' rising
+);
+port(
+    clk       : in  std_logic;
+    rst       : in  std_logic;
+    signalIn  : in  std_logic;
+    signalOut : out std_logic
+);
 end component;
 
 component CLKINT is
@@ -327,11 +341,11 @@ CLK_READ_2 <= CLK_READ_2_sig;
 SCLK_1 <= SCLK_1_sig;
 SCLK_2 <= SCLK_2_sig;
 
-adcDataOutReg: process(sw_rst, clk, s_dataReady)
+adcDataOutReg: process(sw_rst, clock48M, s_dataReady)
 begin
     if sw_rst = '1' then
         adcDataOut <= (others => '0');
-    elsif rising_edge(clk) then
+    elsif rising_edge(clock48M) then
         if s_dataReady = '1' then
             adcDataOut <= HG_data_1_sig & LG_data_1_sig & 
                           HG_data_2_sig & LG_data_2_sig;
@@ -339,13 +353,15 @@ begin
     end if;
 end process;
 
-dataReadyExpandInst: pulseExpand
+dataReadyRise: edgeDetector
+generic map(
+    edge      => '1'
+)
 port map(
-    clkOrig  => clk,
-    clkDest  => clock48M,
-    rst      => rst,
-    pulseIN  => data_ready_1_sig,
-    pulseOUT => s_dataReady
+    clk       => clock48M,
+    rst       => rst,
+    signalIn  => data_ready_1_sig,
+    signalOut => s_dataReady
 );
 
 dataReady <= s_dataReady;
@@ -507,11 +523,11 @@ hold_lg_1 <= holdSignal_1;
 hold_hg_2 <= holdSignal_2;
 hold_lg_2 <= holdSignal_2;
 
-ACQ_REGISTER: process(clk, rst, start_ACQ, stop_ACQ)
+ACQ_REGISTER: process(clock48M, rst, start_ACQ, stop_ACQ)
 begin
    if rst='1' then
         acquisition_state_sig <= '0';
-   elsif rising_edge(clk) then
+   elsif rising_edge(clock48M) then
         if start_ACQ = '1' and stop_ACQ = '0' then
             acquisition_state_sig <= '1';
         elsif start_ACQ = '0' and stop_ACQ = '1' then
@@ -522,11 +538,11 @@ begin
    end if;
 end process;
 
-CAL_REGISTER: process(clk, rst, start_cal, stop_cal)
+CAL_REGISTER: process(clock48M, rst, start_cal, stop_cal)
 begin
    if rst='1' then
         calibration_state_sig <= '0';
-   elsif rising_edge(clk) then
+   elsif rising_edge(clock48M) then
         if start_cal = '1' and stop_cal = '0' then
             calibration_state_sig <= '1';
         elsif start_cal = '0' and stop_cal = '1' then
