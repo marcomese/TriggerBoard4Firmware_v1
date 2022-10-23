@@ -28,6 +28,8 @@ port(
 
     dpcuBusyIn          : in  std_logic;
 
+    dataWrittenInFIFO   : out std_logic;
+
     fifoDATA            : out std_logic_vector(fifoWidth-1 downto 0);
     fifoQ               : in  std_logic_vector(fifoWidth-1 downto 0);
     fifoWE              : out std_logic;
@@ -130,21 +132,23 @@ signal   acqDataOutSig      : std_logic_vector(acqDataLen-1 downto 0);
 
 begin
 
-pcktCounter      <= pcktCnt;
+pcktCounter       <= pcktCnt;
 
-pckPres          <= or_reduce(std_logic_vector(to_unsigned(pcktCnt,pcktCntBits)));
+pckPres           <= or_reduce(std_logic_vector(to_unsigned(pcktCnt,pcktCntBits)));
 
-startWriteSig    <= adcDataReady and (not fifoAFULL);
+startWriteSig     <= adcDataReady and (not fifoAFULL);
 
-regAcqData       <= acqDataOutSig;
+regAcqData        <= acqDataOutSig;
 
-trigCounter      <= triggerCnt;
+trigCounter       <= triggerCnt;
 
-readEn           <= dpcuBusyIn and (not dataReadyIn) and (not fifoEmpty);
+readEn            <= dpcuBusyIn and (not dataReadyIn) and (not fifoEmpty);
 
-readDoneSig      <= dpcuBusyRising and (not dataReadyIn);
+readDoneSig       <= dpcuBusyRising and (not dataReadyIn);
 
-writeDataLen     <= buffDataReady;
+writeDataLen      <= buffDataReady;
+
+dataWrittenInFIFO <= fifoDataReady;
 
 dpcuBusyRisingEdgeInst: edgeDetector
 generic map(
