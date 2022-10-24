@@ -276,6 +276,8 @@ port (
     triggerInhibit : in std_logic;
     triggerOUT     : out std_logic;
 
+    triggerCnt     : out std_logic_vector(31 downto 0);
+
     turrets              : out std_logic_vector(4 downto 0);
     turretsFlags         : out std_logic_vector(7 downto 0);
     turretsCounters      : out std_logic_vector(159 downto 0);
@@ -401,7 +403,6 @@ port(
     acqData             : in  std_logic_vector(acqDataLen-1 downto 0);
 
     pcktCounter         : out natural;
-    trigCounter         : out std_logic_vector(31 downto 0);
 
     regAcqData          : out std_logic_vector(acqDataLen-1 downto 0);
     writeDataLen        : out std_logic;
@@ -583,14 +584,6 @@ port(
 );
 end component;
 
-component pulseExpand is
-    Port ( clkOrig : in  STD_LOGIC;
-           clkDest : in  STD_LOGIC;
-           rst : in  STD_LOGIC;
-           pulseIN : in  STD_LOGIC;
-           pulseOUT : out  STD_LOGIC);
-end component;
-
 component refController
 generic(
     resetHGVal : std_logic_vector(15 downto 0);
@@ -677,12 +670,16 @@ port (
 );
 end component;
 
-component trigger_extender_100ns is
+component pulseExt is
+generic(
+    clkFreq    : real;
+    pulseWidth : real
+);
 port(
-    clock       : in  STD_LOGIC;
-    reset       : in  STD_LOGIC;
-    trigger_in  : in  STD_LOGIC;
-    trigger_out : out  STD_LOGIC
+    clk        : in  std_logic;
+    rst        : in  std_logic;
+    sigIn      : in  std_logic;
+    sigOut     : out std_logic
 );
 end component;
 
@@ -997,12 +994,16 @@ tdaqBusyInSync  <= dpcu_tdaq_sync(0);
 
 trgInhibit <= (not dpcuTrgHoldSync) or (not tdaqBusyInSync) or fifoAFULL;
 
-triggerOutExpand: trigger_extender_100ns
+triggerOutExpand: pulseExt
+generic map(
+    clkFreq    => 200.0e6,
+    pulseWidth => 100.0e-9
+)
 port map(
-    clock       => s_clock200M,
-    reset       => s_global_rst,
-    trigger_in  => trigger_interno_sig,
-    trigger_out => extendedTriggerOut
+    clk        => s_clock200M,
+    rst        => s_global_rst,
+    sigIn      => trigger_interno_sig,
+    sigOut     => extendedTriggerOut
 );
 
 PS_global_trig_1 <= extendedTriggerOut;
@@ -1158,6 +1159,8 @@ port map(
 
     triggerInhibit => trgInhibit,
     triggerOUT => trigger_interno_sig,
+
+    triggerCnt => trigCounter,
 
     turrets => s_turrets,
     turretsFlags => s_turretsFlags,
@@ -1344,7 +1347,6 @@ port map(
     acqData           => acqData,
 
     pcktCounter       => pcktCounter,
-    trigCounter       => trigCounter,
 
     regAcqData        => regAcqData,
 
@@ -1556,13 +1558,16 @@ port map(
 
 dataReadyOutSigBuff <= dataReadyOutSig;
 
-pulseExpand_inst1: pulseExpand
+sendRefDacExtInst: pulseExt
+generic map(
+    clkFreq    => 48.0e6,
+    pulseWidth => 41.7e-9
+)
 port map(
-    clkOrig  => s_clock48M,
-    clkDest  => s_clock24MBuff,
-    rst      => s_global_rst,
-    pulseIN  => s_sendRefDAC,
-    pulseOUT => s_sendRefDAC_24M
+    clk        => s_clock48M,
+    rst        => s_global_rst,
+    sigIn      => s_sendRefDAC,
+    sigOut     => s_sendRefDAC_24M
 );
 
 refControlCIT1: refController

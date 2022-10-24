@@ -61,7 +61,7 @@ port(
 );
 end component;
 
-component counter16BitSload is
+component counter16Bit is
 port(
     Aclr   : in    std_logic;
     Sload  : in    std_logic;
@@ -307,7 +307,7 @@ end process;
 
 prescMaskCounterGen: for i in 0 to prescaledTriggers-1 generate
 begin
-    countPresc_NInst: counter16BitSload
+    countPresc_NInst: counter16Bit
     port map(
         Aclr   => reset,
         Sload  => reset_counter,
@@ -320,7 +320,7 @@ end generate;
 
 maskCounterGen: for i in 0 to concurrentTriggers-1 generate
 begin
-    count_NInst: counter16BitSload
+    count_NInst: counter16Bit
     port map(
         Aclr   => reset,
         Sload  => reset_counter,

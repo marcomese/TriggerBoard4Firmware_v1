@@ -20,7 +20,7 @@ architecture architecture_pulseExt of pulseExt is
 
 type state is (idle, highState);
 
-constant pulseCountVal   : natural := natural(clkFreq*pulseWidth);
+constant pulseCountVal   : natural := natural(floor(clkFreq*pulseWidth));
 
 signal   pulseCount      : natural range 0 to pulseCountVal;
 
@@ -100,10 +100,10 @@ begin
     elsif rising_edge(clk) then
         if cntRst = '1' then
             pulseCount <= 0;
-        elsif cntEn = '1' and pulseCount < pulseCountVal then
+        elsif cntEn = '1' then
             pulseCount <= pulseCount + 1;
         else
-            pulseCount <= 0;
+            pulseCount <= pulseCount;
         end if;
     end if;
 end process;
