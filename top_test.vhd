@@ -376,7 +376,7 @@ port(
     clock      : in  std_logic;
     clock200k  : in  std_logic;
     reset      : in  std_logic;
-    trgInhibit : in  std_logic;
+    busyState  : in  std_logic;
     acqState   : in  std_logic;
     trigger    : in  std_logic;
     aliveCount : out std_logic_vector(31 downto 0);
@@ -899,6 +899,10 @@ signal  rate1SecSig,
         temp1Completed,
         temp2Completed       : std_logic;
 
+signal  trgBusy,
+        trgBusySet,
+        trgBusyRst           : std_logic;
+
 signal  aliveCount,
         deadCount            : std_logic_vector(31 downto 0);
 
@@ -1270,12 +1274,38 @@ begin
     end if;
 end process;
 
+trgBusySetEdge: edgeDetector
+generic map(
+    edge      => '1'
+)
+port map(
+    clk       => s_clock48M,
+    rst       => s_global_rst,
+    signalIn  => extendedTriggerOut,
+    signalOut => trgBusySet
+);
+
+trgBusyInst: process(s_clock48M, swRst)
+begin
+    if swRst = '1' then
+        trgBusy <= '0';
+    elsif rising_edge(s_clock48M) then
+        if trgBusySet = '0' and trgBusyRst = '1' then
+            trgBusy <= '0';
+        elsif trgBusySet = '1' and trgBusyRst = '0' then
+            trgBusy <= '1';
+        else
+            trgBusy <= trgBusy;
+        end if;
+    end if;
+end process;
+
 aliveDeadinst: aliveDeadTCnt
 port map(
     clock      => s_clock48M,
     clock200k  => clk200k_sig,
     reset      => swRst,
-    trgInhibit => trgInhibit,
+    busyState  => trgInhibit or trgBusy,
     acqState   => s_acquisition_state,
     trigger    => extendedTriggerOut,
     aliveCount => aliveCount,
