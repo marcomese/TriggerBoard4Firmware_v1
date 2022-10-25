@@ -27,9 +27,7 @@ signal  lost,
         lost_count        : std_logic_vector(15 downto 0);
 
 signal  triggerRise,
-        trigger200k,
-        busyFall,
-        deadRst           : std_logic;
+        trigger200k       : std_logic;
 
 component edgeDetector is
 generic(

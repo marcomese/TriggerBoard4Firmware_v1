@@ -9,6 +9,8 @@ port(
     clk200k           : in std_logic;
     reset             : in std_logic;
 
+    enable            : in std_logic;
+
     configure_command : in std_logic;
     config_vector     : in std_logic_vector(1143 downto 0);
 
@@ -100,13 +102,17 @@ begin
     end if;
 end process;
 
-fsm: process(pres_state, reset_cnt, bit_nr, probe_bit_nr, configure_command, state0_cnt)
+fsm: process(pres_state, reset_cnt, bit_nr, probe_bit_nr, configure_command, state0_cnt, enable)
 begin
     next_state <= pres_state;
 
     case pres_state is
         when power_off =>
-            next_state <= state0;
+            if enable = '1' then
+                next_state <= state0;
+            else
+                next_state <= power_off;
+            end if;
 
         when state0 =>
             if state0_cnt < 100000 then 
@@ -159,7 +165,7 @@ begin
             next_state <= idle_state;
 
         when idle_state =>
-            if ( configure_command = '1') then
+            if (enable = '1' and configure_command = '1') then
                 next_state <= state0;
             else 
                 next_state <= idle_state;
@@ -308,10 +314,12 @@ end process;
 
 initStateCounter: process(reset, idle_i, clk200k, state0_sig, state0_cnt) -- usa come clk200k lo stesso clk200k usato dalla memoria e per la configurazione della easiroc
 begin
-    if reset='1' or idle_i = '1' then 
+    if reset='1' then 
         state0_cnt <= 0;
     elsif rising_edge(clk200k) then
-        if state0_sig = '1' then -- il contatore è abilitato solo nello stato iniziale
+        if idle_i = '1' then
+            state0_cnt <= 0;
+        elsif state0_sig = '1' then -- il contatore è abilitato solo nello stato iniziale
             state0_cnt <= state0_cnt + 1;		
         end if;
     end if;
@@ -321,10 +329,12 @@ end process;
 
 rstWidthCounter: process(reset, clk200k, RST_B_SR_sig, reset_cnt, idle_i) -- usa come clk200k lo stesso clk200k usato dalla memoria e per la configurazione della easiroc
 begin
-    if reset='1' or idle_i = '1' then 
+    if reset='1' then 
         reset_cnt <= 0;
     elsif rising_edge(clk200k) then
-        if RST_B_SR_sig = '0' then -- il contatore è abilitato solo negli stati di reset (config_state)
+        if idle_i = '1' then
+            reset_cnt <= 0;
+        elsif enable = '1' and RST_B_SR_sig = '0' then -- il contatore è abilitato solo negli stati di reset (config_state)
             reset_cnt <= reset_cnt + 1;		
         end if;
     end if;
@@ -341,7 +351,7 @@ begin
             bit_nr <= 0;	
         --elsif (CLK_SR_sig = '1' and select_reg_sig = '1') then -- il contatore è abilitato solo nello stato di configurazione e limitrofi (config_state, config_to_idle)
         -- cambiando la polarità di CLK_SR_sig anche questo va cambiato
-        elsif (CLK_SR_sig = '0' and select_reg_sig = '1') then -- il contatore è abilitato solo nello stato di configurazione e limitrofi (config_state, config_to_idle)
+        elsif (enable = '1' and CLK_SR_sig = '0' and select_reg_sig = '1') then -- il contatore è abilitato solo nello stato di configurazione e limitrofi (config_state, config_to_idle)
             if bit_nr < DATA_WIDTH - 1  then
                 bit_nr <= bit_nr + 1;
             end if;
@@ -360,7 +370,7 @@ begin
             probe_bit_nr <= 0;
         --elsif (CLK_SR_sig = '1' and select_reg_sig = '0') then -- il contatore è abilitato solo nello stato di probe (probe_state)
         -- cambiando la polarità di CLK_SR_sig anche questo va cambiato
-        elsif (CLK_SR_sig = '0' and select_reg_sig = '0') then -- il contatore è abilitato solo nello stato di probe (probe_state)
+        elsif (enable = '1' and CLK_SR_sig = '0' and select_reg_sig = '0') then -- il contatore è abilitato solo nello stato di probe (probe_state)
             if probe_bit_nr < PROBE_WIDTH - 1  then
                 probe_bit_nr <= probe_bit_nr + 1;
             end if;

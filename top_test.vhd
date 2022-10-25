@@ -327,9 +327,6 @@ port (
     pwr_on_citiroc1 : in std_logic;
     pwr_on_citiroc2 : in std_logic;
 
-    rstCIT1out : out std_logic;
-    rstCIT2out : out std_logic;
-
     trigger_in_1    : in std_logic_vector(31 downto 0);
     trigger_in_2    : in std_logic_vector(31 downto 0);
 
@@ -586,12 +583,13 @@ end component;
 
 component refController
 generic(
-    resetHGVal : std_logic_vector(15 downto 0);
-    resetLGVal : std_logic_vector(15 downto 0)
+    resetHGVal : std_logic_vector(15 downto 0) := x"0000";
+    resetLGVal : std_logic_vector(15 downto 0) := x"0000"
 );
 port(
     clk24M     : in  std_logic;
     rst        : in  std_logic;
+    enable     : in  std_logic;
 	dacHGVal   : in  std_logic_vector(15 downto 0);
     dacLGVal   : in  std_logic_vector(15 downto 0);
     enableSclk : out std_logic;
@@ -849,8 +847,6 @@ signal fifoAFULL    : std_logic;
 signal fifoEMPTY    : std_logic;
 signal fifoWACK     : std_logic;
 signal fifoDVLD     : std_logic;
-
-signal rstCIT1out, rstCIT2out : std_logic;
 
 signal writeDone    : std_logic;
 signal spwCtrlBusy  : std_logic;
@@ -1209,9 +1205,6 @@ port map(
 
     pwr_on_citiroc1 => s_pwr_on_citiroc1,
     pwr_on_citiroc2 => s_pwr_on_citiroc2,
-
-    rstCIT1out => rstCIT1out,
-    rstCIT2out => rstCIT2out,
 
     trigger_in_1 => s_trigger_in_1,
     trigger_in_2 => s_trigger_in_2,
@@ -1577,7 +1570,8 @@ generic map(
 )
 port map(
     clk24M     => s_clock24MBuff,
-    rst        => rstCIT1out,
+    rst        => s_global_rst,
+    enable     => s_pwr_on_citiroc1,
 	dacHGVal   => s_refDAC1(31 downto 16),
     dacLGVal   => s_refDAC1(15 downto 0),
     enableSclk => enableSclk_1,
@@ -1595,7 +1589,8 @@ generic map(
 )
 port map(
     clk24M   => s_clock24MBuff,
-    rst      => rstCIT2out,
+    rst      => s_global_rst,
+    enable   => s_pwr_on_citiroc2,
 	dacHGVal => s_refDAC2(31 downto 16),
     dacLGVal => s_refDAC2(15 downto 0),
     enableSclk => enableSclk_2,

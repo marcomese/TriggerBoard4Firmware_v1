@@ -11,6 +11,7 @@ generic(
 port(
     clk24M     : in  std_logic;
     rst        : in  std_logic;
+    enable     : in  std_logic;
 	dacHGVal   : in  std_logic_vector(15 downto 0);
     dacLGVal   : in  std_logic_vector(15 downto 0);
     enableSclk : out std_logic;
@@ -26,21 +27,22 @@ architecture architecture_refController of refController is
 
 component serializer is
 generic(
-    parallelWidth      : natural;
-    resetValue         : std_logic_vector(parallelWidth-1 downto 0);
-    shiftBits          : natural;
-    shiftDirection     : bit
+    parallelWidth   : natural;
+    resetValue      : std_logic_vector(parallelWidth-1 downto 0);
+    shiftBits       : natural := 1;
+    shiftDirection  : bit     := '0' -- 0 sinistra, 1 destra
 );
 port(
     parallelIN      : in    std_logic_vector(parallelWidth-1 downto 0);
     serialIN        : in    std_logic;
     load            : in    std_logic;
+    clear           : in    std_logic;
     shift           : in    std_logic;
     serialOUT       : out   std_logic;
     shiftDone       : out   std_logic;
     clk             : in    std_logic;
     rst             : in    std_logic
-    );
+);
 end component;
 
 COMPONENT output_DDR is
@@ -74,7 +76,6 @@ signal  shiftDone,
         syncLGSig, syncLGSigF,
         bufferSout,
         bufferReset, bufferResetF,
-        serializerReset,
         enableSclkSig,
         initSend,initSendF,
         confDoneSig, confDoneSigF  : std_logic;
@@ -87,17 +88,6 @@ constant  rstVal                   : std_logic_vector(47 downto 0) := (47 downto
                                                                        39 downto 24 => resetHGVal,
                                                                        23 downto 16 => '0',
                                                                        15 downto 0  => resetLGVal);
-
---attribute syn_preserve : boolean;
---attribute syn_keep     : boolean;
---
---attribute syn_preserve of dataSentSig  : signal is true;
---attribute syn_preserve of initSend     : signal is true;
---attribute syn_preserve of load         : signal is true;
---
---attribute syn_keep of dataSentSig  : signal is true;
---attribute syn_keep of initSend     : signal is true;
---attribute syn_keep of load         : signal is true;
 
 begin
 
@@ -135,8 +125,6 @@ syncLG <= syncLGSig;
 
 dout <= bufferSout;
 
-serializerReset <= rst or bufferReset;
-
 confDone <= confDoneSig;
 
 ser: serializer
@@ -150,11 +138,12 @@ port map(
     parallelIN     => bufferData,
     serialIN       => '0',
     load           => load,
+    clear          => bufferReset or not enable,
     shift          => shift,
     serialOUT      => bufferSout,
     shiftDone      => shiftDone,
     clk            => clk24M,
-    rst            => serializerReset
+    rst            => rst
 );
 
 ------------- controller FSM
@@ -183,11 +172,15 @@ begin
 	end if;
 end process;
 
-comb: process(currState, send, shiftDone)
+comb: process(currState, send, shiftDone, enable)
 begin
 	case currState is
         when start =>
+            if enable = '1' then
                 nextState <= initState;
+            else
+                nextState <= start;
+            end if;
 
         when initState =>
                 nextState <= sclkInitEnabled;
@@ -196,7 +189,7 @@ begin
                 nextState <= shiftHGBUF;
 
 		when idle =>
-			if send='1' then
+			if send='1' and enable = '1' then
 				nextState <= loadBUF;
 			else
 				nextState <= idle;

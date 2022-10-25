@@ -377,7 +377,14 @@ begin
     end process;
  end generate PMT_reg_process;
 
-reset_counter <= rise_rate;
+resetCntInst: process(clock, reset)
+begin
+    if reset = '1' then
+        reset_counter <= '0';
+    elsif rising_edge(clock) then
+        reset_counter <= rise_rate;
+    end if;
+end process;
 
 PMT_rate <= PMT_rate_2(31) & PMT_rate_2(30) & PMT_rate_2(29) & PMT_rate_2(28) &
             PMT_rate_2(27) & PMT_rate_2(26) & PMT_rate_2(25) & PMT_rate_2(24) &
