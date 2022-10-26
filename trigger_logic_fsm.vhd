@@ -47,6 +47,8 @@ port(
     turretsFlags         : out std_logic_vector(7 downto 0);
     turretsCounters      : out std_logic_vector(159 downto 0);
 
+    triggerCnt           : out std_logic_vector(31 downto 0);
+
     trg_to_DAQ_EASI      : out std_logic  -- attivo alto
 );
 end TRIGGER_logic_FSM;
@@ -199,6 +201,8 @@ signal  turretsFlagsSig    : std_logic_vector(7 downto 0);
 signal  turretsCountersVal : std_logic_vector(159 downto 0);
 
 signal  turretsCntEn       : std_logic_vector(4 downto 0);
+
+signal  triggerCounter     : unsigned(31 downto 0);
 
 begin
 
@@ -497,7 +501,20 @@ begin
         idle            <= idle_i;
     end if;
 end process;
-  
+
+triggerCntInst: process(clock, reset, trg_to_DAQ_EASI)
+begin
+    if reset = '1' then
+        triggerCounter <= (others => '0');
+    elsif rising_edge(clock) then
+        if trg_to_DAQ_EASI = '1' then
+            triggerCounter <= triggerCounter + 1;
+        end if;
+    end if;
+end process;
+
+triggerCnt <= std_logic_vector(triggerCounter);
+
 -- FSM combinational block(NEXT_STATE_DECODE)
 	
 fsm: process(pres_state, debug, start_readers, acquisition_state, calibration_state, trigger, debug, count)

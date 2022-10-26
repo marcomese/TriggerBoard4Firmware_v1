@@ -276,6 +276,8 @@ port (
     triggerInhibit : in std_logic;
     triggerOUT     : out std_logic;
 
+    triggerCnt     : out std_logic_vector(31 downto 0);
+
     turrets              : out std_logic_vector(4 downto 0);
     turretsFlags         : out std_logic_vector(7 downto 0);
     turretsCounters      : out std_logic_vector(159 downto 0);
@@ -401,13 +403,14 @@ port(
     acqData             : in  std_logic_vector(acqDataLen-1 downto 0);
 
     pcktCounter         : out natural;
-    trigCounter         : out std_logic_vector(31 downto 0);
 
     regAcqData          : out std_logic_vector(acqDataLen-1 downto 0);
     writeDataLen        : out std_logic;
     dataReadyIn         : in  std_logic;
 
     dpcuBusyIn          : in  std_logic;
+
+    dataWrittenInFIFO   : out std_logic;
 
     fifoDATA            : out std_logic_vector(fifoWidth-1 downto 0);
     fifoQ               : in  std_logic_vector(fifoWidth-1 downto 0);
@@ -1159,6 +1162,8 @@ port map(
     triggerInhibit => trgInhibit,
     triggerOUT => trigger_interno_sig,
 
+    triggerCnt => trigCounter,
+
     turrets => s_turrets,
     turretsFlags => s_turretsFlags,
     turretsCounters => s_turretsCounters,
@@ -1344,7 +1349,6 @@ port map(
     acqData        => acqData,
 
     pcktCounter    => pcktCounter,
-    trigCounter    => trigCounter,
 
     regAcqData     => regAcqData,
 
@@ -1352,6 +1356,8 @@ port map(
     dataReadyIn    => dataReadyOutSigBuff,
 
     writeDataLen   => writeDataLen,
+
+    dataWrittenInFIFO => trgBusyRst,
 
     fifoDATA       => fifoDATA,
     fifoQ          => fifoQ,

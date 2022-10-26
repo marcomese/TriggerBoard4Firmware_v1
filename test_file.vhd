@@ -24,6 +24,8 @@ port (
     triggerInhibit : in std_logic;
     triggerOUT     : out std_logic;
 
+    triggerCnt     : out std_logic_vector(31 downto 0);
+
     turrets              : out std_logic_vector(4 downto 0);
     turretsFlags         : out std_logic_vector(7 downto 0);
     turretsCounters      : out std_logic_vector(159 downto 0);
@@ -214,8 +216,6 @@ port(
     apply_PMT_mask       : in  std_logic;
     start_readers        : in  std_logic;
 
-    triggerID            : out std_logic_vector(7 downto 0);
-
     calibration_state    : in  std_logic;
     acquisition_state    : in  std_logic;
 			
@@ -225,15 +225,19 @@ port(
     trigger_flag_1       : out std_logic_vector(31 downto 0);	
     trigger_flag_2       : out std_logic_vector(31 downto 0);			
 
+    triggerID            : out std_logic_vector(7 downto 0);
+
     trgExtIn             : in  std_logic;
 
-    rate1SecOut          : out std_logic;
-
     holdoff              : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
+
+    rate1SecOut          : out std_logic;
 
     turrets              : out std_logic_vector(4 downto 0);
     turretsFlags         : out std_logic_vector(7 downto 0);
     turretsCounters      : out std_logic_vector(159 downto 0);
+
+    triggerCnt           : out std_logic_vector(31 downto 0);
 
     trg_to_DAQ_EASI      : out std_logic  -- attivo alto
 );
@@ -580,6 +584,8 @@ port map (
     turretsCounters      => turretsCounters,
 
     holdoff              => holdoff,
+
+    triggerCnt           => triggerCnt,
 
     trg_to_DAQ_EASI      => trigger_interno_sig
 );
