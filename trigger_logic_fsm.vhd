@@ -202,6 +202,13 @@ signal  turretsCntEn       : std_logic_vector(4 downto 0);
 
 signal  triggerCounter     : unsigned(31 downto 0);
 
+signal  trgFlag1,
+        trgFlag2           : std_logic_vector(31 downto 0);
+
+signal  turrFlag           : std_logic_vector(4 downto 0);
+
+signal  flagsRst           : std_logic;
+
 begin
 
 rate1SecOut <= rate_time_sig;
@@ -466,21 +473,90 @@ mask_rate <= X"0009" & mask_rate_9_sig &
 
 turretsFlagsSig(7 downto 5) <= (others => '0');
 
+trgFlag1Gen: for i in 0 to 31 generate
+begin
+    trgFlag1Inst: process(clock, reset, trigger_PMTmasked_1(i))
+    begin
+        if reset = '1' then
+            trgFlag1(i) <= '0';
+        elsif rising_edge(clock) then
+            if acquisition_state = '0' then
+                trgFlag1(i) <= '0';
+            else
+                if trigger_PMTmasked_1(i) = '1' and flagsRst = '0' then
+                    trgFlag1(i) <= '1';
+                elsif trigger_PMTmasked_1(i) = '0' and flagsRst = '1' then
+                    trgFlag1(i) <= '0';
+                else
+                    trgFlag1(i) <= trgFlag1(i);
+                end if;
+            end if;
+        end if;
+    end process;
+end generate;
+
+trgFlag2Gen: for i in 0 to 31 generate
+begin
+    trgFlag2Inst: process(clock, reset, trigger_PMTmasked_2(i))
+    begin
+        if reset = '1' then
+            trgFlag2(i) <= '0';
+        elsif rising_edge(clock) then
+            if acquisition_state = '0' then
+                trgFlag2(i) <= '0';
+            else
+                if trigger_PMTmasked_1(i) = '1' and flagsRst = '0' then
+                    trgFlag2(i) <= '1';
+                elsif trigger_PMTmasked_1(i) = '0' and flagsRst = '1' then
+                    trgFlag2(i) <= '0';
+                else
+                    trgFlag2(i) <= trgFlag1(i);
+                end if;
+            end if;
+        end if;
+    end process;
+end generate;
+
+turrFlagGen: for i in 0 to 4 generate
+begin
+    turrFlagInst: process(clock, reset, turretsFlagsSig(i))
+    begin
+        if reset = '1' then
+            turrFlag(i) <= '0';
+        elsif rising_edge(clock) then
+            if acquisition_state = '0' then
+                turrFlag(i) <= '0';
+            else
+                if turretsFlagsSig(i) = '1' and flagsRst = '0' then
+                    turrFlag(i) <= '1';
+                elsif turretsFlagsSig(i) = '0' and flagsRst = '1' then
+                    turrFlag(i) <= '0';
+                else
+                    turrFlag(i) <= turrFlag(i);
+                end if;
+            end if;
+        end if;
+    end process;
+end generate;
+
 trigger_flag_register: process(reset, clock, acquisition_state, calibration_state)
 begin
     if reset='1' then
         trigger_flag_1              <= (others=> '0');
         trigger_flag_2              <= (others=> '0');
         turretsFlagsSig(4 downto 0) <= (others => '0');
+        flagsRst                    <= '0';
     elsif rising_edge(clock) then
         if (acquisition_state = '1' or calibration_state = '1') and trigger = '1' then
-            trigger_flag_1              <= trigger_PMTmasked_1;
-            trigger_flag_2              <= trigger_PMTmasked_2;
-            turretsFlagsSig(4 downto 0) <= plane(4 downto 0);
+            trigger_flag_1              <= trgFlag1;
+            trigger_flag_2              <= trgFlag2;
+            turretsFlagsSig(4 downto 0) <= turrFlag;
+            flagsRst                    <= '1';
         else
             trigger_flag_1              <= trigger_flag_1;
             trigger_flag_2              <= trigger_flag_2;
             turretsFlagsSig(4 downto 0) <= turretsFlagsSig(4 downto 0);
+            flagsRst                    <= '0';
         end if;
     end if;
 end process;
