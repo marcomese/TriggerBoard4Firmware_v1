@@ -41,14 +41,14 @@ begin
 
     case curr_state is 
         when s0 => 
-            if count=60 then
+            if count=59 then
                 next_state<= s1;
             else 
                 next_state <= s0;
             end if;
 
          when s1 => 
-            if count=120 then
+            if count=119 then
                 next_state<= s0;
             else 
                 next_state <= s1;
@@ -78,7 +78,7 @@ begin
     if rst = '1' then 
         count <= 0;
     elsif rising_edge(clkIn) then
-        if count = 120 then
+        if count = 119 then
             count <= 0;
         else
             count <= count + 1;

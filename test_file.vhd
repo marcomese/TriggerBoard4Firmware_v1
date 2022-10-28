@@ -24,8 +24,6 @@ port (
     triggerInhibit : in std_logic;
     triggerOUT     : out std_logic;
 
-    triggerCnt     : out std_logic_vector(31 downto 0);
-
     turrets              : out std_logic_vector(4 downto 0);
     turretsFlags         : out std_logic_vector(7 downto 0);
     turretsCounters      : out std_logic_vector(159 downto 0);
@@ -236,8 +234,6 @@ port(
     turrets              : out std_logic_vector(4 downto 0);
     turretsFlags         : out std_logic_vector(7 downto 0);
     turretsCounters      : out std_logic_vector(159 downto 0);
-
-    triggerCnt           : out std_logic_vector(31 downto 0);
 
     trg_to_DAQ_EASI      : out std_logic  -- attivo alto
 );
@@ -584,8 +580,6 @@ port map (
     turretsCounters      => turretsCounters,
 
     holdoff              => holdoff,
-
-    triggerCnt           => triggerCnt,
 
     trg_to_DAQ_EASI      => trigger_interno_sig
 );

@@ -276,8 +276,6 @@ port (
     triggerInhibit : in std_logic;
     triggerOUT     : out std_logic;
 
-    triggerCnt     : out std_logic_vector(31 downto 0);
-
     turrets              : out std_logic_vector(4 downto 0);
     turretsFlags         : out std_logic_vector(7 downto 0);
     turretsCounters      : out std_logic_vector(159 downto 0);
@@ -790,6 +788,7 @@ signal s_stop_cal            : std_logic;
 signal s_config_status_1   : std_logic;
 signal s_config_status_2   : std_logic;
 signal s_acquisition_state : std_logic;
+signal acqStateRising      : std_logic;
 signal s_calibration_state : std_logic;
 
 signal s_PMT_rate          : std_logic_vector(1023 downto 0);
@@ -1022,6 +1021,30 @@ TRG_5   <= s_turrets(4);
 
 wdRst <= not RST_FROM_SUPERVISOR;
 
+acqStateRiseEdgeInst: edgeDetector
+generic map(
+    edge => '1'
+)
+port map(
+    clk => s_clock200M,
+    rst => swRst,
+    signalIn => s_acquisition_state,
+    signalOut => acqStateRising
+);
+
+triggerCntInst: process(s_clock200M, swRst, trigger_interno_sig)
+begin
+    if swRst = '1' then
+        trigCounter <= (others => '0');
+    elsif rising_edge(s_clock200M) then
+        if acqStateRising = '1' then
+            trigCounter <= (others => '0');
+        elsif trigger_interno_sig = '1' then
+            trigCounter <= std_logic_vector(unsigned(trigCounter) + 1);
+        end if;
+    end if;
+end process;
+
 watchDogInst: watchDogCtrl
 generic map(
     clkFreq   => 200.0e3,
@@ -1161,8 +1184,6 @@ port map(
 
     triggerInhibit => trgInhibit,
     triggerOUT => trigger_interno_sig,
-
-    triggerCnt => trigCounter,
 
     turrets => s_turrets,
     turretsFlags => s_turretsFlags,
