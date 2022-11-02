@@ -29,7 +29,7 @@ port(
 
     rate_time_sig	     : in  std_logic; --1 secondo	
 
-    mask_rate_0          : out std_logic_vector(15 downto 0);
+    mask_rate_0          : out std_logic_vector(31 downto 0);
     mask_rate_1          : out std_logic_vector(15 downto 0);
     mask_rate_2          : out std_logic_vector(15 downto 0);
     mask_rate_3          : out std_logic_vector(15 downto 0);
@@ -62,6 +62,17 @@ port(
 );
 end component;
 
+component counter32BitSload is
+port(
+    Aclr   : in    std_logic;
+    Sload  : in    std_logic;
+    Clock  : in    std_logic;
+    Enable : in    std_logic;
+    Data   : in    std_logic_vector(31 downto 0);
+    Q      : out   std_logic_vector(31 downto 0)
+);
+end component;
+
 component counter16BitSload is
 port(
     Aclr   : in    std_logic;
@@ -70,26 +81,6 @@ port(
     Enable : in    std_logic;
     Data   : in    std_logic_vector(15 downto 0);
     Q      : out   std_logic_vector(15 downto 0)
-);
-end component;
-
-component prescaler18Bit is
-port(
-    clk         : in  std_logic;
-    rst         : in  std_logic;
-    holdoff     : in  std_logic_vector(17 downto 0);
-    triggerIn   : in  std_logic;
-    triggerOut  : out std_logic
-);
-end component;
-
-component prescaler14Bit is
-port(
-    clk         : in  std_logic;
-    rst         : in  std_logic;
-    holdoff     : in  std_logic_vector(13 downto 0);
-    triggerIn   : in  std_logic;
-    triggerOut  : out std_logic
 );
 end component;
 
@@ -106,14 +97,37 @@ port(
 );
 end component;
 
-constant maskNum    : natural := 10;
+component prescaler14Bit is
+port(
+    clk         : in  std_logic;
+    rst         : in  std_logic;
+    holdoff     : in  std_logic_vector(13 downto 0);
+    triggerIn   : in  std_logic;
+    triggerOut  : out std_logic
+);
+end component;
 
-type countArray is array (natural range 0 to maskNum-1) of std_logic_vector(15 downto 0);
+component prescaler18Bit is
+port(
+    clk         : in  std_logic;
+    rst         : in  std_logic;
+    holdoff     : in  std_logic_vector(17 downto 0);
+    triggerIn   : in  std_logic;
+    triggerOut  : out std_logic
+);
+end component;
+
+constant maskNum                 : natural := 10;
+
+type countArray is array (natural range 1 to maskNum-1) of std_logic_vector(15 downto 0);
+
 
 signal  trigger,
         rise                     : std_logic_vector(maskNum-1 downto 0);
 
 signal  plane_masked             : std_logic_vector(11 downto 0);
+
+signal  count_0                  : std_logic_vector(31 downto 0);
 
 signal  count_n                  : countArray;
 
@@ -220,52 +234,43 @@ begin
 end process;
 
 -------------------- Costruzione delle configurazioni di trigger --------------------------------
---trgSyncProc: process(clock, reset)
---begin
-    --if reset = '1' then
-        --veto_lateral <= '0';
-        --veto_bottom  <= '0';
-        --trigger      <= (others => '0');
-    --elsif rising_edge(clock) then
-        veto_lateral <= LAT_1 or LAT_2 or LAT_3 or LAT_4;
+veto_lateral <= LAT_1 or LAT_2 or LAT_3 or LAT_4;
 
-        veto_bottom  <= BOT_00;
+veto_bottom  <= BOT_00;
 
-        trigger(0)   <= TR1AND;
+trigger(0)   <= TR1AND;
 
-        trigger(1)   <= (TR1 and TR2);
+trigger(1)   <= (TR1 and TR2);
 
-        trigger(2)   <= (TR1 and TR2) and RAN_01;
+trigger(2)   <= (TR1 and TR2) and RAN_01;
 
-        trigger(3)   <= (TR1 and TR2) and RAN_02;
+trigger(3)   <= (TR1 and TR2) and RAN_02;
 
-        trigger(4)   <= veto_lateral and not (TR1 and veto_bottom);
+trigger(4)   <= veto_lateral and not (TR1 and veto_bottom);
 
-        trigger(5)   <= TR1 and TR2 and RAN_12;
+trigger(5)   <= TR1 and TR2 and RAN_12;
 
-        trigger(6)   <= veto_bottom and EN1 and EN2 and not (TR1 or TR2 or veto_lateral);
+trigger(6)   <= veto_bottom and EN1 and EN2 and not (TR1 or TR2 or veto_lateral);
 
-        trigger(7)   <= (RAN_05 or RAN_06 or RAN_07 or RAN_08) and not (TR1 or TR2 or
-                                                                        RAN_01 or RAN_02 or RAN_03 or RAN_04 or
-                                                                        RAN_09 or RAN_10 or RAN_11 or RAN_12 or
-                                                                        veto_lateral or veto_bottom or
-                                                                        EN1 or EN2);
+trigger(7)   <= (RAN_05 or RAN_06 or RAN_07 or RAN_08) and not (TR1 or TR2 or
+                                                                RAN_01 or RAN_02 or RAN_03 or RAN_04 or
+                                                                RAN_09 or RAN_10 or RAN_11 or RAN_12 or
+                                                                veto_lateral or veto_bottom or
+                                                                EN1 or EN2);
 
-        trigger(8)   <= (EN1 or EN2) and not (TR1 or TR2 or
-                                              RAN_01 or RAN_02 or RAN_03 or RAN_04 or
-                                              RAN_05 or RAN_06 or RAN_07 or RAN_08 or
-                                              RAN_09 or RAN_10 or RAN_11 or RAN_12 or
-                                              veto_lateral or veto_bottom);
+trigger(8)   <= (EN1 or EN2) and not (TR1 or TR2 or
+                                      RAN_01 or RAN_02 or RAN_03 or RAN_04 or
+                                      RAN_05 or RAN_06 or RAN_07 or RAN_08 or
+                                      RAN_09 or RAN_10 or RAN_11 or RAN_12 or
+                                      veto_lateral or veto_bottom);
 
-        trigger(9)   <= TR1_masked and TR2_masked and
-                        plane_masked(0) and plane_masked(1) and plane_masked(2) and plane_masked(3) and
-                        plane_masked(4) and plane_masked(5) and plane_masked(6) and plane_masked(7) and
-                        plane_masked(8) and plane_masked(9) and plane_masked(10) and plane_masked(10) and plane_masked(11) and
-                        EN1_masked and EN2_masked and
-                        LAT_1_masked and LAT_2_masked and LAT_3_masked and LAT_4_masked and
-                        BOT_00_masked;
-    --end if;
---end process;
+trigger(9)   <= TR1_masked and TR2_masked and
+                plane_masked(0) and plane_masked(1) and plane_masked(2) and plane_masked(3) and
+                plane_masked(4) and plane_masked(5) and plane_masked(6) and plane_masked(7) and
+                plane_masked(8) and plane_masked(9) and plane_masked(10) and plane_masked(10) and plane_masked(11) and
+                EN1_masked and EN2_masked and
+                LAT_1_masked and LAT_2_masked and LAT_3_masked and LAT_4_masked and
+                BOT_00_masked;
 
 TR1_masked <= TR1 or (not generic_trigger_mask_int(0));
 TR2_masked <= TR2 or (not generic_trigger_mask_int(1));
@@ -306,29 +311,26 @@ begin
     end if;
 end process;
 
-prescMaskCounterGen: for i in 0 to prescaledTriggers-1 generate
-begin
-    countPresc_NInst: counter16BitSload
-    port map(
-        Aclr   => swRst,
-        Sload  => reset_counter,
-        Clock  => clock,
-        Enable => start_readers and trigger_prescaled(i),
-        Data   => (others => '0'),
-        Q      => count_n(i)
-    );
-end generate;
+countPresc_NInst: counter32BitSload
+port map(
+    Aclr   => swRst,
+    Sload  => reset_counter,
+    Clock  => clock,
+    Enable => rise(0),
+    Data   => (others => '0'),
+    Q      => count_0
+);
 
-maskCounterGen: for i in 0 to concurrentTriggers-1 generate
+maskCounterGen: for i in 1 to maskNum-1 generate
 begin
     count_NInst: counter16BitSload
     port map(
         Aclr   => swRst,
         Sload  => reset_counter,
         Clock  => clock,
-        Enable => start_readers and trigger_int_vec(i),
+        Enable => rise(i),
         Data   => (others => '0'),
-        Q      => count_n(i+prescaledTriggers)
+        Q      => count_n(i)
     );
 end generate;
 
@@ -347,7 +349,7 @@ begin
         mask_rate_9 <= (others=> '0');
     elsif rising_edge(clock) then
         if rate_time_sig = '1' then
-            mask_rate_0 <= count_n(0);
+            mask_rate_0 <= count_0;
             mask_rate_1 <= count_n(1);
             mask_rate_2 <= count_n(2);
             mask_rate_3 <= count_n(3);
@@ -363,27 +365,22 @@ end process;
 
 mux_trgN_gen: for i in 0 to concurrentTriggers-1 generate
 begin
-    --mux_triggerN:process(clock, reset, trigger_mask_int)
     mux_triggerN:process(trigger_mask_int, rise)
     begin
-        --if reset = '1' then
-            --trigger_int_vec(i) <= '0';
-        --elsif rising_edge(clock) then
-            case trigger_mask_int((i*4)+3 downto (i*4)) is
-                when X"0"  =>  trigger_int_vec(i) <= '0';
-                when X"1"  =>  trigger_int_vec(i) <= rise(0);
-                when X"2"  =>  trigger_int_vec(i) <= rise(1);
-                when X"3"  =>  trigger_int_vec(i) <= rise(2);
-                when X"4"  =>  trigger_int_vec(i) <= rise(3);
-                when X"5"  =>  trigger_int_vec(i) <= rise(4);
-                when X"6"  =>  trigger_int_vec(i) <= rise(5);
-                when X"7"  =>  trigger_int_vec(i) <= rise(6);
-                when X"8"  =>  trigger_int_vec(i) <= rise(7);
-                when X"9"  =>  trigger_int_vec(i) <= rise(8);
-                when X"A"  =>  trigger_int_vec(i) <= rise(9);
-                when others => trigger_int_vec(i) <= '0';
-            end case;
---        end if;
+        case trigger_mask_int((i*4)+3 downto (i*4)) is
+            when X"0"  =>  trigger_int_vec(i) <= '0';
+            when X"1"  =>  trigger_int_vec(i) <= rise(0);
+            when X"2"  =>  trigger_int_vec(i) <= rise(1);
+            when X"3"  =>  trigger_int_vec(i) <= rise(2);
+            when X"4"  =>  trigger_int_vec(i) <= rise(3);
+            when X"5"  =>  trigger_int_vec(i) <= rise(4);
+            when X"6"  =>  trigger_int_vec(i) <= rise(5);
+            when X"7"  =>  trigger_int_vec(i) <= rise(6);
+            when X"8"  =>  trigger_int_vec(i) <= rise(7);
+            when X"9"  =>  trigger_int_vec(i) <= rise(8);
+            when X"A"  =>  trigger_int_vec(i) <= rise(9);
+            when others => trigger_int_vec(i) <= '0';
+        end case;
     end process;
 end generate;
 
@@ -404,7 +401,6 @@ port map(
     triggerIn   => trigger_int_vec(1),
     triggerOut  => trigger_prescaled(1)
 );
-
 
 prescGen: for i in 2 to prescaledTriggers-1 generate
 begin
@@ -437,21 +433,16 @@ begin
     end if;
 end process;
 
---mux_veto:process(clock, reset, trigger_mask_int, trigger_int, veto_lateral, veto_bottom, trgExtIn)
 mux_veto:process(trigger_mask_int, trigger_int, veto_lateral, veto_bottom, trgExtIn)
 begin
-    --if reset = '1' then
-        --trg_int <= '0';
-    --elsif rising_edge(clock) then
-        case trigger_mask_int(31 downto 24) is
-            when X"00"  => trg_int <= trigger_int;
-            when X"01"  => trg_int <= trigger_int and not veto_lateral;
-            when X"02"  => trg_int <= trigger_int and not veto_bottom;
-            when X"03"  => trg_int <= trigger_int and not(veto_lateral or veto_bottom);
-            when X"04"  => trg_int <= trgExtIn;
-            when others => trg_int <= trigger_int;
-        end case;
---    end if;
+    case trigger_mask_int(31 downto 24) is
+        when X"00"  => trg_int <= trigger_int;
+        when X"01"  => trg_int <= trigger_int and not veto_lateral;
+        when X"02"  => trg_int <= trigger_int and not veto_bottom;
+        when X"03"  => trg_int <= trigger_int and not(veto_lateral or veto_bottom);
+        when X"04"  => trg_int <= trgExtIn;
+        when others => trg_int <= trigger_int;
+    end case;
 end process;
 
 end Behavioral;

@@ -99,7 +99,7 @@ port(
 
     rate_time_sig	     : in  std_logic; --1 secondo	
 
-    mask_rate_0          : out std_logic_vector(15 downto 0);
+    mask_rate_0          : out std_logic_vector(31 downto 0);
     mask_rate_1          : out std_logic_vector(15 downto 0);
     mask_rate_2          : out std_logic_vector(15 downto 0);
     mask_rate_3          : out std_logic_vector(15 downto 0);
@@ -175,8 +175,9 @@ signal  time_cnt : integer range 0 to RATE_TIME;
 
 signal  rate_time_sig, rise_rate, reset_counter : std_logic;
 
-signal  mask_rate_0_sig,
-        mask_rate_1_sig,
+signal  mask_rate_0_sig : std_logic_vector(31 downto 0);
+
+signal  mask_rate_1_sig,
         mask_rate_2_sig,
         mask_rate_3_sig,
         mask_rate_4_sig,
@@ -184,7 +185,7 @@ signal  mask_rate_0_sig,
         mask_rate_6_sig,
         mask_rate_7_sig,
         mask_rate_8_sig,
-        mask_rate_9_sig: std_logic_vector(15 downto 0);
+        mask_rate_9_sig : std_logic_vector(15 downto 0);
 
 signal  count_pmt_1,
         count_pmt_2,
@@ -470,7 +471,7 @@ mask_rate <= X"0009" & mask_rate_9_sig &
              X"0003" & mask_rate_3_sig &
              X"0002" & mask_rate_2_sig &
              X"0001" & mask_rate_1_sig &
-             X"0000" & mask_rate_0_sig;
+             mask_rate_0_sig;
 
 turretsFlagsSig(7 downto 5) <= (others => '0');
 
@@ -511,7 +512,7 @@ begin
                 elsif trigger_PMTmasked_2(i) = '0' and flagsRst = '1' then
                     trgFlag2(i) <= '0';
                 else
-                    trgFlag2(i) <= trgFlag1(i);
+                    trgFlag2(i) <= trgFlag2(i);
                 end if;
             end if;
         end if;
