@@ -201,6 +201,7 @@ generic(
 );
 port(
     reset                : in  std_logic;
+    swRst                : in  std_logic;
     clock                : in  std_logic;  
     clock200k            : in  std_logic;  
     debug                : in  std_logic;
@@ -546,7 +547,8 @@ generic map(
     holdOffBits          => holdOffBits
 )
 port map (
-    reset                => sw_rst,
+    reset                => rst,
+    swRst                => sw_rst,
     clock                => clk,
     clock200k            => clock200k,
     debug                => trigger_int_sig,

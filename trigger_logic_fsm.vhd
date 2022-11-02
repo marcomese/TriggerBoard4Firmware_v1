@@ -13,6 +13,7 @@ generic(
 );
 port(
     reset                : in  std_logic;
+    swRst                : in  std_logic;
     clock                : in  std_logic;  
     clock200k            : in  std_logic;  
     debug                : in  std_logic;
@@ -82,6 +83,7 @@ generic(
 );
 port(
     reset                : in  std_logic;
+    swRst                : in  std_logic;
     clock                : in  std_logic;  
 
     plane                : in  std_logic_vector(31 downto 0);
@@ -356,7 +358,7 @@ begin
 
 reset_counter_register: process(reset, clock)
 begin
-   if reset='1' then
+   if swRst='1' then
        reset_counter <= '1';
    elsif rising_edge(clock) then
        reset_counter <= rise_rate;
@@ -428,6 +430,7 @@ generic map(
 port map(
     clock => clock,
     reset => reset,
+    swRst => swRst,
 
     plane  => plane,
     planeT1And => planeT1And,
@@ -475,9 +478,9 @@ turretsFlagsSig(7 downto 5) <= (others => '0');
 
 trgFlag1Gen: for i in 0 to 31 generate
 begin
-    trgFlag1Inst: process(clock, reset, trigger_PMTmasked_1(i))
+    trgFlag1Inst: process(clock, swRst, trigger_PMTmasked_1(i))
     begin
-        if reset = '1' then
+        if swRst = '1' then
             trgFlag1(i) <= '0';
         elsif rising_edge(clock) then
             if acquisition_state = '0' then
@@ -497,9 +500,9 @@ end generate;
 
 trgFlag2Gen: for i in 0 to 31 generate
 begin
-    trgFlag2Inst: process(clock, reset, trigger_PMTmasked_2(i))
+    trgFlag2Inst: process(clock, swRst, trigger_PMTmasked_2(i))
     begin
-        if reset = '1' then
+        if swRst = '1' then
             trgFlag2(i) <= '0';
         elsif rising_edge(clock) then
             if acquisition_state = '0' then
@@ -519,9 +522,9 @@ end generate;
 
 turrFlagGen: for i in 0 to 4 generate
 begin
-    turrFlagInst: process(clock, reset, turretsFlagsSig(i))
+    turrFlagInst: process(clock, swRst, turretsFlagsSig(i))
     begin
-        if reset = '1' then
+        if swRst = '1' then
             turrFlag(i) <= '0';
         elsif rising_edge(clock) then
             if acquisition_state = '0' then
@@ -539,9 +542,9 @@ begin
     end process;
 end generate;
 
-trigger_flag_register: process(reset, clock, acquisition_state, calibration_state)
+trigger_flag_register: process(swRst, clock, acquisition_state, calibration_state)
 begin
-    if reset='1' then
+    if swRst='1' then
         trigger_flag_1              <= (others=> '0');
         trigger_flag_2              <= (others=> '0');
         turretsFlagsSig(4 downto 0) <= (others => '0');

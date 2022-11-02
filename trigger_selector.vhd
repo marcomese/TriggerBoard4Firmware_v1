@@ -13,6 +13,7 @@ generic(
 );
 port(
     reset                : in  std_logic;
+    swRst                : in  std_logic;
     clock                : in  std_logic;  
 
     plane                : in  std_logic_vector(31 downto 0);
@@ -298,7 +299,7 @@ end generate sincronizzatore;
 
 reset_counter_register: process(reset, clock, rate_time_sig)
 begin
-    if reset='1' then
+    if swRst='1' then
        reset_counter <= '1';
     elsif rising_edge(clock) then
        reset_counter <= rate_time_sig;
@@ -309,7 +310,7 @@ prescMaskCounterGen: for i in 0 to prescaledTriggers-1 generate
 begin
     countPresc_NInst: counter16BitSload
     port map(
-        Aclr   => reset,
+        Aclr   => swRst,
         Sload  => reset_counter,
         Clock  => clock,
         Enable => start_readers and trigger_prescaled(i),
@@ -322,7 +323,7 @@ maskCounterGen: for i in 0 to concurrentTriggers-1 generate
 begin
     count_NInst: counter16BitSload
     port map(
-        Aclr   => reset,
+        Aclr   => swRst,
         Sload  => reset_counter,
         Clock  => clock,
         Enable => start_readers and trigger_int_vec(i),
@@ -331,9 +332,9 @@ begin
     );
 end generate;
 
-time_register: process(reset, clock, rate_time_sig, count_n)
+time_register: process(swRst, clock, rate_time_sig, count_n)
 begin
-    if reset='1' then
+    if swRst='1' then
         mask_rate_0 <= (others=> '0');
         mask_rate_1 <= (others=> '0');
         mask_rate_2 <= (others=> '0');
@@ -388,7 +389,7 @@ end generate;
 presc18BitInst: prescaler18Bit
 port map(
     clk         => clock,
-    rst         => reset,
+    rst         => swRst,
     holdoff     => holdoff(17 downto 0),
     triggerIn   => trigger_int_vec(0),
     triggerOut  => trigger_prescaled(0)
@@ -397,7 +398,7 @@ port map(
 presc14BitInst: prescaler14Bit
 port map(
     clk         => clock,
-    rst         => reset,
+    rst         => swRst,
     holdoff     => holdoff(31 downto 18),
     triggerIn   => trigger_int_vec(1),
     triggerOut  => trigger_prescaled(1)
@@ -412,7 +413,7 @@ begin
     )
     port map(
         clk         => clock,
-        rst         => reset,
+        rst         => swRst,
         holdoff     => holdoff((i*holdOffBits)+(holdOffBits-1) downto (i*holdOffBits)),
         triggerIn   => trigger_int_vec(i),
         triggerOut  => trigger_prescaled(i)
@@ -424,9 +425,9 @@ trigger_int <= or_reduce(trigger_prescaled &
 
 triggerIDSig(7 downto 6) <= (others => '0');
 
-trgIDSigReg: process(clock, reset, trigger_int)
+trgIDSigReg: process(clock, swRst, trigger_int)
 begin
-    if reset = '1' then
+    if swRst = '1' then
         triggerIDSig(5 downto 0) <= (others => '0');
     elsif rising_edge(clock) then
         if trigger_int = '1' then
