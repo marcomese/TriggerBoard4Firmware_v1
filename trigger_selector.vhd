@@ -297,7 +297,7 @@ begin
     );
 end generate sincronizzatore;
 
-reset_counter_register: process(reset, clock, rate_time_sig)
+reset_counter_register: process(swRst, clock, rate_time_sig)
 begin
     if swRst='1' then
        reset_counter <= '1';
@@ -363,7 +363,8 @@ end process;
 
 mux_trgN_gen: for i in 0 to concurrentTriggers-1 generate
 begin
-    mux_triggerN:process(clock, reset, trigger_mask_int)
+    --mux_triggerN:process(clock, reset, trigger_mask_int)
+    mux_triggerN:process(trigger_mask_int, rise)
     begin
         --if reset = '1' then
             --trigger_int_vec(i) <= '0';
@@ -436,7 +437,8 @@ begin
     end if;
 end process;
 
-mux_veto:process(clock, reset, trigger_mask_int, trigger_int, veto_lateral, veto_bottom, trgExtIn)
+--mux_veto:process(clock, reset, trigger_mask_int, trigger_int, veto_lateral, veto_bottom, trgExtIn)
+mux_veto:process(trigger_mask_int, trigger_int, veto_lateral, veto_bottom, trgExtIn)
 begin
     --if reset = '1' then
         --trg_int <= '0';

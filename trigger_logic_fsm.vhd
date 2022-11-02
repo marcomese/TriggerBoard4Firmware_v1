@@ -202,8 +202,6 @@ signal  turretsCountersVal : std_logic_vector(159 downto 0);
 
 signal  turretsCntEn       : std_logic_vector(4 downto 0);
 
-signal  triggerCounter     : unsigned(31 downto 0);
-
 signal  trgFlag1,
         trgFlag2           : std_logic_vector(31 downto 0);
 
@@ -356,7 +354,7 @@ begin
     end process;
  end generate PMT_reg_process;
 
-reset_counter_register: process(reset, clock)
+reset_counter_register: process(swRst, clock)
 begin
    if swRst='1' then
        reset_counter <= '1';
@@ -478,7 +476,7 @@ turretsFlagsSig(7 downto 5) <= (others => '0');
 
 trgFlag1Gen: for i in 0 to 31 generate
 begin
-    trgFlag1Inst: process(clock, swRst, trigger_PMTmasked_1(i))
+    trgFlag1Inst: process(clock, swRst, trigger_PMTmasked_1(i), flagsRst)
     begin
         if swRst = '1' then
             trgFlag1(i) <= '0';
@@ -500,7 +498,7 @@ end generate;
 
 trgFlag2Gen: for i in 0 to 31 generate
 begin
-    trgFlag2Inst: process(clock, swRst, trigger_PMTmasked_2(i))
+    trgFlag2Inst: process(clock, swRst, trigger_PMTmasked_2(i), flagsRst)
     begin
         if swRst = '1' then
             trgFlag2(i) <= '0';
@@ -508,9 +506,9 @@ begin
             if acquisition_state = '0' then
                 trgFlag2(i) <= '0';
             else
-                if trigger_PMTmasked_1(i) = '1' and flagsRst = '0' then
+                if trigger_PMTmasked_2(i) = '1' and flagsRst = '0' then
                     trgFlag2(i) <= '1';
-                elsif trigger_PMTmasked_1(i) = '0' and flagsRst = '1' then
+                elsif trigger_PMTmasked_2(i) = '0' and flagsRst = '1' then
                     trgFlag2(i) <= '0';
                 else
                     trgFlag2(i) <= trgFlag1(i);
@@ -522,7 +520,7 @@ end generate;
 
 turrFlagGen: for i in 0 to 4 generate
 begin
-    turrFlagInst: process(clock, swRst, turretsFlagsSig(i))
+    turrFlagInst: process(clock, swRst, turretsFlagsSig(i), flagsRst)
     begin
         if swRst = '1' then
             turrFlag(i) <= '0';
@@ -542,7 +540,7 @@ begin
     end process;
 end generate;
 
-trigger_flag_register: process(swRst, clock, acquisition_state, calibration_state)
+trigger_flag_register: process(swRst, clock, acquisition_state, calibration_state, trigger)
 begin
     if swRst='1' then
         trigger_flag_1              <= (others=> '0');
