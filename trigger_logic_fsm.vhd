@@ -91,7 +91,6 @@ port(
 
     generic_trigger_mask : in  std_logic_vector(31 downto 0);	
     trigger_mask         : in  std_logic_vector(31 downto 0);
-    start_readers        : in  std_logic;
 
     triggerID            : out std_logic_vector(7 downto 0);
 
@@ -209,6 +208,10 @@ signal  trgFlag1,
 signal  turrFlag           : std_logic_vector(4 downto 0);
 
 signal  flagsRst           : std_logic;
+
+attribute syn_replicate : boolean;
+
+attribute syn_replicate of reset_counter : signal is false;
 
 begin
 
@@ -436,7 +439,6 @@ port map(
 
     generic_trigger_mask => generic_trigger_mask,
     trigger_mask => trigger_mask,
-    start_readers => start_readers,
 
     triggerID => triggerID,
 

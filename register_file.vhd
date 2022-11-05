@@ -103,7 +103,7 @@ constant RST_WORD           : std_logic_vector(31 downto 0) := x"0DA00DA0";
 constant dataLenConst       : std_logic_vector(31 downto 0) := x"0000003E";
 
 constant dataRegsStart      : natural := 46;
-constant dataRegsStop       : natural := 157;
+constant dataRegsStop       : natural := 155;
 
 -- define the memory array
 type mem_t is array (natural range <>) of std_logic_vector(DATA_LENGHT - 1 downto 0);

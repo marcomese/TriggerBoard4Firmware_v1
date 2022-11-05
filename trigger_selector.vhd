@@ -21,7 +21,6 @@ port(
 
     generic_trigger_mask : in  std_logic_vector(31 downto 0);	
     trigger_mask         : in  std_logic_vector(31 downto 0);
-    start_readers        : in  std_logic;
 
     triggerID            : out std_logic_vector(7 downto 0);
 
@@ -151,6 +150,7 @@ signal  trigger_int,
         veto_bottom              : std_logic;
 
 signal  trigger_int_vec          : std_logic_vector(concurrentTriggers-1 downto 0);
+signal  triggerIntVecSync        : std_logic_vector((concurrentTriggers-prescaledTriggers)-1 downto 0);
 
 signal  trigger_prescaled        : std_logic_vector(prescaledTriggers-1 downto 0);
 
@@ -185,6 +185,16 @@ signal  TR1,
         BOT_00                   : std_logic;
 
 signal  triggerIDSig             : std_logic_vector(7 downto 0);
+
+signal  trgIDStoreSig,
+        trgIDStored              : std_logic;
+
+signal  trgVecSig,
+        trgVecSR                 : std_logic_vector(concurrentTriggers-1 downto 0);
+
+attribute syn_replicate : boolean;
+
+attribute syn_replicate of reset_counter : signal is false;
 
 begin
 
@@ -417,18 +427,60 @@ begin
     );
 end generate;
 
-trigger_int <= or_reduce(trigger_prescaled & 
-                         trigger_int_vec(concurrentTriggers-1 downto prescaledTriggers));
+trgIntVecSyncInst: process(clock, reset, trigger_int_vec)
+begin
+    if reset = '1' then
+        triggerIntVecSync <= (others => '0');
+    elsif rising_edge(clock) then
+        triggerIntVecSync <= trigger_int_vec(concurrentTriggers-1 downto prescaledTriggers);
+    end if;
+end process;
+
+trgVecSig <= triggerIntVecSync & trigger_prescaled;
+
+trigger_int <= '1' when unsigned(trgVecSig) /= 0 else '0';--or_reduce(trgVecSig);
+
+trgIDStrSigInst: process(clock, reset, trigger_int)
+begin
+    if reset = '1' then
+        trgIDStoreSig <= '0';
+    elsif rising_edge(clock) then
+        trgIDStoreSig <= trigger_int;
+    end if;
+end process;
+
+trgVecSRInst: for i in 0 to 5 generate
+begin
+    trgVecSRFF: process(clock, swRst, trgVecSig(i), trgIDStored)
+    begin
+        if swRst = '1' then
+            trgVecSR(i) <= '0';
+        elsif rising_edge(clock) then
+            if trgVecSig(i) = '1' and trgIDStored = '0' then
+                trgVecSR(i) <= '1';
+            elsif trgVecSig(i) = '0' and trgIDStored = '1' then
+                trgVecSR(i) <= '0';
+            else
+                trgVecSR(i) <= trgVecSR(i);
+            end if;
+        end if;
+    end process;
+end generate;
 
 triggerIDSig(7 downto 6) <= (others => '0');
 
-trgIDSigReg: process(clock, swRst, trigger_int)
+trgIDSigReg: process(clock, swRst, trgIDStoreSig)
 begin
     if swRst = '1' then
         triggerIDSig(5 downto 0) <= (others => '0');
+        trgIDStored              <= '0';
     elsif rising_edge(clock) then
-        if trigger_int = '1' then
-            triggerIDSig(5 downto 0) <= trigger_int_vec(concurrentTriggers-1 downto prescaledTriggers) & trigger_prescaled;
+        if trgIDStoreSig = '1' then
+            triggerIDSig(5 downto 0) <= trgVecSR;
+            trgIDStored              <= '1';
+        else
+            triggerIDSig(5 downto 0) <= triggerIDSig(5 downto 0);
+            trgIDStored              <= '0';
         end if;
     end if;
 end process;

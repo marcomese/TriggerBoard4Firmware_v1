@@ -2,7 +2,6 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 use IEEE.MATH_REAL.ALL;
-use IEEE.STD_LOGIC_MISC.ALL;
 
 entity spwFIFOInterface is
 generic(
@@ -122,7 +121,7 @@ begin
 
 pcktCounter      <= pcktCnt;
 
-pckPres          <= or_reduce(std_logic_vector(to_unsigned(pcktCnt,pcktCntBits)));
+pckPres          <= '1' when pcktCnt /= 0 else '0';
 
 startWriteSig    <= adcDataReady and (not fifoAFULL);
 
