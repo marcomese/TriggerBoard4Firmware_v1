@@ -73,9 +73,6 @@ port (
     pwr_on_citiroc1 : in std_logic;
     pwr_on_citiroc2 : in std_logic;
 
-    rstCIT1out : out std_logic;
-    rstCIT2out : out std_logic;
-
     trigger_in_1    : in std_logic_vector(31 downto 0);
     trigger_in_2    : in std_logic_vector(31 downto 0);    
 
@@ -391,7 +388,6 @@ begin
 end process;
 
 rstCIT1 <= not rstCIT1FF;
-rstCIT1out <= rstCIT1;
 
 configCit1Inst: config_CITIROC_1
 port map(  
@@ -433,7 +429,6 @@ begin
 end process;
 
 rstCIT2 <= not rstCIT2FF;
-rstCIT2out <= rstCIT2;
 
 configCit2Inst: config_CITIROC_1
 port map(  

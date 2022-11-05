@@ -11,10 +11,11 @@ generic(
 port(
     clk24M     : in  std_logic;
     rst        : in  std_logic;
+    enable     : in  std_logic;
+    send       : in  std_logic;
 	dacHGVal   : in  std_logic_vector(15 downto 0);
     dacLGVal   : in  std_logic_vector(15 downto 0);
     enableSclk : out std_logic;
-    send       : in  std_logic;
     confDone   : out std_logic;
     dout       : out std_logic;
     syncHG     : out std_logic;
@@ -32,25 +33,17 @@ generic(
     shiftDirection     : bit
 );
 port(
-    parallelIN      : in    std_logic_vector(parallelWidth-1 downto 0);
-    serialIN        : in    std_logic;
-    load            : in    std_logic;
-    shift           : in    std_logic;
-    serialOUT       : out   std_logic;
-    shiftDone       : out   std_logic;
-    clk             : in    std_logic;
-    rst             : in    std_logic
-    );
+    clk             : in  std_logic;
+    rst             : in  std_logic;
+    clear           : in  std_logic;
+    load            : in  std_logic;
+    shift           : in  std_logic;
+    parallelIN      : in  std_logic_vector(parallelWidth-1 downto 0);
+    serialIN        : in  std_logic;
+    serialOUT       : out std_logic;
+    shiftDone       : out std_logic
+);
 end component;
-
-COMPONENT output_DDR is
-    port( DataR : in    std_logic;
-          DataF : in    std_logic;
-          CLR   : in    std_logic;
-          CLK   : in    std_logic;
-          PAD   : out   std_logic
-        );
-end COMPONENT;
 
 type fsmState is (start,
                   initState,
@@ -74,7 +67,6 @@ signal  shiftDone,
         syncLGSig, syncLGSigF,
         bufferSout,
         bufferReset, bufferResetF,
-        serializerReset,
         enableSclkSig,
         initSend,initSendF,
         confDoneSig, confDoneSigF  : std_logic;
@@ -87,17 +79,6 @@ constant  rstVal                   : std_logic_vector(47 downto 0) := (47 downto
                                                                        39 downto 24 => resetHGVal,
                                                                        23 downto 16 => '0',
                                                                        15 downto 0  => resetLGVal);
-
---attribute syn_preserve : boolean;
---attribute syn_keep     : boolean;
---
---attribute syn_preserve of dataSentSig  : signal is true;
---attribute syn_preserve of initSend     : signal is true;
---attribute syn_preserve of load         : signal is true;
---
---attribute syn_keep of dataSentSig  : signal is true;
---attribute syn_keep of initSend     : signal is true;
---attribute syn_keep of load         : signal is true;
 
 begin
 
@@ -113,15 +94,12 @@ enableSclk <= enableSclkSig;
 sclkEnFF: process(clk24M, rst, srIn, enableSclkSig)
 begin
     if rst = '1' then
---        enableSclkSig <= '0';
         enableSclkSig <= '1'; -- pilota l'ingresso CLR di DDR_OUT quindi è attivo basso
     elsif rising_edge(clk24M) then
         case srIn is
             when "01" =>
---                enableSclkSig <= '0';
                   enableSclkSig <= '1'; -- pilota l'ingresso CLR di DDR_OUT quindi è attivo basso
             when "10" =>
---                enableSclkSig <= '1';
                   enableSclkSig <= '0'; -- pilota l'ingresso CLR di DDR_OUT quindi è attivo basso
             when others =>
                 enableSclkSig <= enableSclkSig;
@@ -135,8 +113,6 @@ syncLG <= syncLGSig;
 
 dout <= bufferSout;
 
-serializerReset <= rst or bufferReset;
-
 confDone <= confDoneSig;
 
 ser: serializer
@@ -147,14 +123,15 @@ generic map(
     shiftDirection => '0'
 )
 port map(
-    parallelIN     => bufferData,
-    serialIN       => '0',
+    clk            => clk24M,
+    rst            => rst,
+    clear          => bufferReset,
     load           => load,
     shift          => shift,
+    parallelIN     => bufferData,
+    serialIN       => '0',
     serialOUT      => bufferSout,
-    shiftDone      => shiftDone,
-    clk            => clk24M,
-    rst            => serializerReset
+    shiftDone      => shiftDone
 );
 
 ------------- controller FSM
@@ -187,7 +164,11 @@ comb: process(currState, send, shiftDone)
 begin
 	case currState is
         when start =>
+            if enable = '1' then
                 nextState <= initState;
+            else
+                nextState <= start;
+            end if;
 
         when initState =>
                 nextState <= sclkInitEnabled;
@@ -196,7 +177,7 @@ begin
                 nextState <= shiftHGBUF;
 
 		when idle =>
-			if send='1' then
+			if enable = '1' and send='1' then
 				nextState <= loadBUF;
 			else
 				nextState <= idle;
