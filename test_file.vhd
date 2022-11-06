@@ -148,6 +148,8 @@ port(
     clk200k           : in std_logic;
     reset             : in std_logic;
 
+    enable            : in std_logic;
+
     configure_command : in std_logic;
     config_vector     : in std_logic_vector(1143 downto 0);
 
@@ -291,10 +293,8 @@ signal start_readers_sig     : std_logic;
 
 signal s_dataReady           : std_logic;
 
-signal  rstCIT1FF,
-        rstCIT2FF,
-        rstCIT1,
-        rstCIT2              : std_logic;
+signal  pwrOnCIT1FF,
+        pwrOnCIT2FF          : std_logic;
 
 signal  maskedTrigger        : std_logic;
 
@@ -378,21 +378,21 @@ port map(
     delayVal  => holdDelayConst
 );
 
-rstCIT1Gen: process(rst, clock200k)
+enableCIT1Gen: process(rst, clock200k)
 begin
     if rst = '1' then
-        rstCIT1FF <= '0';
+        pwrOnCIT1FF <= '0';
     elsif rising_edge(clock200k) then
-        rstCIT1FF <= pwr_on_citiroc1;
+        pwrOnCIT1FF <= pwr_on_citiroc1;
     end if;
 end process;
-
-rstCIT1 <= not rstCIT1FF;
 
 configCit1Inst: config_CITIROC_1
 port map(  
     clk200k           => clock200k,
-    reset             => rstCIT1,
+    reset             => rst,
+
+    enable            => pwrOnCIT1FF,
 
     configure_command => conf_comm_200k_1, 
     config_vector     => s_config_vector,
@@ -419,21 +419,21 @@ port map(
     delayVal  => holdDelayConst
 );
 
-rstCIT2Gen: process(rst, clock200k)
+enableCIT2Gen: process(rst, clock200k)
 begin
     if rst = '1' then
-        rstCIT2FF <= '0';
+        pwrOnCIT2FF <= '0';
     elsif rising_edge(clock200k) then
-        rstCIT2FF <= pwr_on_citiroc2;
+        pwrOnCIT2FF <= pwr_on_citiroc2;
     end if;
 end process;
-
-rstCIT2 <= not rstCIT2FF;
 
 configCit2Inst: config_CITIROC_1
 port map(  
     clk200k           => clock200k,
-    reset             => rstCIT2,
+    reset             => rst,
+
+    enable            => pwrOnCIT2FF,
 
     configure_command => conf_comm_200k_2, 
     config_vector     => s_config_vector,

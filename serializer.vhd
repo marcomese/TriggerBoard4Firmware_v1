@@ -44,7 +44,7 @@ shiftDone <= shiftDoneSignal;
 
 serialOUT <= dataSig(dataSig'length-1) when shiftDirection = '0' else dataSig(0);
 
-bitCountFSMregs: process(all)
+bitCountFSMregs: process(clk, rst)
 begin
     if rst = '1' then
         currState       <= idle;
@@ -59,7 +59,7 @@ begin
     end if;
 end process;
 
-bitCountFSMcomb: process(all)
+bitCountFSMcomb: process(currState, shift, bitCountSig)
 begin
     case currState is   
         when idle =>
@@ -91,7 +91,7 @@ begin
     end case;
 end process;
 
-bitCountFSMout: process(all)
+bitCountFSMout: process(nextState)
 begin
     case nextState is   
         when idle =>
@@ -121,7 +121,7 @@ begin
     end case;
 end process;
 
-bitCounter: process(all) 
+bitCounter: process(clk, rst, clear, bitCounterRst) 
 begin
     if rst = '1' then
         bitCountSig  <= 0;
@@ -134,7 +134,7 @@ begin
     end if;
 end process;
 
-memory: process(all)
+memory: process(clk, rst, clear, load, shiftSig)
 begin
     if rst = '1' then
         dataSig <= resetValue;

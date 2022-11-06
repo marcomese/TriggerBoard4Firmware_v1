@@ -160,7 +160,7 @@ begin
 	end if;
 end process;
 
-comb: process(currState, send, shiftDone)
+comb: process(currState, send, shiftDone, enable)
 begin
 	case currState is
         when start =>
