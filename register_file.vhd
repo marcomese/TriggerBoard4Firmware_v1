@@ -712,62 +712,11 @@ dataReadyOut <= dataReadyOutSig;
     -- configuration
 o_write_done      <= r_write_done;
 
-refDAC_1 <= register_vector(get_local_addr(REF_DAC_1_ADDR, address_vector));
-refDAC_2 <= register_vector(get_local_addr(REF_DAC_2_ADDR, address_vector));
-
-holdoff <= register_vector(get_local_addr(PRESC_M3_M2_ADDR, address_vector)) &
-           register_vector(get_local_addr(PRESC_M1_M0_ADDR, address_vector));
-
-config_vector   <=  register_vector( get_local_addr(CONFIG_CITIROC_1_35_ADDR, address_vector) )(23 downto 0) &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_34_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_33_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_32_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_31_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_30_ADDR,  address_vector) )             & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_29_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_28_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_27_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_26_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_25_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_24_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_23_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_22_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_21_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_20_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_19_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_18_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_17_ADDR,  address_vector) )             & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_16_ADDR, address_vector) )              & 
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_15_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_14_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_13_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_12_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_11_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_10_ADDR, address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_9_ADDR, address_vector) )               &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_8_ADDR, address_vector) )               &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_7_ADDR, address_vector) )               &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_6_ADDR, address_vector) )               &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_5_ADDR, address_vector) )               &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_4_ADDR,  address_vector) )              &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_3_ADDR, address_vector) )               &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_2_ADDR, address_vector) )               &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_1_ADDR, address_vector) )               &
-                    register_vector( get_local_addr(CONFIG_CITIROC_1_0_ADDR, address_vector) );
-
-trigger_mask           <= register_vector( get_local_addr(TRIGGER_MASK_ADDR, address_vector) ); 
-generic_trigger_mask   <= register_vector( get_local_addr(GENERIC_TRIGGER_MASK_ADDR, address_vector) ); 
-PMT_mask_1             <= register_vector( get_local_addr(PMT_1_MASK_ADDR, address_vector) ); 
-PMT_mask_2             <= register_vector( get_local_addr(PMT_2_MASK_ADDR, address_vector) ); 
-
-
 -- Commands
 start_config_1      <= start_config_1_pipe_0 and (not start_config_1_pipe_1);
 start_config_2      <= start_config_2_pipe_0 and (not start_config_2_pipe_1); 
 
 sw_rst              <= sw_rst_pipe_0 and (not sw_rst_pipe_1);
-pwr_on_citiroc1     <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(4); 
-pwr_on_citiroc2     <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(5); 
   
 start_debug         <= start_debug_pipe_0 and (not start_debug_pipe_1);
 
@@ -779,10 +728,6 @@ start_cal           <= start_cal_pipe_0 and (not start_cal_pipe_1);
 stop_cal            <= stop_cal_pipe_0 and (not stop_cal_pipe_1);
 
 sendRefDAC          <= sendRefDAC_pipe_0 and (not sendRefDAC_pipe_1);
-
-local_address       <= get_local_addr(addr, address_vector);
-
-enableTsens         <= register_vector(get_local_addr(CMD_REG_ADDR, address_vector))(2);
 
 clk_counter_proc : process (clk, rst)
 begin
@@ -796,10 +741,29 @@ end process clk_counter_proc;
 read_write_process : process(clk, rst)
 begin
     if (rst = '1') then
-    
+        local_address             <= 0;
+
+        pwr_on_citiroc1     <= '0'; 
+        pwr_on_citiroc2     <= '0'; 
+
+        enableTsens         <= '0';
+
         -- reset to zero
         register_vector <= register_vector_reset;
         r_write_done <= '0';
+
+        refDAC_1 <= (others => '0');
+        refDAC_2 <= (others => '0');
+
+        holdoff <= (others => '0');
+
+        config_vector   <=  (others => '0');
+
+        trigger_mask           <= (others => '0');
+        generic_trigger_mask   <= (others => '0'); 
+        PMT_mask_1             <= (others => '0'); 
+        PMT_mask_2             <= (others => '0'); 
+
 
         sw_rst_pipe_0             <= '0';
         sw_rst_pipe_1             <= '0';
@@ -837,6 +801,13 @@ begin
         s_write_done <= '0';
 
     elsif (rising_edge(clk)) then
+        local_address             <= get_local_addr(addr, address_vector);
+
+        pwr_on_citiroc1           <= register_vector(get_local_addr(CMD_REG_ADDR, address_vector))(4); 
+        pwr_on_citiroc2           <= register_vector(get_local_addr(CMD_REG_ADDR, address_vector))(5); 
+
+        enableTsens               <= register_vector(get_local_addr(CMD_REG_ADDR, address_vector))(2);
+
         start_config_1_pipe_0     <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(0);
         start_config_1_pipe_1     <= start_config_1_pipe_0;
         
@@ -888,6 +859,55 @@ begin
                                                                                   acquisition_state     & -- bit  2
                                                                                   config_status_2       & -- bit  1
                                                                                   config_status_1       ; -- bit  0
+
+        refDAC_1 <= register_vector(get_local_addr(REF_DAC_1_ADDR, address_vector));
+        refDAC_2 <= register_vector(get_local_addr(REF_DAC_2_ADDR, address_vector));
+
+        holdoff <= register_vector(get_local_addr(PRESC_M3_M2_ADDR, address_vector)) &
+                   register_vector(get_local_addr(PRESC_M1_M0_ADDR, address_vector));
+
+        config_vector   <=  register_vector( get_local_addr(CONFIG_CITIROC_1_35_ADDR, address_vector) )(23 downto 0) &
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_34_ADDR, address_vector) )              & 
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_33_ADDR, address_vector) )              & 
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_32_ADDR, address_vector) )              & 
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_31_ADDR, address_vector) )              & 
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_30_ADDR,  address_vector) )             & 
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_29_ADDR, address_vector) )              & 
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_28_ADDR, address_vector) )              &
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_27_ADDR, address_vector) )              & 
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_26_ADDR, address_vector) )              & 
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_25_ADDR, address_vector) )              & 
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_24_ADDR, address_vector) )              & 
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_23_ADDR, address_vector) )              & 
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_22_ADDR, address_vector) )              &
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_21_ADDR, address_vector) )              & 
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_20_ADDR, address_vector) )              & 
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_19_ADDR, address_vector) )              & 
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_18_ADDR, address_vector) )              & 
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_17_ADDR,  address_vector) )             & 
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_16_ADDR, address_vector) )              & 
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_15_ADDR, address_vector) )              &
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_14_ADDR, address_vector) )              &
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_13_ADDR, address_vector) )              &
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_12_ADDR, address_vector) )              &
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_11_ADDR, address_vector) )              &
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_10_ADDR, address_vector) )              &
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_9_ADDR, address_vector) )               &
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_8_ADDR, address_vector) )               &
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_7_ADDR, address_vector) )               &
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_6_ADDR, address_vector) )               &
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_5_ADDR, address_vector) )               &
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_4_ADDR,  address_vector) )              &
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_3_ADDR, address_vector) )               &
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_2_ADDR, address_vector) )               &
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_1_ADDR, address_vector) )               &
+                            register_vector( get_local_addr(CONFIG_CITIROC_1_0_ADDR, address_vector) );
+
+        trigger_mask           <= register_vector( get_local_addr(TRIGGER_MASK_ADDR, address_vector) ); 
+        generic_trigger_mask   <= register_vector( get_local_addr(GENERIC_TRIGGER_MASK_ADDR, address_vector) ); 
+        PMT_mask_1             <= register_vector( get_local_addr(PMT_1_MASK_ADDR, address_vector) ); 
+        PMT_mask_2             <= register_vector( get_local_addr(PMT_2_MASK_ADDR, address_vector) ); 
+
 
         if sw_rst = '1' then
             rstRegGen: for i in dataRegsStart to dataRegsStop loop

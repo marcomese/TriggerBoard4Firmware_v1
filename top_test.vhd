@@ -260,6 +260,15 @@ port(
 );
 end component;
 
+component counter32Bit is
+port(
+    Aclr   : in    std_logic;
+    Clock  : in    std_logic;
+    Enable : in    std_logic;
+    Q      : out   std_logic_vector(31 downto 0)
+);
+end component;
+
 component test_file is
 generic(
     concurrentTriggers   : natural;
@@ -786,7 +795,6 @@ signal s_stop_cal            : std_logic;
 signal s_config_status_1   : std_logic;
 signal s_config_status_2   : std_logic;
 signal s_acquisition_state : std_logic;
-signal acqStateRising      : std_logic;
 signal s_calibration_state : std_logic;
 
 signal s_PMT_rate          : std_logic_vector(1023 downto 0);
@@ -1015,29 +1023,13 @@ TRG_5   <= s_turrets(4);
 
 wdRst <= not RST_FROM_SUPERVISOR;
 
-acqStateRiseEdgeInst: edgeDetector
-generic map(
-    edge => '1'
-)
+triggerCntInst: counter32Bit
 port map(
-    clk => s_clock200M,
-    rst => swRst,
-    signalIn => s_acquisition_state,
-    signalOut => acqStateRising
+    Aclr   => swRst,
+    Clock  => s_clock200M,
+    Enable => trigger_interno_sig,
+    Q      => trigCounter
 );
-
-triggerCntInst: process(s_clock200M, swRst, trigger_interno_sig)
-begin
-    if swRst = '1' then
-        trigCounter <= (others => '0');
-    elsif rising_edge(s_clock200M) then
-        if acqStateRising = '1' then
-            trigCounter <= (others => '0');
-        elsif trigger_interno_sig = '1' then
-            trigCounter <= std_logic_vector(unsigned(trigCounter) + 1);
-        end if;
-    end if;
-end process;
 
 watchDogInst: watchDogCtrl
 generic map(

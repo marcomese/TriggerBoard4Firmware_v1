@@ -657,14 +657,11 @@ begin
       time_cnt <= 0;
       rate_time_sig <= '0';
    elsif rising_edge(clock200k) then
-        if (time_cnt < RATE_TIME) then 
-            time_cnt <= time_cnt + 1;    
-            rate_time_sig <= '0';
-        elsif time_cnt = RATE_TIME then
+        if time_cnt = RATE_TIME-1 then
             time_cnt <= 0;  
             rate_time_sig <= '1';
         else
-            time_cnt <= 0;  
+            time_cnt <= time_cnt + 1;    
             rate_time_sig <= '0';
         end if;       
    end if;
