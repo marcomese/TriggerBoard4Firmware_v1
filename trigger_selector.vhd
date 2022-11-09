@@ -375,22 +375,26 @@ end process;
 
 mux_trgN_gen: for i in 0 to concurrentTriggers-1 generate
 begin
-    mux_triggerN:process(trigger_mask_int, rise)
+    mux_triggerN:process(clock, reset, trigger_mask_int, rise)
     begin
-        case trigger_mask_int((i*4)+3 downto (i*4)) is
-            when X"0"  =>  trigger_int_vec(i) <= '0';
-            when X"1"  =>  trigger_int_vec(i) <= rise(0);
-            when X"2"  =>  trigger_int_vec(i) <= rise(1);
-            when X"3"  =>  trigger_int_vec(i) <= rise(2);
-            when X"4"  =>  trigger_int_vec(i) <= rise(3);
-            when X"5"  =>  trigger_int_vec(i) <= rise(4);
-            when X"6"  =>  trigger_int_vec(i) <= rise(5);
-            when X"7"  =>  trigger_int_vec(i) <= rise(6);
-            when X"8"  =>  trigger_int_vec(i) <= rise(7);
-            when X"9"  =>  trigger_int_vec(i) <= rise(8);
-            when X"A"  =>  trigger_int_vec(i) <= rise(9);
-            when others => trigger_int_vec(i) <= '0';
-        end case;
+        if reset = '1' then
+            trigger_int_vec(i) <= '0';
+        elsif rising_edge(clock) then
+            case trigger_mask_int((i*4)+3 downto (i*4)) is
+                when X"0"  =>  trigger_int_vec(i) <= '0';
+                when X"1"  =>  trigger_int_vec(i) <= rise(0);
+                when X"2"  =>  trigger_int_vec(i) <= rise(1);
+                when X"3"  =>  trigger_int_vec(i) <= rise(2);
+                when X"4"  =>  trigger_int_vec(i) <= rise(3);
+                when X"5"  =>  trigger_int_vec(i) <= rise(4);
+                when X"6"  =>  trigger_int_vec(i) <= rise(5);
+                when X"7"  =>  trigger_int_vec(i) <= rise(6);
+                when X"8"  =>  trigger_int_vec(i) <= rise(7);
+                when X"9"  =>  trigger_int_vec(i) <= rise(8);
+                when X"A"  =>  trigger_int_vec(i) <= rise(9);
+                when others => trigger_int_vec(i) <= '0';
+            end case;
+        end if;
     end process;
 end generate;
 
