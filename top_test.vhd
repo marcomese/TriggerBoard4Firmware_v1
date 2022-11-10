@@ -234,17 +234,14 @@ end component;
 
 component ppsCounter is
 generic(
-    clkFreq        : real;
-    resolution     : real;
-    ppsCountWidth  : natural;
-    fineCountWidth : natural
+    clk_freq      : natural;
+    pps_reset_len : natural
 );
 port(
-    clk            : in  std_logic;
-    rst            : in  std_logic;
-    enable         : in  std_logic;
-    ppsIn          : in  std_logic;
-    counterOut     : out std_logic_vector((ppsCountWidth+fineCountWidth)-1 downto 0)
+    clk : in std_logic;
+    rst : in std_logic;
+    PPS : in std_logic;
+    timestamp  : out std_logic_vector(31 downto 0)
 );
 end component;
 
@@ -1261,17 +1258,14 @@ port map(
 
 ppsCounterInst: ppsCounter
 generic map(
-    clkFreq        => 48.0e6,
-    resolution     => 16.0e-6,
-    ppsCountWidth  => 16,
-    fineCountWidth => 16
+    clk_freq       => 48,
+    pps_reset_len  => 10
 )
 port map(
     clk            => s_clock48M,
     rst            => s_global_rst,
-    enable         => s_acquisition_state,
-    ppsIn          => dpcuPPSSync,
-    counterOut     => ppsCount
+    PPS            => dpcuPPSSync,
+    timestamp      => ppsCount
 );
 
 ppsCountReg: process(s_clock48M, s_global_rst)
