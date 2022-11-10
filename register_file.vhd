@@ -910,6 +910,8 @@ begin
 
 
         if sw_rst = '1' then
+            register_vector(get_local_addr(RST_REG_ADDR, address_vector)) <= (others => '0');
+
             rstRegGen: for i in dataRegsStart to dataRegsStop loop
                 register_vector(i) <= register_vector_reset(i);
             end loop;

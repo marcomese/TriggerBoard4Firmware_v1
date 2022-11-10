@@ -489,7 +489,7 @@ begin
             else
                 if trigger_PMTmasked_1(i) = '1' and flagsRst = '0' then
                     trgFlag1(i) <= '1';
-                elsif trigger_PMTmasked_1(i) = '0' and flagsRst = '1' then
+                elsif flagsRst = '1' then
                     trgFlag1(i) <= '0';
                 else
                     trgFlag1(i) <= trgFlag1(i);
@@ -511,7 +511,7 @@ begin
             else
                 if trigger_PMTmasked_2(i) = '1' and flagsRst = '0' then
                     trgFlag2(i) <= '1';
-                elsif trigger_PMTmasked_2(i) = '0' and flagsRst = '1' then
+                elsif flagsRst = '1' then
                     trgFlag2(i) <= '0';
                 else
                     trgFlag2(i) <= trgFlag2(i);
@@ -531,9 +531,9 @@ begin
             if acquisition_state = '0' then
                 turrFlag(i) <= '0';
             else
-                if turretsFlagsSig(i) = '1' and flagsRst = '0' then
+                if plane(i) = '1' and flagsRst = '0' then
                     turrFlag(i) <= '1';
-                elsif turretsFlagsSig(i) = '0' and flagsRst = '1' then
+                elsif flagsRst = '1' then
                     turrFlag(i) <= '0';
                 else
                     turrFlag(i) <= turrFlag(i);
