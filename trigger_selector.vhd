@@ -224,11 +224,11 @@ TR2_02 <= plane(6);
 TR2_03 <= plane(7);
 EN1_2  <= plane(22);
 EN2_2  <= plane(25);
-LAT_1  <= plane(27);
-LAT_2  <= plane(28);
-LAT_3  <= plane(29);
-LAT_4  <= plane(30);
-BOT_00 <= plane(31);
+BOT_00 <= plane(27);
+LAT_1  <= plane(28);
+LAT_2  <= plane(29);
+LAT_3  <= plane(30);
+LAT_4  <= plane(31);
 
 internal_values: process(reset, clock, apply_trigger_mask)
 begin
