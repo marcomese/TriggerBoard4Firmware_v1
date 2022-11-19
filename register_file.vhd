@@ -697,7 +697,19 @@ signal stop_cal_pipe_1            : std_logic;
 signal sendRefDAC_pipe_0          : std_logic;
 signal sendRefDAC_pipe_1          : std_logic;
 
-signal r_write_done, s_write_done : std_logic;
+signal  r_write_done,
+        s_write_done,
+        r_start_config_1,
+        r_start_config_2,
+        r_sw_rst,
+        r_start_debug,
+        r_apply_trigger_mask,
+        r_apply_PMT_mask,
+        r_start_ACQ,
+        r_stop_ACQ,
+        r_start_cal,
+        r_stop_cal,
+        r_sendRefDAC              : std_logic;
 
 signal dataReadyOutSig            : std_logic;
 
@@ -725,21 +737,21 @@ dataReadyOut <= dataReadyOutSig;
 o_write_done      <= r_write_done;
 
 -- Commands
-start_config_1      <= start_config_1_pipe_0 and (not start_config_1_pipe_1);
-start_config_2      <= start_config_2_pipe_0 and (not start_config_2_pipe_1); 
+start_config_1      <= r_start_config_1;
+start_config_2      <= r_start_config_2;
 
-sw_rst              <= sw_rst_pipe_0 and (not sw_rst_pipe_1);
+sw_rst              <= r_sw_rst;
   
-start_debug         <= start_debug_pipe_0 and (not start_debug_pipe_1);
+start_debug         <= r_start_debug;
 
-apply_trigger_mask  <= apply_trigger_mask_pipe_0 and (not apply_trigger_mask_pipe_1);
-apply_PMT_mask      <= apply_PMT_mask_pipe_0 and (not apply_PMT_mask_pipe_1);
-start_ACQ           <= start_ACQ_pipe_0 and (not start_ACQ_pipe_1);
-stop_ACQ            <= stop_ACQ_pipe_0 and (not stop_ACQ_pipe_1);
-start_cal           <= start_cal_pipe_0 and (not start_cal_pipe_1);
-stop_cal            <= stop_cal_pipe_0 and (not stop_cal_pipe_1);
+apply_trigger_mask  <= r_apply_trigger_mask;
+apply_PMT_mask      <= r_apply_PMT_mask;
+start_ACQ           <= r_start_ACQ;
+stop_ACQ            <= r_stop_ACQ;
+start_cal           <= r_start_cal;
+stop_cal            <= r_stop_cal;
 
-sendRefDAC          <= sendRefDAC_pipe_0 and (not sendRefDAC_pipe_1);
+sendRefDAC          <= r_sendRefDAC;
 
 clk_counter_proc : process (clk, rst)
 begin
@@ -822,36 +834,47 @@ begin
 
         start_config_1_pipe_0     <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(0);
         start_config_1_pipe_1     <= start_config_1_pipe_0;
+        r_start_config_1          <= start_config_1_pipe_0 and (not start_config_1_pipe_1);
         
         start_config_2_pipe_0     <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(1);
         start_config_2_pipe_1     <= start_config_2_pipe_0;
-    
+        r_start_config_2          <= start_config_2_pipe_0 and (not start_config_2_pipe_1); 
+
         sw_rst_pipe_0             <= '1' when register_vector(get_local_addr(RST_REG_ADDR, address_vector)) = RST_WORD else '0';
         sw_rst_pipe_1             <= sw_rst_pipe_0;
-        
+        r_sw_rst                  <= sw_rst_pipe_0 and (not sw_rst_pipe_1);
+
         start_debug_pipe_0        <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(6);
         start_debug_pipe_1        <= start_debug_pipe_0;
-        
+        r_start_debug             <= start_debug_pipe_0 and (not start_debug_pipe_1);
+
         apply_trigger_mask_pipe_0 <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(7);
         apply_trigger_mask_pipe_1 <= apply_trigger_mask_pipe_0;
-        
+        r_apply_trigger_mask      <= apply_trigger_mask_pipe_0 and (not apply_trigger_mask_pipe_1);
+
         apply_PMT_mask_pipe_0     <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(8);
         apply_PMT_mask_pipe_1     <= apply_PMT_mask_pipe_0;
-        
+        r_apply_PMT_mask          <= apply_PMT_mask_pipe_0 and (not apply_PMT_mask_pipe_1);
+
         start_ACQ_pipe_0          <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(9);
         start_ACQ_pipe_1          <= start_ACQ_pipe_0;
-        
+        r_start_ACQ               <= start_ACQ_pipe_0 and (not start_ACQ_pipe_1);
+
         stop_ACQ_pipe_0           <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(10);
         stop_ACQ_pipe_1           <= stop_ACQ_pipe_0;
-        
+        r_stop_ACQ                <= stop_ACQ_pipe_0 and (not stop_ACQ_pipe_1);
+
         start_cal_pipe_0          <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(11);
         start_cal_pipe_1          <= start_cal_pipe_0;
-        
+        r_start_cal               <= start_cal_pipe_0 and (not start_cal_pipe_1);
+
         stop_cal_pipe_0           <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(12);
         stop_cal_pipe_1           <= stop_cal_pipe_0;
-        
+        r_stop_cal                <= stop_cal_pipe_0 and (not stop_cal_pipe_1);
+
         sendRefDAC_pipe_0         <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(14);
         sendRefDAC_pipe_1         <= sendRefDAC_pipe_0;
+        r_sendRefDAC              <= sendRefDAC_pipe_0 and (not sendRefDAC_pipe_1);
 
         do                        <= register_vector(local_address);
 
