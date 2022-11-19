@@ -523,7 +523,7 @@ end generate;
 
 turrFlagGen: for i in 0 to 4 generate
 begin
-    turrFlagInst: process(clock, swRst, turretsFlagsSig(i), flagsRst)
+    turrFlagInst: process(clock, swRst, plane(i), flagsRst)
     begin
         if swRst = '1' then
             turrFlag(i) <= '0';

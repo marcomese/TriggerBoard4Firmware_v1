@@ -830,6 +830,18 @@ begin
 
         s_write_done <= '0';
 
+        r_start_config_1 <= '0';
+        r_start_config_2 <= '0';
+        r_sw_rst <= '0';
+        r_start_debug <= '0';
+        r_apply_trigger_mask <= '0';
+        r_apply_PMT_mask <= '0';
+        r_start_ACQ <= '0';
+        r_stop_ACQ <= '0';
+        r_start_cal <= '0';
+        r_stop_cal <= '0';
+        r_sendRefDAC <= '0';
+
     elsif (rising_edge(clk)) then
         local_address             <= get_local_addr(addr, address_vector);
 
