@@ -578,6 +578,12 @@ constant register_vector_reset : mem_t(0 to REGISTER_FILE_LENGTH - 1) :=
     x"00000000",  -- MASK_RATE_07_ADDR            
     x"00000000",  -- MASK_RATE_08_ADDR
     x"00000000", --  MASK_RATE_09_ADDR
+
+    x"00000000", --  STATUS_REG_MIR_ADDR
+    x"00000000", --  CMD_REG_MIR_ADDR
+    x"00000000", --  TRG_COUNTER_ADDR
+    x"00000000", --  PPS_COUNTER_ADDR
+
     -- DAC piedistalli
     refDac1Def,  -- REF_DAC_1_ADDR
     refDac2Def,  -- REF_DAC_2_ADDR
