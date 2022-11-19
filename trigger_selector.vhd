@@ -395,6 +395,7 @@ begin
                 when others => trigger_int_vec(i) <= '0';
             end case;
         end if;
+    end process;
 end generate;
 
 presc18BitInst: prescaler18Bit
