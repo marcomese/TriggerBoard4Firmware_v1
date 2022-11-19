@@ -1314,7 +1314,7 @@ port map(
     clock      => s_clock48M,
     clock200k  => clk200k_sig,
     reset      => swRst,
-    busyState  => trgInhibit or trgBusy,
+    busyState  => (not trgInhibit) or trgBusy,
     acqState   => s_acquisition_state,
     trigger    => extendedTriggerOut,
     aliveCount => aliveCount,
