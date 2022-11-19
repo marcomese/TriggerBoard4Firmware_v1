@@ -79,6 +79,9 @@ port(
 
     holdoff             : out std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
+    trgCounter          : in std_logic_vector(31 downto 0);
+    ppsCounter          : in std_logic_vector(31 downto 0);
+
     PMT_rate            : in std_logic_vector(1023 downto 0);
     mask_rate           : in std_logic_vector(319 downto 0);
     board_temp          : in std_logic_vector(31 downto 0)
@@ -103,7 +106,7 @@ constant RST_WORD           : std_logic_vector(31 downto 0) := x"0DA00DA0";
 constant dataLenConst       : std_logic_vector(31 downto 0) := x"0000003E";
 
 constant dataRegsStart      : natural := 46;
-constant dataRegsStop       : natural := 155;
+constant dataRegsStop       : natural := 158;
 
 -- define the memory array
 type mem_t is array (natural range <>) of std_logic_vector(DATA_LENGHT - 1 downto 0);
@@ -211,6 +214,10 @@ constant MASK_RATE_06_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 
 constant MASK_RATE_07_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000007E";
 constant MASK_RATE_08_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000007F";
 constant MASK_RATE_09_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000080";
+constant STATUS_REG_MIR_ADDR          : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000081";
+constant CMD_REG_MIR_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000082";
+constant TRG_COUNTER_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000083";
+constant PPS_COUNTER_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000084";
 constant REF_DAC_1_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000A0";
 constant REF_DAC_2_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000A1";
 constant PCKTS_IN_FIFO_ADDR           : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000B2";
@@ -299,7 +306,8 @@ constant PRESC_M1_M0_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 
 -- rimossi i registri di citiroc_2 (205-36=169)
 -- rimosso il registro CAL_FREQ (169-1=168)
 -- ho rimosso 10 registri di dato non utilizzati (168-10=158)
-constant REGISTER_FILE_LENGTH    : integer := 158;
+-- aggiungo 4 registri di telemetria (158+4=162)
+constant REGISTER_FILE_LENGTH    : integer := 162;
 
 -- define the map of the address this is used to get the local address of the register
 constant address_vector : addr_vector_t(0 to REGISTER_FILE_LENGTH - 1) :=
@@ -394,6 +402,10 @@ constant address_vector : addr_vector_t(0 to REGISTER_FILE_LENGTH - 1) :=
     (addr => MASK_RATE_07_ADDR,         mode => RO),   
     (addr => MASK_RATE_08_ADDR,         mode => RO),
     (addr => MASK_RATE_09_ADDR,         mode => RO),
+    (addr => STATUS_REG_MIR_ADDR,       mode => RO),
+    (addr => CMD_REG_MIR_ADDR,          mode => RO),
+    (addr => TRG_COUNTER_ADDR,          mode => RO),
+    (addr => PPS_COUNTER_ADDR,          mode => RO),
     (addr => REF_DAC_1_ADDR,            mode => RW),
     (addr => REF_DAC_2_ADDR,            mode => RW),
     (addr => PCKTS_IN_FIFO_ADDR,        mode => RO),
@@ -848,17 +860,17 @@ begin
         -- update register vector
         register_vector(get_local_addr(CLK_REG_ADDR, address_vector))         <= std_logic_vector(clk_counter);
         
-        register_vector(get_local_addr(STATUS_REG_ADDR, address_vector))      <=  (31 downto 10 => '0') & -- bits [31:10]
-                                                                                  refDac_status_2       & -- bit  9
-                                                                                  refDac_status_1       & -- bit  8
-                                                                                  dataReadyOutSig       & -- bit  7
-                                                                                  TDAQ_BUSY             & -- bit  6
-                                                                                  DPCU_TRGHOLD          & -- bit  5
-                                                                                  DPCU_BUSY             & -- bit  4
-                                                                                  calibration_state     & -- bit  3
-                                                                                  acquisition_state     & -- bit  2
-                                                                                  config_status_2       & -- bit  1
-                                                                                  config_status_1       ; -- bit  0
+        register_vector(get_local_addr(STATUS_REG_ADDR, address_vector))      <= (31 downto 10 => '0') & -- bits [31:10]
+                                                                                 refDac_status_2       & -- bit  9
+                                                                                 refDac_status_1       & -- bit  8
+                                                                                 dataReadyOutSig       & -- bit  7
+                                                                                 TDAQ_BUSY             & -- bit  6
+                                                                                 DPCU_TRGHOLD          & -- bit  5
+                                                                                 DPCU_BUSY             & -- bit  4
+                                                                                 calibration_state     & -- bit  3
+                                                                                 acquisition_state     & -- bit  2
+                                                                                 config_status_2       & -- bit  1
+                                                                                 config_status_1       ; -- bit  0;
 
         refDAC_1 <= register_vector(get_local_addr(REF_DAC_1_ADDR, address_vector));
         refDAC_2 <= register_vector(get_local_addr(REF_DAC_2_ADDR, address_vector));
@@ -957,6 +969,11 @@ begin
             register_vector(get_local_addr(MASK_RATE_07_ADDR, address_vector))    <= mask_rate(255 downto  224);
             register_vector(get_local_addr(MASK_RATE_08_ADDR, address_vector))    <= mask_rate(287 downto  256);
             register_vector(get_local_addr(MASK_RATE_09_ADDR, address_vector))    <= mask_rate(319 downto  288);
+
+            register_vector(get_local_addr(STATUS_REG_MIR_ADDR, address_vector))  <= register_vector(get_local_addr(STATUS_REG_ADDR, address_vector));
+            register_vector(get_local_addr(CMD_REG_MIR_ADDR, address_vector))     <= register_vector(get_local_addr(CMD_REG_ADDR, address_vector));
+            register_vector(get_local_addr(TRG_COUNTER_ADDR, address_vector))     <= trgCounter;
+            register_vector(get_local_addr(PPS_COUNTER_ADDR, address_vector))     <= ppsCounter;
 
             register_vector(get_local_addr(PCKTS_IN_FIFO_ADDR, address_vector))   <= std_logic_vector(to_unsigned(fifoPckCnt,32));
 

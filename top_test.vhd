@@ -565,8 +565,8 @@ port(
     -- status register
     config_status_1     : in std_logic; 
     config_status_2     : in std_logic; 
-    acquisition_state   : in std_logic; -- = '1' quando il sistema è in acquisizione
-    calibration_state   : in std_logic; -- = '1' quando il sistema è in calibrazione
+    acquisition_state   : in std_logic; -- = '1' quando il sistema ï¿½ in acquisizione
+    calibration_state   : in std_logic; -- = '1' quando il sistema ï¿½ in calibrazione
 
     refDac_status_1     : in std_logic;
     refDac_status_2     : in std_logic;
@@ -578,6 +578,9 @@ port(
     regAcqData          : in  std_logic_vector(dataWidth-1  downto 0);
 
     holdoff             : out std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
+
+    trgCounter          : in std_logic_vector(31 downto 0);
+    ppsCounter          : in std_logic_vector(31 downto 0);
 
     PMT_rate            : in std_logic_vector(1023 downto 0);
     mask_rate           : in std_logic_vector(319 downto 0);
@@ -1550,6 +1553,9 @@ port map(
     regAcqData => regAcqData,
 
     holdoff => holdoff,
+
+    ppsCounter => ppsCountSync,
+    trgCounter => trigCounter,
 
     PMT_rate => s_PMT_rate,
     mask_rate => s_mask_rate,
