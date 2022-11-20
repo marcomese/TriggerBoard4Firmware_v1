@@ -719,12 +719,12 @@ signal clk200k_sig,
 signal s_select_reg_1    : std_logic;
 signal s_SR_IN_SR_1      : std_logic;
 signal s_RST_B_SR_1      : std_logic;
---signal s_CLK_SR_1        : std_logic;
+signal s_CLK_SR_1        : std_logic;
 signal s_load_1          : std_logic;
 signal s_select_reg_2    : std_logic;
 signal s_SR_IN_SR_2      : std_logic;
 signal s_RST_B_SR_2      : std_logic;
---signal s_CLK_SR_2        : std_logic;
+signal s_CLK_SR_2        : std_logic;
 signal s_load_2          : std_logic;
 
 signal s_trigger_in_1    : std_logic_vector(31 downto 0);
@@ -889,8 +889,8 @@ signal  CLK_READ_1_toBuf,
         CLK_READ_2_toBuf,
         SCLK_1_toBuf,
         SCLK_2_toBuf,
-        --CLK_SR_1_toBuf,
-        --CLK_SR_2_toBuf,
+        CLK_SR_1_toBuf,
+        CLK_SR_2_toBuf,
         s_refDacSCLK_1_toBuf,
         s_refDacSCLK_2_toBuf : std_logic;
 
@@ -1203,12 +1203,12 @@ port map(
     select_reg_1 => s_select_reg_1,
     SR_IN_SR_1 => s_SR_IN_SR_1,
     RST_B_SR_1 => s_RST_B_SR_1,
-    CLK_SR_1 => CLK_SR_1,--s_CLK_SR_1,
+    CLK_SR_1 => s_CLK_SR_1,
     load_1 => s_load_1,
     select_reg_2 => s_select_reg_2,
     SR_IN_SR_2 => s_SR_IN_SR_2,
     RST_B_SR_2 => s_RST_B_SR_2,
-    CLK_SR_2 => CLK_SR_2,--s_CLK_SR_2,
+    CLK_SR_2 => s_CLK_SR_2,
     load_2 => s_load_2,
 
     config_vector => s_config_vector,
@@ -1724,35 +1724,35 @@ port map(
     PAD => SCLK_2
 );
 
---ODRR_citirocClkSR1: DDR_OUT
---port map(
-    --DR => '0',
-    --DF => '1',
-    --CLR   => s_CLK_SR_1,
-    --CLK   => clk200k_sig,
-    --Q     => CLK_SR_1_toBuf
---);
---
---ODRR_citirocClkSR1_BUF: OUTBUF
---port map(
-    --D   => CLK_SR_1_toBuf,
-    --PAD => CLK_SR_1
---);
---
---ODRR_citirocClkSR2: DDR_OUT
---port map(
-    --DR => '0',
-    --DF => '1',
-    --CLR   => s_CLK_SR_2,
-    --CLK   => clk200k_sig,
-    --Q     => CLK_SR_2_toBuf
---);
---
---ODRR_citirocClkSR2_BUF: OUTBUF
---port map(
-    --D   => CLK_SR_2_toBuf,
-    --PAD => CLK_SR_2
---);
+ODRR_citirocClkSR1: DDR_OUT
+port map(
+    DR => '0',
+    DF => '1',
+    CLR   => s_CLK_SR_1,
+    CLK   => clk200k_sig,
+    Q     => CLK_SR_1_toBuf
+);
+
+ODRR_citirocClkSR1_BUF: OUTBUF
+port map(
+    D   => CLK_SR_1_toBuf,
+    PAD => CLK_SR_1
+);
+
+ODRR_citirocClkSR2: DDR_OUT
+port map(
+    DR => '0',
+    DF => '1',
+    CLR   => s_CLK_SR_2,
+    CLK   => clk200k_sig,
+    Q     => CLK_SR_2_toBuf
+);
+
+ODRR_citirocClkSR2_BUF: OUTBUF
+port map(
+    D   => CLK_SR_2_toBuf,
+    PAD => CLK_SR_2
+);
 
 ODRR_dacSCLK1: DDR_OUT
 port map( 

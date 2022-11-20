@@ -144,8 +144,7 @@ component delayLine is
 end component;
 
 component config_CITIROC_1 is
-port(
-    clock             : in std_logic;
+port(  
     clk200k           : in std_logic;
     reset             : in std_logic;
 
@@ -389,8 +388,7 @@ begin
 end process;
 
 configCit1Inst: config_CITIROC_1
-port map(
-    clock             => clock48M,
+port map(  
     clk200k           => clock200k,
     reset             => rst,
 
@@ -431,8 +429,7 @@ begin
 end process;
 
 configCit2Inst: config_CITIROC_1
-port map(
-    clock             => clock48M,
+port map(  
     clk200k           => clock200k,
     reset             => rst,
 
