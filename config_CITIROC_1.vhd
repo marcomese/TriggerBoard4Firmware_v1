@@ -115,7 +115,7 @@ begin
             end if;
 
         when state0 =>
-            if state0_cnt < 100000 then 
+            if state0_cnt < 2 then 
                 next_state <= state0;
             else
                 next_state <= reset_select0;

@@ -924,23 +924,23 @@ signal  crc32                : std_logic_vector(31 downto 0);
 
 begin
 
-PWR_ON_1  <= s_pwr_on_citiroc1;
-PWR_ON_2  <= s_pwr_on_citiroc2;
+PWR_ON_1  <= '1';--s_pwr_on_citiroc1;
+PWR_ON_2  <= '1';--s_pwr_on_citiroc2;
 VAL_EVT_1  <= '1';
 VAL_EVT_2  <= '1';    
 RAZ_CHN_1  <= '0';
 RAZ_CHN_2  <= '0';
 
-LVDS_TO_ASIC_EN_1 <= s_pwr_on_citiroc1;
-LVDS_TO_ASIC_EN_2 <= s_pwr_on_citiroc2;
+LVDS_TO_ASIC_EN_1 <= '1';--s_pwr_on_citiroc1;
+LVDS_TO_ASIC_EN_2 <= '1';--s_pwr_on_citiroc2;
 
 NOR32_1  <= 'Z' when s_pwr_on_citiroc1 = '1' else '0';
 NOR32_2  <= 'Z' when s_pwr_on_citiroc2 = '1' else '0';
 NOR32T_1 <= 'Z' when s_pwr_on_citiroc1 = '1' else '0';
 NOR32T_2 <= 'Z' when s_pwr_on_citiroc2 = '1' else '0';
 
-RESETB_PA_1 <= '0';
-RESETB_PA_2 <= '0';
+RESETB_PA_1 <= '1';
+RESETB_PA_2 <= '1';
 
 clk48BufInst: CLKINT
 port map(
@@ -1057,22 +1057,22 @@ port map(
     Y => swRst
 );
 
-ha_rstb_psc <= RST_FROM_SUPERVISOR and s_pwr_on_citiroc1;
-hb_rstb_psc <= RST_FROM_SUPERVISOR and s_pwr_on_citiroc2;
+ha_rstb_psc <= RST_FROM_SUPERVISOR;-- and s_pwr_on_citiroc1;
+hb_rstb_psc <= RST_FROM_SUPERVISOR;-- and s_pwr_on_citiroc2;
 
 ---------------------------------------------------
 -- Uscite verso CITIROC
 ---------------------------------------------------
 
-select_reg_1 <= s_select_reg_1 and s_pwr_on_citiroc1;
-SR_IN_SR_1   <= s_SR_IN_SR_1 and s_pwr_on_citiroc1;
-RST_B_SR_1   <= s_RST_B_SR_1 and s_pwr_on_citiroc1;
-load_1       <= s_load_1 and s_pwr_on_citiroc1;
+select_reg_1 <= s_select_reg_1;-- and s_pwr_on_citiroc1;
+SR_IN_SR_1   <= s_SR_IN_SR_1;-- and s_pwr_on_citiroc1;
+RST_B_SR_1   <= s_RST_B_SR_1;-- and s_pwr_on_citiroc1;
+load_1       <= s_load_1;-- and s_pwr_on_citiroc1;
 
-select_reg_2 <= s_select_reg_2 and s_pwr_on_citiroc2;
-SR_IN_SR_2   <= s_SR_IN_SR_2 and s_pwr_on_citiroc2;
-RST_B_SR_2   <= s_RST_B_SR_2 and s_pwr_on_citiroc2;
-load_2       <= s_load_2 and s_pwr_on_citiroc2;
+select_reg_2 <= s_select_reg_2;-- and s_pwr_on_citiroc2;
+SR_IN_SR_2   <= s_SR_IN_SR_2;-- and s_pwr_on_citiroc2;
+RST_B_SR_2   <= s_RST_B_SR_2;-- and s_pwr_on_citiroc2;
+load_2       <= s_load_2;-- and s_pwr_on_citiroc2;
 
 ---------------------------------------------------
 
@@ -1083,24 +1083,24 @@ s_SDATA_hg_1 <= SDATA_hg_1;
 s_SDATA_lg_1 <= SDATA_lg_1;
 CS_1 <= s_CS_1;
 
-hold_hg_1 <= s_hold_hg_1 and s_pwr_on_citiroc1;
-hold_lg_1 <= s_hold_lg_1 and s_pwr_on_citiroc1;
+hold_hg_1 <= s_hold_hg_1;-- and s_pwr_on_citiroc1;
+hold_lg_1 <= s_hold_lg_1;-- and s_pwr_on_citiroc1;
 
-SR_IN_READ_1 <= s_SR_IN_READ_1 and s_pwr_on_citiroc1;
-RST_B_READ_1 <= s_RST_B_READ_1 and s_pwr_on_citiroc1;
+SR_IN_READ_1 <= s_SR_IN_READ_1;-- and s_pwr_on_citiroc1;
+RST_B_READ_1 <= s_RST_B_READ_1;-- and s_pwr_on_citiroc1;
 
 s_SDATA_hg_2 <= SDATA_hg_2;
 s_SDATA_lg_2 <= SDATA_lg_2;
 CS_2 <= s_CS_2;
 
-hold_hg_2 <= s_hold_hg_2 and s_pwr_on_citiroc2;
-hold_lg_2 <= s_hold_lg_2 and s_pwr_on_citiroc2;
+hold_hg_2 <= s_hold_hg_2;-- and s_pwr_on_citiroc2;
+hold_lg_2 <= s_hold_lg_2;-- and s_pwr_on_citiroc2;
 
-SR_IN_READ_2 <= s_SR_IN_READ_2 and s_pwr_on_citiroc2;
-RST_B_READ_2 <= s_RST_B_READ_2 and s_pwr_on_citiroc2;
+SR_IN_READ_2 <= s_SR_IN_READ_2;-- and s_pwr_on_citiroc2;
+RST_B_READ_2 <= s_RST_B_READ_2;-- and s_pwr_on_citiroc2;
 
-PS_MODEB_EXT_1 <= '1' and s_pwr_on_citiroc1;
-PS_MODEB_EXT_2 <= '1' and s_pwr_on_citiroc2;
+PS_MODEB_EXT_1 <= '1';-- and s_pwr_on_citiroc1;
+PS_MODEB_EXT_2 <= '1';-- and s_pwr_on_citiroc2;
 
 ---------------------------------------------------
 -- Gli ingressi e le uscite di top_test 
