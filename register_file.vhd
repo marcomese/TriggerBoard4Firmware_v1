@@ -656,6 +656,8 @@ constant register_vector_reset : mem_t(0 to REGISTER_FILE_LENGTH - 1) :=
     x"00040001", -- PRESC_M1_M0
     x"00000000"
 );
+
+type state is (idle, wDataLenArrived, busyArrived);
     
 -------------------------------------------------------------------------------
 -- Signal Declaration
@@ -718,6 +720,10 @@ signal  r_write_done,
         r_sendRefDAC              : std_logic;
 
 signal dataReadyOutSig            : std_logic;
+
+signal  currState, nextState      : state;
+
+signal  wDLenReg, wDLenRegF       : std_logic;
 
 -------------------------------------------------------------------------------
 -- Function prototype
@@ -1083,7 +1089,7 @@ begin
 
             register_vector(get_local_addr(BOARD_TEMP_ADDR, address_vector))      <= board_temp;
 
-            if writeDataLen = '1' and DPCU_BUSY = '1' then
+            if wDLenReg = '1' then
                 register_vector(get_local_addr(ACQDATALEN_ADDR, address_vector))  <= dataLenConst;
             end if;
         end if;
@@ -1110,5 +1116,56 @@ begin
 
     end if;
 end process read_write_process;
+
+-- write ACQDATALEN register fsm
+syncProc: process(clk, rst)
+begin
+    if rst = '1' then
+        currState <= idle;
+        wDLenReg  <= '0';
+    elsif rising_edge(clk) then
+        currState <= nextState;
+        wDLenReg  <= wDLenRegF;
+    end if;
+end process;
+
+combProc: process(currState, writeDataLen, DPCU_BUSY)
+begin
+    case currState is
+        when idle =>
+            if writeDataLen = '1' then
+                nextState <= wDataLenArrived;
+            else
+                nextState <= idle;
+            end if;
+
+        when wDataLenArrived =>
+            if DPCU_BUSY = '1' then
+                nextState <= busyArrived;
+            else
+                nextState <= wDataLenArrived;
+            end if;
+
+        when busyArrived =>
+            nextState <= idle;
+
+        when others =>
+            nextState <= idle;
+    end case;
+end process;
+
+outProc: process(nextState)
+begin
+    case nextState is
+        when idle =>
+            wDLenRegF <= '0';
+        when wDataLenArrived =>
+            wDLenRegF <= '0';
+        when busyArrived =>
+            wDLenRegF <= '1';
+        when others =>
+            wDLenRegF <= '0';
+    end case;
+end process;
 
 end Behavioral;
