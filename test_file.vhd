@@ -212,7 +212,7 @@ port(
     trigger_mask         : in  std_logic_vector(31 downto 0);
     apply_trigger_mask   : in  std_logic;
     apply_PMT_mask       : in  std_logic;
-    start_readers        : in  std_logic;
+    triggerInhibit       : in  std_logic;
 
     calibration_state    : in  std_logic;
     acquisition_state    : in  std_logic;
@@ -533,8 +533,6 @@ begin
    end if;
 end process;
 
-start_readers_sig <= acquisition_state_sig or calibration_state_sig;
-
 triggerLogicFSMInst: TRIGGER_logic_FSM
 generic map(
     concurrentTriggers   => concurrentTriggers,
@@ -555,7 +553,7 @@ port map (
     trigger_mask         => trigger_mask,
     apply_trigger_mask   => apply_trigger_mask,
     apply_PMT_mask       => apply_PMT_mask,
-    start_readers        => start_readers_sig,
+    triggerInhibit       => triggerInhibit,
 
     triggerID            => triggerID,
 

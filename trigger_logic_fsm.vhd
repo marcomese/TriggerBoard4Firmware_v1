@@ -25,7 +25,7 @@ port(
     trigger_mask         : in  std_logic_vector(31 downto 0);
     apply_trigger_mask   : in  std_logic;
     apply_PMT_mask       : in  std_logic;
-    start_readers        : in  std_logic;
+    triggerInhibit       : in  std_logic;
 
     calibration_state    : in  std_logic;
     acquisition_state    : in  std_logic;
@@ -136,9 +136,6 @@ port(
 end component;
 
 constant TRG_LENGHT : integer := 19; -- Number of clock cycles 200MHz
---constant TRG_LENGHT : integer := 18; -- Number of clock cycles 192MHz
---constant TRG_LENGHT : integer := 9; -- Number of clock cycles 96MHz
---constant TRG_LENGHT : integer := 4; -- Number of clock cycles 48MHz
 constant RATE_TIME  : integer := 200000; -- 1 sec a 200kHz
 
 type count_array is array (0 to 31) of std_logic_vector(15 downto 0);
@@ -582,22 +579,16 @@ end process;
 
 -- FSM combinational block(NEXT_STATE_DECODE)
 	
-fsm: process(pres_state, debug, start_readers, acquisition_state, calibration_state, trigger, debug, count)
+fsm: process(pres_state, debug, triggerInhibit, acquisition_state, calibration_state, trigger, debug, count)
 begin
     next_state <= pres_state;
 
     case pres_state is
         when wait_state => -- sistema in attesa
-            if debug = '1' then
+            if debug = '1' or calibration_state = '1' then
                 next_state <= trg_state;
-            elsif start_readers= '1' then
-                if (calibration_state = '1' and trigger = '0') or debug = '1' then
-                    next_state <= trg_state;
-                elsif (acquisition_state = '1' and trigger = '1') or debug = '1' then
-                    next_state <= trg_state;
-                else
-                    next_state <= wait_state;
-                end if;
+            elsif acquisition_state = '1' and triggerInhibit = '0' and trigger = '1' then
+                next_state <= trg_state;
             else
                 next_state <= wait_state;
             end if;

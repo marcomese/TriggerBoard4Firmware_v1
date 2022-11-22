@@ -198,6 +198,19 @@ attribute syn_replicate of reset_counter : signal is false;
 
 begin
 
+triggerMasksProc: process(reset, clock, apply_trigger_mask)
+begin
+    if reset='1' then
+        generic_trigger_mask_int <= (others=> '0');
+        trigger_mask_int <= X"00000000";
+    elsif rising_edge(clock) then
+        if apply_trigger_mask = '1' then
+            generic_trigger_mask_int <= generic_trigger_mask;
+            trigger_mask_int <= trigger_mask;
+        end if;
+    end if;
+end process;
+
 triggerID <= triggerIDSig;
 
 TR1    <= plane(0) or plane(1) or plane(2) or plane(3) or plane(4);
@@ -230,58 +243,6 @@ LAT_2  <= plane(29);
 LAT_3  <= plane(30);
 LAT_4  <= plane(31);
 
-internal_values: process(reset, clock, apply_trigger_mask)
-begin
-    if reset='1' then
-        generic_trigger_mask_int <= (others=> '0');
-        trigger_mask_int <= X"00000000";
-    elsif rising_edge(clock) then
-        if apply_trigger_mask = '1' then
-            generic_trigger_mask_int <= generic_trigger_mask;
-            trigger_mask_int <= trigger_mask;
-        end if;
-    end if;
-end process;
-
--------------------- Costruzione delle configurazioni di trigger --------------------------------
-veto_lateral <= LAT_1 or LAT_2 or LAT_3 or LAT_4;
-
-veto_bottom  <= BOT_00;
-
-trigger(0)   <= TR1AND;
-
-trigger(1)   <= (TR1 and TR2);
-
-trigger(2)   <= (TR1 and TR2) and RAN_01;
-
-trigger(3)   <= (TR1 and TR2) and RAN_02;
-
-trigger(4)   <= veto_lateral and not (TR1 and veto_bottom);
-
-trigger(5)   <= TR1 and TR2 and RAN_12;
-
-trigger(6)   <= veto_bottom and EN1 and EN2 and not (TR1 or TR2 or veto_lateral);
-
-trigger(7)   <= (RAN_05 or RAN_06 or RAN_07 or RAN_08) and not (TR1 or TR2 or
-                                                                RAN_01 or RAN_02 or RAN_03 or RAN_04 or
-                                                                RAN_09 or RAN_10 or RAN_11 or RAN_12 or
-                                                                veto_lateral or veto_bottom or
-                                                                EN1 or EN2);
-
-trigger(8)   <= (EN1 or EN2) and not (TR1 or TR2 or
-                                      RAN_01 or RAN_02 or RAN_03 or RAN_04 or
-                                      RAN_05 or RAN_06 or RAN_07 or RAN_08 or
-                                      RAN_09 or RAN_10 or RAN_11 or RAN_12 or
-                                      veto_lateral or veto_bottom);
-
-trigger(9)   <= TR1_masked and TR2_masked and
-                plane_masked(0) and plane_masked(1) and plane_masked(2) and plane_masked(3) and
-                plane_masked(4) and plane_masked(5) and plane_masked(6) and plane_masked(7) and
-                plane_masked(8) and plane_masked(9) and plane_masked(10) and plane_masked(10) and plane_masked(11) and
-                EN1_masked and EN2_masked and
-                LAT_1_masked and LAT_2_masked and LAT_3_masked and LAT_4_masked and
-                BOT_00_masked;
-
 TR1_masked <= TR1 or (not generic_trigger_mask_int(0));
 TR2_masked <= TR2 or (not generic_trigger_mask_int(1));
 
@@ -297,6 +258,54 @@ LAT_2_masked  <= LAT_2  or (not generic_trigger_mask_int(17));
 LAT_3_masked  <= LAT_3  or (not generic_trigger_mask_int(18));
 LAT_4_masked  <= LAT_4  or (not generic_trigger_mask_int(19));
 BOT_00_masked <= BOT_00 or (not generic_trigger_mask_int(20));
+
+-------------------- Costruzione delle configurazioni di trigger --------------------------------
+trgSigProc: process(reset, clock)
+begin
+    if reset = '1' then
+        veto_lateral <= '0';
+        veto_bottom  <= '0';
+        trigger      <= (others => '0');
+    elsif rising_edge(clock) then
+        veto_lateral <= LAT_1 or LAT_2 or LAT_3 or LAT_4;
+
+        veto_bottom  <= BOT_00;
+
+        trigger(0)   <= TR1AND;
+
+        trigger(1)   <= (TR1 and TR2);
+
+        trigger(2)   <= (TR1 and TR2) and RAN_01;
+
+        trigger(3)   <= (TR1 and TR2) and RAN_02;
+
+        trigger(4)   <= veto_lateral and not (TR1 and veto_bottom);
+
+        trigger(5)   <= TR1 and TR2 and RAN_12;
+
+        trigger(6)   <= veto_bottom and EN1 and EN2 and not (TR1 or TR2 or veto_lateral);
+
+        trigger(7)   <= (RAN_05 or RAN_06 or RAN_07 or RAN_08) and not (TR1 or TR2 or
+                                                                        RAN_01 or RAN_02 or RAN_03 or RAN_04 or
+                                                                        RAN_09 or RAN_10 or RAN_11 or RAN_12 or
+                                                                        veto_lateral or veto_bottom or
+                                                                        EN1 or EN2);
+
+        trigger(8)   <= (EN1 or EN2) and not (TR1 or TR2 or
+                                              RAN_01 or RAN_02 or RAN_03 or RAN_04 or
+                                              RAN_05 or RAN_06 or RAN_07 or RAN_08 or
+                                              RAN_09 or RAN_10 or RAN_11 or RAN_12 or
+                                              veto_lateral or veto_bottom);
+
+        trigger(9)   <= TR1_masked and TR2_masked and
+                        plane_masked(0) and plane_masked(1) and plane_masked(2) and plane_masked(3) and
+                        plane_masked(4) and plane_masked(5) and plane_masked(6) and plane_masked(7) and
+                        plane_masked(8) and plane_masked(9) and plane_masked(10) and plane_masked(10) and plane_masked(11) and
+                        EN1_masked and EN2_masked and
+                        LAT_1_masked and LAT_2_masked and LAT_3_masked and LAT_4_masked and
+                        BOT_00_masked;
+    end if;
+end process;
 
 sincronizzatore : for i in 0 to maskNum-1 generate
 begin
