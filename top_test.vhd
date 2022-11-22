@@ -999,7 +999,7 @@ dpcuBusyInSync  <= dpcu_tdaq_sync(2);
 dpcuTrgHoldSync <= dpcu_tdaq_sync(1);
 tdaqBusyInSync  <= dpcu_tdaq_sync(0);
 
-trgInhibit <= (not dpcuBusyInSync) or (not dpcuTrgHoldSync) or (not tdaqBusyInSync) or fifoAFULL;
+trgInhibit <= (not dpcuTrgHoldSync) or (not tdaqBusyInSync) or fifoAFULL;
 
 triggerOutExpand: trigger_extender_100ns
 port map(
@@ -1009,8 +1009,8 @@ port map(
     trigger_out => extendedTriggerOut
 );
 
-PS_global_trig_1 <= extendedTriggerOut;
-PS_global_trig_2 <= extendedTriggerOut;
+PS_global_trig_1 <= trigger_interno_sig;
+PS_global_trig_2 <= trigger_interno_sig;
 
 TRG     <= extendedTriggerOut;
 
@@ -1026,8 +1026,8 @@ wdRst <= not RST_FROM_SUPERVISOR;
 triggerCntInst: counter32Bit
 port map(
     Aclr   => swRst,
-    Clock  => s_clock200M,
-    Enable => trigger_interno_sig,
+    Clock  => s_clock48M,
+    Enable => trgBusySet,
     Q      => trigCounter
 );
 
@@ -1057,8 +1057,8 @@ port map(
     Y => swRst
 );
 
-ha_rstb_psc <= RST_FROM_SUPERVISOR and s_pwr_on_citiroc1;
-hb_rstb_psc <= RST_FROM_SUPERVISOR and s_pwr_on_citiroc2;
+ha_rstb_psc <= s_pwr_on_citiroc1;
+hb_rstb_psc <= s_pwr_on_citiroc2;
 
 ---------------------------------------------------
 -- Uscite verso CITIROC
