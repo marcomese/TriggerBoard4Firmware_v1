@@ -478,9 +478,7 @@ begin
         if swRst = '1' then
             trgFlag1(i) <= '0';
         elsif rising_edge(clock) then
-            if acquisition_state = '0' then
-                trgFlag1(i) <= '0';
-            else
+            if acquisition_state = '1' then
                 if trigger_PMTmasked_1(i) = '1' and flagsRst = '0' then
                     trgFlag1(i) <= '1';
                 elsif flagsRst = '1' then
@@ -488,6 +486,8 @@ begin
                 else
                     trgFlag1(i) <= trgFlag1(i);
                 end if;
+            else
+                trgFlag1(i) <= '0';
             end if;
         end if;
     end process;
@@ -500,9 +500,7 @@ begin
         if swRst = '1' then
             trgFlag2(i) <= '0';
         elsif rising_edge(clock) then
-            if acquisition_state = '0' then
-                trgFlag2(i) <= '0';
-            else
+            if acquisition_state = '1' then
                 if trigger_PMTmasked_2(i) = '1' and flagsRst = '0' then
                     trgFlag2(i) <= '1';
                 elsif flagsRst = '1' then
@@ -510,6 +508,8 @@ begin
                 else
                     trgFlag2(i) <= trgFlag2(i);
                 end if;
+            else
+                trgFlag2(i) <= '0';
             end if;
         end if;
     end process;
@@ -522,9 +522,7 @@ begin
         if swRst = '1' then
             turrFlag(i) <= '0';
         elsif rising_edge(clock) then
-            if acquisition_state = '0' then
-                turrFlag(i) <= '0';
-            else
+            if acquisition_state = '1' then
                 if plane(i) = '1' and flagsRst = '0' then
                     turrFlag(i) <= '1';
                 elsif flagsRst = '1' then
@@ -532,6 +530,8 @@ begin
                 else
                     turrFlag(i) <= turrFlag(i);
                 end if;
+            else
+                turrFlag(i) <= '0';
             end if;
         end if;
     end process;
