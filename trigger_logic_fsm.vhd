@@ -175,7 +175,7 @@ signal  idle,
 
 signal  time_cnt : integer range 0 to RATE_TIME;
 
-signal  calibCount : unsigned(15 downto 0);
+signal  calibCount : std_logic_vector(15 downto 0);
 
 signal  calibSig,
         calibRise  : std_logic;
@@ -661,12 +661,12 @@ begin
         calibCount <= (others => '0');
         calibSig   <= '0';
     elsif rising_edge(clock200k) then
-        if calibration_state = '1' and calibPeriod /= 0 then 
-            if calibCount = unsigned(calibPeriod)-1 then
+        if calibration_state = '1' and calibPeriod /= x"0000" then 
+            if calibCount = calibPeriod then
                 calibCount <= (others => '0');
                 calibSig   <= '1';
             else
-                calibCount <= calibCount + 1;
+                calibCount <= std_logic_vector(unsigned(calibCount) + 1);
                 calibSig   <= '0';
             end if;
         else
