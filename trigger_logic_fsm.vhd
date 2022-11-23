@@ -48,6 +48,8 @@ port(
     turretsFlags         : out std_logic_vector(7 downto 0);
     turretsCounters      : out std_logic_vector(159 downto 0);
 
+    calibPeriod          : in std_logic_vector(15 downto 0);
+
     trg_to_DAQ_EASI      : out std_logic  -- attivo alto
 );
 end TRIGGER_logic_FSM;
@@ -168,6 +170,11 @@ signal  idle,
         trigger : std_logic;
 
 signal  time_cnt : integer range 0 to RATE_TIME;
+
+signal  calibCount : unsigned(15 downto 0);
+
+signal  calibSig,
+        calibRise  : std_logic;
 
 signal  rate_time_sig, rise_rate, reset_counter : std_logic;
 
@@ -579,13 +586,13 @@ end process;
 
 -- FSM combinational block(NEXT_STATE_DECODE)
 	
-fsm: process(pres_state, debug, triggerInhibit, acquisition_state, calibration_state, trigger, debug, count)
+fsm: process(pres_state, debug, triggerInhibit, acquisition_state, calibRise, trigger, debug, count)
 begin
     next_state <= pres_state;
 
     case pres_state is
         when wait_state => -- sistema in attesa
-            if debug = '1' or calibration_state = '1' then
+            if debug = '1' or calibRise = '1' then
                 next_state <= trg_state;
             elsif acquisition_state = '1' and triggerInhibit = '0' and trigger = '1' then
                 next_state <= trg_state;
@@ -657,6 +664,37 @@ begin
         end if;       
    end if;
 end process;
+
+calibCounter: process(reset, clock200k, calibCount)
+begin
+    if reset = '1' then
+        calibCount <= (others => '0');
+    elsif rising_edge(clock200k) then
+        if calibration_state = '1' then 
+            if calibCount < unsigned(calibPeriod)-1 then
+                calibCount <= calibCount + 1;
+                calibSig   <= '0';
+            else
+                calibCount <= (others => '0');
+                calibSig   <= '1';
+            end if;
+        else
+            calibCount <= (others => '0');
+            calibSig   <= '0';
+        end if;
+    end if;
+end process;
+
+calibRisingInst: edgeDetector
+generic map(
+    edge      => '1'
+)
+port map(
+    clk       => clock,
+    rst       => reset,
+    signalIn  => calibSig,
+    signalOut => calibRise
+);
 
 sincronizzatore_rate : process(reset, clock, rate_time_sig)
 variable resync : std_logic_vector(1 to 3):=(others=> '0');
