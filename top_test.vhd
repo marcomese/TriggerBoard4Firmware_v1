@@ -926,7 +926,7 @@ signal  s_triggerID          : std_logic_vector(7 downto 0);
 
 signal  crc32                : std_logic_vector(31 downto 0);
 
-signal  calibPeriod          : std_logic_vector(15 downto 0);
+signal  s_calibPeriod        : std_logic_vector(15 downto 0);
 
 begin
 
@@ -1262,7 +1262,7 @@ port map(
 
     holdoff => holdoff,
 
-    calibPeriod => calibPeriod,
+    calibPeriod => s_calibPeriod,
 
     debug_triggerIN => s_start_debug
 );
@@ -1565,7 +1565,7 @@ port map(
     ppsCounter => ppsCountSync,
     trgCounter => trigCounter,
 
-    calibPeriod => calibPeriod,
+    calibPeriod => s_calibPeriod,
 
     PMT_rate => s_PMT_rate,
     mask_rate => s_mask_rate,

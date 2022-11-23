@@ -655,18 +655,19 @@ begin
    end if;
 end process;
 
-calibCounter: process(reset, clock200k, calibCount)
+calibCounter: process(reset, clock200k, calibCount, calibration_state)
 begin
     if reset = '1' then
         calibCount <= (others => '0');
+        calibSig   <= '0';
     elsif rising_edge(clock200k) then
-        if calibration_state = '1' then 
-            if calibCount < unsigned(calibPeriod)-1 then
-                calibCount <= calibCount + 1;
-                calibSig   <= '0';
-            else
+        if calibration_state = '1' and calibPeriod /= 0 then 
+            if calibCount = unsigned(calibPeriod)-1 then
                 calibCount <= (others => '0');
                 calibSig   <= '1';
+            else
+                calibCount <= calibCount + 1;
+                calibSig   <= '0';
             end if;
         else
             calibCount <= (others => '0');
