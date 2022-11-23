@@ -119,20 +119,24 @@ port(
 );
 end component;
 
-component counter16Bit is
+component counter16BitSload is
 port(
     Aclr   : in    std_logic;
+    Sload  : in    std_logic;
     Clock  : in    std_logic;
     Enable : in    std_logic;
+    Data   : in    std_logic_vector(15 downto 0);
     Q      : out   std_logic_vector(15 downto 0)
 );
 end component;
 
-component counter32Bit is
+component counter32BitSload is
 port(
     Aclr   : in    std_logic;
+    Sload  : in    std_logic;
     Clock  : in    std_logic;
     Enable : in    std_logic;
+    Data   : in    std_logic_vector(31 downto 0);
     Q      : out   std_logic_vector(31 downto 0)
 );
 end component;
@@ -212,10 +216,6 @@ signal  trgFlag1,
 signal  turrFlag           : std_logic_vector(4 downto 0);
 
 signal  flagsRst           : std_logic;
-
-attribute syn_replicate : boolean;
-
-attribute syn_replicate of reset_counter : signal is false;
 
 begin
 
@@ -299,22 +299,26 @@ port map(
 
 PMT_counter_process1 : for i in 0 to 31 generate
 begin
-    counter1_trigger_i: counter16Bit
+    counter1_trigger_i: counter16BitSload
     port map(
-        Aclr   => reset_counter,
+        Aclr   => reset,
+        Sload  => reset_counter,
         Clock  => clock,
         Enable => rise_1(i),
+        Data   => (others => '0'),
         Q      => count_pmt_1(i)
     );
 end generate PMT_counter_process1;
 
 PMT_counter_process2 : for i in 0 to 31 generate
 begin
-    counter2_trigger_i: counter16Bit
+    counter2_trigger_i: counter16BitSload
     port map(
-        Aclr   => reset_counter,
+        Aclr   => reset,
+        Sload  => reset_counter,
         Clock  => clock,
         Enable => rise_2(i),
+        Data   => (others => '0'),
         Q      => count_pmt_2(i)
     );
 end generate PMT_counter_process2;
@@ -335,11 +339,13 @@ end generate;
 
 turretsCountersInst: for i in 0 to 4 generate
 begin
-    turretsCounter_i: counter32Bit
+    turretsCounter_i: counter32BitSload
     port map(
-        Aclr   => reset_counter,
+        Aclr   => reset,
+        Sload  => reset_counter,
         Clock  => clock,
         Enable => turretsCntEn(i),
+        Data   => (others => '0'),
         Q      => turretsCountersVal(31+(i*32) downto i*32)
     );
 end generate;
@@ -401,30 +407,14 @@ end process;
 
 PMT_mask_plane_gen: for i in 0 to 31 generate
 begin
-    --syncProc: process(clock, reset)
-    --begin
-        --if reset = '1' then
-            --trigger_PMTmasked_1(i) <= '0';
-            --trigger_PMTmasked_2(i) <= '0';
-            --plane(i) <= '0';
-        --elsif rising_edge(clock) then
-            trigger_PMTmasked_1(i) <= trigger_sincro_1(i) and PMT_mask_int_1(i);
-            trigger_PMTmasked_2(i) <= trigger_sincro_2(i) and PMT_mask_int_2(i);
-            plane(i) <= trigger_PMTmasked_1(i) or trigger_PMTmasked_2(i);
-        --end if;
-    --end process;
+    trigger_PMTmasked_1(i) <= trigger_sincro_1(i) and PMT_mask_int_1(i);
+    trigger_PMTmasked_2(i) <= trigger_sincro_2(i) and PMT_mask_int_2(i);
+    plane(i) <= trigger_PMTmasked_1(i) or trigger_PMTmasked_2(i);
 end generate PMT_mask_plane_gen;
 
 planeT1MaskGen: for i in 0 to 4 generate
 begin
-    --planeT1MaskProc: process(clock, reset)
-    --begin
-        --if reset = '1' then
-            --planeT1And(i) <= '0';
-        --elsif rising_edge(clock) then
-            planeT1And(i) <= trigger_PMTmasked_1(i) and trigger_PMTmasked_2(i);
-        --end if;
-    --end process;
+    planeT1And(i) <= trigger_PMTmasked_1(i) and trigger_PMTmasked_2(i);
 end generate;
 
 trigger_selector_component : TRIGGER_selector
