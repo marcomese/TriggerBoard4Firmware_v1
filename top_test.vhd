@@ -939,8 +939,8 @@ NOR32_2  <= 'Z' when s_pwr_on_citiroc2 = '1' else '0';
 NOR32T_1 <= 'Z' when s_pwr_on_citiroc1 = '1' else '0';
 NOR32T_2 <= 'Z' when s_pwr_on_citiroc2 = '1' else '0';
 
-RESETB_PA_1 <= '0';
-RESETB_PA_2 <= '0';
+RESETB_PA_1 <= s_pwr_on_citiroc1;
+RESETB_PA_2 <= s_pwr_on_citiroc2;
 
 clk48BufInst: CLKINT
 port map(
