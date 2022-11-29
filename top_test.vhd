@@ -579,6 +579,9 @@ port(
 
     holdoff             : out std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
+    trgCounter          : in std_logic_vector(31 downto 0);
+    ppsCounter          : in std_logic_vector(31 downto 0);
+
     PMT_rate            : in std_logic_vector(1023 downto 0);
     mask_rate           : in std_logic_vector(319 downto 0);
     board_temp          : in std_logic_vector(31 downto 0)
@@ -1550,6 +1553,9 @@ port map(
     regAcqData => regAcqData,
 
     holdoff => holdoff,
+
+    ppsCounter => ppsCountSync,
+    trgCounter => trigCounter,
 
     PMT_rate => s_PMT_rate,
     mask_rate => s_mask_rate,
