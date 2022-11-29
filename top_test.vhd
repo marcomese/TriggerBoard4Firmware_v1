@@ -579,6 +579,9 @@ port(
 
     holdoff             : out std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
+    trgCounter          : in std_logic_vector(31 downto 0);
+    ppsCounter          : in std_logic_vector(31 downto 0);
+
     PMT_rate            : in std_logic_vector(1023 downto 0);
     mask_rate           : in std_logic_vector(319 downto 0);
     board_temp          : in std_logic_vector(31 downto 0)
@@ -919,6 +922,8 @@ signal  s_triggerID          : std_logic_vector(7 downto 0);
 
 signal  crc32                : std_logic_vector(31 downto 0);
 
+signal  s_clock200Mto100M    : std_logic;
+
 begin
 
 PWR_ON_1  <= s_pwr_on_citiroc1;
@@ -945,9 +950,16 @@ port map(
     Y => s_clock48M
 );
 
+clk200DivInst: clkDiv2
+port map(
+    rst    => s_global_rst,
+    clkIn  => clock200M,
+    clkOut => s_clock200Mto100M
+);
+
 clk200BufInst: CLKINT
 port map(
-    A => clock200M,
+    A => s_clock200Mto100M,--clock200M,
     Y => s_clock200M
 );
 
@@ -1006,8 +1018,8 @@ port map(
     trigger_out => extendedTriggerOut
 );
 
-PS_global_trig_1 <= extendedTriggerOut;
-PS_global_trig_2 <= extendedTriggerOut;
+PS_global_trig_1 <= trigger_interno_sig;--extendedTriggerOut;
+PS_global_trig_2 <= trigger_interno_sig;--extendedTriggerOut;
 
 TRG     <= extendedTriggerOut;
 
@@ -1024,7 +1036,7 @@ triggerCntInst: counter32Bit
 port map(
     Aclr   => swRst,
     Clock  => s_clock200M,
-    Enable => trigger_interno_sig,
+    Enable => trgBusySet,
     Q      => trigCounter
 );
 
@@ -1550,6 +1562,9 @@ port map(
     regAcqData => regAcqData,
 
     holdoff => holdoff,
+
+    ppsCounter => ppsCountSync,
+    trgCounter => trigCounter,
 
     PMT_rate => s_PMT_rate,
     mask_rate => s_mask_rate,
