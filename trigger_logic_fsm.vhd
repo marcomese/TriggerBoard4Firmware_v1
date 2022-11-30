@@ -148,7 +148,8 @@ port(
 );
 end component;
 
-constant TRG_LENGHT : integer := 19; -- Number of clock cycles 200MHz
+--constant TRG_LENGHT : integer := 19; -- Number of clock cycles 200MHz
+constant TRG_LENGHT : integer := 9;
 --constant TRG_LENGHT : integer := 18; -- Number of clock cycles 192MHz
 --constant TRG_LENGHT : integer := 9; -- Number of clock cycles 96MHz
 --constant TRG_LENGHT : integer := 4; -- Number of clock cycles 48MHz

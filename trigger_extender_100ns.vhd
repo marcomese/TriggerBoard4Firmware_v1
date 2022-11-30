@@ -13,7 +13,8 @@ end trigger_extender_100ns;
 
 architecture Behavioral of trigger_extender_100ns is
 
-constant TRG_LENGHT : integer := 20; -- Number of clock cycles 200MHz
+constant TRG_LENGHT : integer := 10; -- Number of clock cycles 100MHz
+--constant TRG_LENGHT : integer := 20; -- Number of clock cycles 200MHz
 --constant TRG_LENGHT : integer := 19; -- Number of clock cycles 192MHz
 --constant TRG_LENGHT : integer := 10; -- Number of clock cycles 96MHz
 --constant TRG_LENGHT : integer := 5; -- Number of clock cycles 48MHz
