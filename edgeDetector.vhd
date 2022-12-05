@@ -3,6 +3,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity edgeDetector is
 generic(
+    clockEdge : std_logic := '1'; -- '0' falling, '1' rising
     edge      : std_logic := '0' -- '0' falling, '1' rising
 );
 port(
@@ -28,15 +29,31 @@ fallingEdgeGen: if edge = '0' generate
     signalOut <= not ff1 and ff2;
 end generate;
 
-edgeProc: process(clk,rst)
-begin
-    if rst = '1' then
-        ff1 <= '0';
-        ff2 <= '0';
-    elsif rising_edge(clk) then
-        ff1 <= signalIn;
-        ff2 <= ff1;
-    end if;
-end process;
+riseEdgeGen: if clockEdge = '1' generate
+    edgeProc: process(clk,rst)
+    begin
+        if rst = '1' then
+            ff1 <= '0';
+            ff2 <= '0';
+        elsif rising_edge(clk) then
+            ff1 <= signalIn;
+            ff2 <= ff1;
+        end if;
+    end process;
+end generate;
+
+fallEdgeGen: if clockEdge = '0' generate
+    edgeProc: process(clk,rst)
+    begin
+        if rst = '1' then
+            ff1 <= '0';
+            ff2 <= '0';
+        elsif falling_edge(clk) then
+            ff1 <= signalIn;
+            ff2 <= ff1;
+        end if;
+    end process;
+end generate;
+
 
 end Behavioral;

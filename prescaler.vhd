@@ -44,7 +44,14 @@ triggerOut <= clearCount;
 
 holdoffCount <= to_integer(unsigned(holdoffCountVec));
 
-clearCount <= '1' when (holdoffCount /= 0 and holdoffCount = unsigned(holdoff)) else '0';
+clearSyncInst: process(clk, rst)
+begin
+    if rst = '1' then
+        clearCount <= '1';
+    elsif rising_edge(clk) then
+        clearCount <= '1' when (holdoffCount /= 0 and holdoffCount = unsigned(holdoff)) else '0';
+    end if;
+end process;
 
 -- per migliorare il timing uso un contatore look-ahead!!!
 

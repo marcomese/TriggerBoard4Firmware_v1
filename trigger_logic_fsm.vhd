@@ -130,20 +130,24 @@ port(
 );
 end component;
 
-component counter16Bit is
+component counter16BitSload is
 port(
     Aclr   : in    std_logic;
+    Sload  : in    std_logic;
     Clock  : in    std_logic;
     Enable : in    std_logic;
+    Data   : in    std_logic_vector(15 downto 0);
     Q      : out   std_logic_vector(15 downto 0)
 );
 end component;
 
-component counter32Bit is
+component counter32BitSload is
 port(
     Aclr   : in    std_logic;
+    Sload  : in    std_logic;
     Clock  : in    std_logic;
     Enable : in    std_logic;
+    Data   : in    std_logic_vector(31 downto 0);
     Q      : out   std_logic_vector(31 downto 0)
 );
 end component;
@@ -223,12 +227,17 @@ signal  turrFlag           : std_logic_vector(4 downto 0);
 
 signal  flagsRst           : std_logic;
 
-signal  trigger_in_sync_1,
+signal  fallingTrg1, fallingTrg2,
+        trigger_in_sync_1,
         trigger_in_sync_2   : std_logic_vector(31 downto 0);
 
-attribute syn_replicate : boolean;
+signal  trg1FlagSync,
+        trg2FlagSync        : std_logic_vector(31 downto 0);
+signal  turrFlagSync        : std_logic_vector(4 downto 0);
 
-attribute syn_replicate of reset_counter : signal is false;
+--attribute syn_replicate : boolean;
+
+--attribute syn_replicate of reset_counter : signal is false;
 
 begin
 
@@ -238,27 +247,63 @@ turrets(4 downto 0) <= plane(4 downto 0);
 
 turretsFlags <= turretsFlagsSig;
 
-sincronizzatore1: genericSync
-generic map(
-    sigNum => 32
-)
-port map(
-    clk    => clock,
-    rst    => reset,
-    sigIn  => trigger_in_1,
-    sigOut => trigger_in_sync_1
-);
+fallingSync1: process(clock, reset, trigger_in_1)
+begin
+    if reset = '1' then
+        fallingTrg1 <= (others => '0');
+    elsif falling_edge(clock) then
+        fallingTrg1 <= trigger_in_1;
+    end if;
+end process;
 
-sincronizzatore2: genericSync
-generic map(
-    sigNum => 32
-)
-port map(
-    clk    => clock,
-    rst    => reset,
-    sigIn  => trigger_in_2,
-    sigOut => trigger_in_sync_2
-);
+risingSync1: process(clock, reset, fallingTrg1)
+begin
+    if reset = '1' then
+        trigger_in_sync_1 <= (others => '0');
+    elsif rising_edge(clock) then
+        trigger_in_sync_1 <= fallingTrg1;
+    end if;
+end process;
+
+fallingSync2: process(clock, reset, trigger_in_2)
+begin
+    if reset = '1' then
+        fallingTrg2 <= (others => '0');
+    elsif falling_edge(clock) then
+        fallingTrg2 <= trigger_in_2;
+    end if;
+end process;
+
+risingSync2: process(clock, reset, fallingTrg2)
+begin
+    if reset = '1' then
+        trigger_in_sync_2 <= (others => '0');
+    elsif rising_edge(clock) then
+        trigger_in_sync_2 <= fallingTrg2;
+    end if;
+end process;
+
+--sincronizzatore1: genericSync
+--generic map(
+    --sigNum => 32
+--)
+--port map(
+    --clk    => clock,
+    --rst    => reset,
+    --sigIn  => trigger_in_1,
+    --sigOut => trigger_in_sync_1
+--);
+--
+--sincronizzatore2: genericSync
+--generic map(
+    --sigNum => 32
+--)
+--port map(
+    --clk    => clock,
+    --rst    => reset,
+    --sigIn  => trigger_in_2,
+    --sigOut => trigger_in_sync_2
+--);
 
 rise1Gen: for i in 0 to 31 generate
     rise1Inst: edgeDetector
@@ -330,7 +375,7 @@ end process;
 
 trigger_sampler_process_1 : for i in 0 to 31 generate
 begin
-    trigger_i: trigger_extender_100ns 
+    trigger_i: trigger_extender_100ns
     port map(
         clock => clock,
         reset => reset, 
@@ -341,7 +386,7 @@ end generate trigger_sampler_process_1;
 
 trigger_sampler_process_2 : for i in 0 to 31 generate
 begin
-    trigger_i: trigger_extender_100ns 
+    trigger_i: trigger_extender_100ns
     port map(
         clock => clock,
         reset => reset, 
@@ -360,22 +405,26 @@ port map(
 
 PMT_counter_process1 : for i in 0 to 31 generate
 begin
-    counter1_trigger_i: counter16Bit
+    counter1_trigger_i: counter16BitSload
     port map(
-        Aclr   => reset_counter,
+        Aclr   => reset,
+        Sload  => reset_counter,
         Clock  => clock,
         Enable => rise_1(i),
+        Data   => (others => '0'),
         Q      => count_pmt_1(i)
     );
 end generate PMT_counter_process1;
 
 PMT_counter_process2 : for i in 0 to 31 generate
 begin
-    counter2_trigger_i: counter16Bit
+    counter2_trigger_i: counter16BitSload
     port map(
-        Aclr   => reset_counter,
+        Aclr   => reset,
+        Sload  => reset_counter,
         Clock  => clock,
         Enable => rise_2(i),
+        Data   => (others => '0'),
         Q      => count_pmt_2(i)
     );
 end generate PMT_counter_process2;
@@ -396,11 +445,13 @@ end generate;
 
 turretsCountersInst: for i in 0 to 4 generate
 begin
-    turretsCounter_i: counter32Bit
+    turretsCounter_i: counter32BitSload
     port map(
-        Aclr   => reset_counter,
+        Aclr   => reset,
+        Sload  => reset_counter,
         Clock  => clock,
         Enable => turretsCntEn(i),
+        Data   => (others => '0'),
         Q      => turretsCountersVal(31+(i*32) downto i*32)
     );
 end generate;
@@ -460,17 +511,17 @@ begin
    end if;
 end process;
 
+trigger_PMTmasked_1 <= trigger_sincro_1;-- and PMT_mask_int_1(i);
+trigger_PMTmasked_2 <= trigger_sincro_2;-- and PMT_mask_int_2(i);
+
+
 PMT_mask_plane_gen: for i in 0 to 31 generate
 begin
     --syncProc: process(clock, reset)
     --begin
         --if reset = '1' then
-            --trigger_PMTmasked_1(i) <= '0';
-            --trigger_PMTmasked_2(i) <= '0';
             --plane(i) <= '0';
         --elsif rising_edge(clock) then
-            trigger_PMTmasked_1(i) <= trigger_sincro_1(i) and PMT_mask_int_1(i);
-            trigger_PMTmasked_2(i) <= trigger_sincro_2(i) and PMT_mask_int_2(i);
             plane(i) <= trigger_PMTmasked_1(i) or trigger_PMTmasked_2(i);
         --end if;
     --end process;
@@ -542,23 +593,36 @@ mask_rate <= X"0009" & mask_rate_9_sig &
 
 turretsFlagsSig(7 downto 5) <= (others => '0');
 
+flagRegSigInst: process(clock, swRst)
+begin
+    if reset = '1' then
+        trg1FlagSync <= (others => '0');
+        trg2FlagSync <= (others => '0');
+        turrFlagSync <= (others => '0');
+    elsif rising_edge(clock) then
+        trg1FlagSync <= trigger_PMTmasked_1;
+        trg2FlagSync <= trigger_PMTmasked_2;
+        turrFlagSync <= plane(4 downto 0);
+    end if;
+end process;
+
 trgFlag1Gen: for i in 0 to 31 generate
 begin
-    trgFlag1Inst: process(clock, swRst, trigger_PMTmasked_1(i), flagsRst)
+    trgFlag1Inst: process(clock, swRst, trg1FlagSync(i), flagsRst)
     begin
         if swRst = '1' then
             trgFlag1(i) <= '0';
         elsif rising_edge(clock) then
-            if acquisition_state = '0' then
-                trgFlag1(i) <= '0';
-            else
-                if trigger_PMTmasked_1(i) = '1' and flagsRst = '0' then
+            if acquisition_state = '1' then
+                if trg1FlagSync(i) = '1' and flagsRst = '0' then
                     trgFlag1(i) <= '1';
                 elsif flagsRst = '1' then
                     trgFlag1(i) <= '0';
                 else
                     trgFlag1(i) <= trgFlag1(i);
                 end if;
+            else
+                trgFlag1(i) <= '0';
             end if;
         end if;
     end process;
@@ -566,21 +630,21 @@ end generate;
 
 trgFlag2Gen: for i in 0 to 31 generate
 begin
-    trgFlag2Inst: process(clock, swRst, trigger_PMTmasked_2(i), flagsRst)
+    trgFlag2Inst: process(clock, swRst, trg2FlagSync(i), flagsRst)
     begin
         if swRst = '1' then
             trgFlag2(i) <= '0';
         elsif rising_edge(clock) then
-            if acquisition_state = '0' then
-                trgFlag2(i) <= '0';
-            else
-                if trigger_PMTmasked_2(i) = '1' and flagsRst = '0' then
+            if acquisition_state = '1' then
+                if trg2FlagSync(i) = '1' and flagsRst = '0' then
                     trgFlag2(i) <= '1';
                 elsif flagsRst = '1' then
                     trgFlag2(i) <= '0';
                 else
                     trgFlag2(i) <= trgFlag2(i);
                 end if;
+            else
+                trgFlag2(i) <= '0';
             end if;
         end if;
     end process;
@@ -588,21 +652,21 @@ end generate;
 
 turrFlagGen: for i in 0 to 4 generate
 begin
-    turrFlagInst: process(clock, swRst, plane(i), flagsRst)
+    turrFlagInst: process(clock, swRst, turrFlagSync(i), flagsRst)
     begin
         if swRst = '1' then
             turrFlag(i) <= '0';
         elsif rising_edge(clock) then
-            if acquisition_state = '0' then
-                turrFlag(i) <= '0';
-            else
-                if plane(i) = '1' and flagsRst = '0' then
+            if acquisition_state = '1' then
+                if turrFlagSync(i) = '1' and flagsRst = '0' then
                     turrFlag(i) <= '1';
                 elsif flagsRst = '1' then
                     turrFlag(i) <= '0';
                 else
                     turrFlag(i) <= turrFlag(i);
                 end if;
+            else
+                turrFlag(i) <= '0';
             end if;
         end if;
     end process;

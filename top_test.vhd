@@ -1035,7 +1035,7 @@ wdRst <= not RST_FROM_SUPERVISOR;
 triggerCntInst: counter32Bit
 port map(
     Aclr   => swRst,
-    Clock  => s_clock200M,
+    Clock  => s_clock48M,
     Enable => trgBusySet,
     Q      => trigCounter
 );
