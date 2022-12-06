@@ -200,6 +200,7 @@ type mem_t is array (natural range <>) of std_logic_vector(g_spw_data_width - 1 
   attribute keep of s_burst_counter  : signal is true; 
   attribute keep of s_addr_to_write : signal is true; 
   attribute keep of s_burst_count  : signal is true; 
+  attribute keep of  o_busy               : signal is true; 
   attribute keep of  s_addr_to_write_std : signal is true; 
 
   attribute noprune of   s_tx_data      : signal is true;
@@ -219,6 +220,7 @@ type mem_t is array (natural range <>) of std_logic_vector(g_spw_data_width - 1 
   attribute noprune of s_burst_counter  : signal is true; 
   attribute noprune of s_addr_to_write : signal is true; 
   attribute noprune of s_burst_count  : signal is true; 
+  attribute noprune of  o_busy               : signal is true; 
   attribute noprune of  s_addr_to_write_std : signal is true; 
 
   attribute mark_debug of   s_tx_data      : signal is true;
@@ -238,6 +240,7 @@ type mem_t is array (natural range <>) of std_logic_vector(g_spw_data_width - 1 
   attribute mark_debug of s_burst_counter  : signal is true; 
   attribute mark_debug of s_addr_to_write : signal is true; 
   attribute mark_debug of s_burst_count  : signal is true; 
+  attribute mark_debug of  o_busy               : signal is true; 
   attribute mark_debug of  s_addr_to_write_std : signal is true; 
 
 --component counter32Bit is
@@ -303,6 +306,11 @@ begin
       s_rx_data_byte <=  (others=>(others=>'0'));
       s_addr_to_send <=  (others=>(others=>'0'));
       s_burst_count <= (others=>'0');
+
+      o_data_out <= (others => '0');
+
+      o_we <= '0';
+      o_rxread <= '1';
 
     elsif(rising_edge(i_spw_clk)) then
 
