@@ -110,6 +110,8 @@ port (
 
     holdoff           : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
+    calibPeriod       : in std_logic_vector(15 downto 0);
+
     debug_triggerIN   : in std_logic
 );
 end test_file;
@@ -234,6 +236,8 @@ port(
     turrets              : out std_logic_vector(4 downto 0);
     turretsFlags         : out std_logic_vector(7 downto 0);
     turretsCounters      : out std_logic_vector(159 downto 0);
+
+    calibPeriod          : in std_logic_vector(15 downto 0);
 
     trg_to_DAQ_EASI      : out std_logic  -- attivo alto
 );
@@ -577,6 +581,8 @@ port map (
     turretsCounters      => turretsCounters,
 
     holdoff              => holdoff,
+
+    calibPeriod          => calibPeriod,
 
     trg_to_DAQ_EASI      => trigger_interno_sig
 );

@@ -369,6 +369,8 @@ port (
 
     holdoff           : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
+    calibPeriod       : in std_logic_vector(15 downto 0);
+
     debug_triggerIN   : in std_logic
 
 );
@@ -581,6 +583,8 @@ port(
 
     trgCounter          : in std_logic_vector(31 downto 0);
     ppsCounter          : in std_logic_vector(31 downto 0);
+
+    calibPeriod         : out std_logic_vector(15 downto 0);
 
     PMT_rate            : in std_logic_vector(1023 downto 0);
     mask_rate           : in std_logic_vector(319 downto 0);
@@ -921,6 +925,8 @@ signal  s_turretsCounters    : std_logic_vector(159 downto 0);
 signal  s_triggerID          : std_logic_vector(7 downto 0);
 
 signal  crc32                : std_logic_vector(31 downto 0);
+
+signal  s_calibPeriod        : std_logic_vector(15 downto 0);
 
 signal  s_clock200Mto100M    : std_logic;
 
@@ -1265,6 +1271,8 @@ port map(
 
     holdoff => holdoff,
 
+    calibPeriod => s_calibPeriod,
+
     debug_triggerIN => s_start_debug
 );
 
@@ -1565,6 +1573,8 @@ port map(
 
     ppsCounter => ppsCountSync,
     trgCounter => trigCounter,
+
+    calibPeriod => s_calibPeriod,
 
     PMT_rate => s_PMT_rate,
     mask_rate => s_mask_rate,

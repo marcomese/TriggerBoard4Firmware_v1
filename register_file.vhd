@@ -82,6 +82,8 @@ port(
     trgCounter          : in std_logic_vector(31 downto 0);
     ppsCounter          : in std_logic_vector(31 downto 0);
 
+    calibPeriod         : out std_logic_vector(15 downto 0);
+
     PMT_rate            : in std_logic_vector(1023 downto 0);
     mask_rate           : in std_logic_vector(319 downto 0);
     board_temp          : in std_logic_vector(31 downto 0)
@@ -848,6 +850,8 @@ begin
         sendRefDAC_pipe_0         <= '0';
         sendRefDAC_pipe_1         <= '0';
 
+        calibPeriod               <= (others => '0');
+
         s_write_done <= '0';
 
     elsif (rising_edge(clk)) then
@@ -906,6 +910,8 @@ begin
         
         sendRefDAC_pipe_0         <= register_vector( get_local_addr(CMD_REG_ADDR, address_vector) )(14);
         sendRefDAC_pipe_1         <= sendRefDAC_pipe_0;
+
+        calibPeriod               <= register_vector(get_local_addr(CMD_REG_ADDR, address_vector))(31 downto 16);
 
         do                        <= register_vector(local_address);
 

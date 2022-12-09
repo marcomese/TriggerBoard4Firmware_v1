@@ -48,6 +48,8 @@ port(
     turretsFlags         : out std_logic_vector(7 downto 0);
     turretsCounters      : out std_logic_vector(159 downto 0);
 
+    calibPeriod          : in std_logic_vector(15 downto 0);
+
     trg_to_DAQ_EASI      : out std_logic  -- attivo alto
 );
 end TRIGGER_logic_FSM;
@@ -189,6 +191,11 @@ signal  idle,
         trigger : std_logic;
 
 signal  time_cnt : integer range 0 to RATE_TIME;
+
+signal  calibCount : std_logic_vector(15 downto 0);
+
+signal  calibSig,
+        calibRise  : std_logic;
 
 signal  rate_time_sig, rise_rate, reset_counter : std_logic;
 
@@ -694,6 +701,38 @@ begin
     end if;
 end process;
 
+calibCounter: process(reset, clock200k, calibCount, calibration_state)
+begin
+    if reset = '1' then
+        calibCount <= (others => '0');
+        calibSig   <= '0';
+    elsif rising_edge(clock200k) then
+        if calibration_state = '1' and calibPeriod /= x"0000" then 
+            if calibCount = calibPeriod then
+                calibCount <= (others => '0');
+                calibSig   <= '1';
+            else
+                calibCount <= std_logic_vector(unsigned(calibCount) + 1);
+                calibSig   <= '0';
+            end if;
+        else
+            calibCount <= (others => '0');
+            calibSig   <= '0';
+        end if;
+    end if;
+end process;
+
+calibRisingInst: edgeDetector
+generic map(
+    edge      => '1'
+)
+port map(
+    clk       => clock,
+    rst       => reset,
+    signalIn  => calibSig,
+    signalOut => calibRise
+);
+
 -- TRIGGER FSM
 
 SYNC_PROC: process(reset, clock)
@@ -720,7 +759,7 @@ begin
             if debug = '1' then
                 next_state <= trg_state;
             elsif start_readers= '1' then
-                if (calibration_state = '1' and trigger = '0') or debug = '1' then
+                if (calibRise = '1' and trigger = '0') or debug = '1' then
                     next_state <= trg_state;
                 elsif (acquisition_state = '1' and trigger = '1') or debug = '1' then
                     next_state <= trg_state;
