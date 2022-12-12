@@ -15,7 +15,8 @@ port(
     reset                : in  std_logic;
     swRst                : in  std_logic;
     clock                : in  std_logic;  
-    clock200k            : in  std_logic;  
+    clock200k            : in  std_logic;
+    trgInhibit           : in  std_logic;
     debug                : in  std_logic;
     trigger_in_1         : in  std_logic_vector(31 downto 0);
     trigger_in_2         : in  std_logic_vector(31 downto 0);
@@ -25,7 +26,6 @@ port(
     trigger_mask         : in  std_logic_vector(31 downto 0);
     apply_trigger_mask   : in  std_logic;
     apply_PMT_mask       : in  std_logic;
-    start_readers        : in  std_logic;
 
     calibration_state    : in  std_logic;
     acquisition_state    : in  std_logic;
@@ -750,22 +750,16 @@ end process;
 
 -- FSM combinational block(NEXT_STATE_DECODE)
 	
-fsm: process(pres_state, debug, start_readers, acquisition_state, calibration_state, trigger, debug, count)
+fsm: process(pres_state, debug, acquisition_state, trigger, debug, count)
 begin
     next_state <= pres_state;
 
     case pres_state is
         when wait_state => -- sistema in attesa
-            if debug = '1' then
+            if trgInhibit = '1' then
+                next_state <= wait_state;
+            elsif debug = '1' or (calibRise = '1' and trigger = '0') or (acquisition_state = '1' and trigger = '1') then
                 next_state <= trg_state;
-            elsif start_readers= '1' then
-                if (calibRise = '1' and trigger = '0') or debug = '1' then
-                    next_state <= trg_state;
-                elsif (acquisition_state = '1' and trigger = '1') or debug = '1' then
-                    next_state <= trg_state;
-                else
-                    next_state <= wait_state;
-                end if;
             else
                 next_state <= wait_state;
             end if;

@@ -204,7 +204,8 @@ port(
     reset                : in  std_logic;
     swRst                : in  std_logic;
     clock                : in  std_logic;  
-    clock200k            : in  std_logic;  
+    clock200k            : in  std_logic;
+    trgInhibit           : in  std_logic;
     debug                : in  std_logic;
     trigger_in_1         : in  std_logic_vector(31 downto 0);
     trigger_in_2         : in  std_logic_vector(31 downto 0);
@@ -214,7 +215,6 @@ port(
     trigger_mask         : in  std_logic_vector(31 downto 0);
     apply_trigger_mask   : in  std_logic;
     apply_PMT_mask       : in  std_logic;
-    start_readers        : in  std_logic;
 
     calibration_state    : in  std_logic;
     acquisition_state    : in  std_logic;
@@ -293,14 +293,11 @@ signal holdSignal_2 : std_logic;
 
 signal acquisition_state_sig : std_logic;
 signal calibration_state_sig : std_logic;
-signal start_readers_sig     : std_logic;
 
 signal s_dataReady           : std_logic;
 
 signal  pwrOnCIT1FF,
         pwrOnCIT2FF          : std_logic;
-
-signal  maskedTrigger        : std_logic;
 
 begin
 
@@ -308,8 +305,7 @@ clk <= clockSYS;
 
 s_config_vector <= config_vector;
 
-maskedTrigger <= trigger_interno_sig and (not triggerInhibit);
-triggerOUT <= maskedTrigger;
+triggerOUT <= trigger_interno_sig;
 
 PMT_rate <= s_PMT_rate;
 mask_rate <= s_mask_rate;
@@ -462,7 +458,7 @@ port map(
     SDATA_hg    => SDATA_hg_1,
     SDATA_lg    => SDATA_lg_1,
 
-    trigger_int => maskedTrigger,
+    trigger_int => trigger_interno_sig,
 
     CS          => CS_1,
     SCLK        => SCLK_1_sig,
@@ -487,7 +483,7 @@ port map(
     SDATA_hg    => SDATA_hg_2,
     SDATA_lg    => SDATA_lg_2,
 
-    trigger_int => maskedTrigger,
+    trigger_int => trigger_interno_sig,
 
     CS          => CS_2,
     SCLK        => SCLK_2_sig,
@@ -537,8 +533,6 @@ begin
    end if;
 end process;
 
-start_readers_sig <= acquisition_state_sig or calibration_state_sig;
-
 triggerLogicFSMInst: TRIGGER_logic_FSM
 generic map(
     concurrentTriggers   => concurrentTriggers,
@@ -550,6 +544,7 @@ port map (
     swRst                => sw_rst,
     clock                => clk,
     clock200k            => clock200k,
+    trgInhibit           => triggerInhibit,
     debug                => trigger_int_sig,
     trigger_in_1         => trigger_in_1,
     trigger_in_2         => trigger_in_2,
@@ -559,7 +554,6 @@ port map (
     trigger_mask         => trigger_mask,
     apply_trigger_mask   => apply_trigger_mask,
     apply_PMT_mask       => apply_PMT_mask,
-    start_readers        => start_readers_sig,
 
     triggerID            => triggerID,
 

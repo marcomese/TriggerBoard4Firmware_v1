@@ -1014,7 +1014,7 @@ dpcuBusyInSync  <= dpcu_tdaq_sync(2);
 dpcuTrgHoldSync <= dpcu_tdaq_sync(1);
 tdaqBusyInSync  <= dpcu_tdaq_sync(0);
 
-trgInhibit <= (not dpcuTrgHoldSync) or (not tdaqBusyInSync) or fifoAFULL;
+trgInhibit <= (not dpcuTrgHoldSync) or (not tdaqBusyInSync) or fifoAFULL or trgBusy;
 
 triggerOutExpand: trigger_extender_100ns
 port map(
@@ -1328,7 +1328,7 @@ port map(
     clock      => s_clock48M,
     clock200k  => clk200k_sig,
     reset      => swRst,
-    busyState  => trgInhibit or trgBusy,
+    busyState  => trgInhibit,
     acqState   => s_acquisition_state,
     trigger    => extendedTriggerOut,
     aliveCount => aliveCount,
