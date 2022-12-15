@@ -3,16 +3,16 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity ppsCounter is
-generic(
-    clk_freq      : natural := 50; -- clock freq in MHz
-    pps_reset_len : natural := 40  -- PSS reset len in us
-);
-port(
-    clk : in std_logic;
-    rst : in std_logic;
-    PPS : in std_logic;
-    timestamp  : out std_logic_vector(31 downto 0)
-);
+	generic(
+		clk_freq      : natural := 80; -- clock freq in MHz
+		pps_reset_len : natural := 2   -- PSS reset len (clk cycles)
+	);
+	port(
+		clk : in std_logic;
+		rst : in std_logic;
+		PPS : in std_logic;
+		timestamp  : out std_logic_vector(31 downto 0)
+	);
 end entity;
 
 
@@ -27,17 +27,13 @@ architecture Behavioral of ppsCounter is
 	signal pps_sync : std_logic;
 
 	-- counter for the pps reset pulse
-	constant pps_high_cnt_len : natural := pps_reset_len;
-	signal pps_high_cnt : natural range 0 to pps_high_cnt_len := 0;
-	signal reset_pulse_valid : std_logic := '0';
+	signal pps_sr : std_logic_vector(pps_reset_len-1 downto 0) := (others => '1');
 
 	signal fine_counter, coarse_counter : unsigned(15 downto 0);
 
 begin
 
-
     pps_sync <= PPS;
-
 
 	counter_gen: process(clk)
 	begin
@@ -57,25 +53,13 @@ begin
 			end if;
 
 
-			-- pps reset detector
-			if pps_sync = '0' then
-
-				if pps_high_cnt = pps_high_cnt_len then
-					reset_pulse_valid <= '1';
-				else
-					pps_high_cnt <= pps_high_cnt + 1;
-				end if;
-
-			else
-				pps_high_cnt <= 0;
-			end if;
-
+			pps_sr <= pps_sr(pps_reset_len-2 downto 0) & pps_sync;
 
 			-- reset on risign edge of pps
-			if (reset_pulse_valid = '1' and pps_sync = '1') or rst = '1'then
+			if (or pps_sr = '0' and pps_sync = '1') or rst = '1'then
 				fine_counter <= (others => '0');
 				coarse_counter <= (others => '0');
-				reset_pulse_valid <= '0';
+				pps_sr <= (others => '1');
 			end if;
 
 		end if;
