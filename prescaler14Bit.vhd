@@ -37,18 +37,33 @@ signal   holdoffCountVec : std_logic_vector(holdoffBits-1 downto 0);
 
 signal   clearCount      : std_logic;
 
+signal   trgOutSig       : std_logic;
+
 begin
 
-triggerOut <= clearCount;
+trgOutFF: process(clk, rst, trgOutSig)
+begin
+    if rst = '1' then
+        triggerOut <= '0';
+    elsif rising_edge(clk) then
+        if trgOutSig = '1' then
+            triggerOut <= triggerIn;
+        else
+            triggerOut <= '0';
+        end if;
+    end if;
+end process;
 
 holdoffCount <= to_integer(unsigned(holdoffCountVec));
+
+trgOutSig <= '1' when (holdoffCount = unsigned(holdoff) - 1) else '0';
 
 clearSyncInst: process(clk, rst)
 begin
     if rst = '1' then
         clearCount <= '1';
     elsif rising_edge(clk) then
-        clearCount <= '1' when (holdoffCount /= 0 and holdoffCount = unsigned(holdoff)) else '0';
+        clearCount <= trgOutSig and triggerIn;
     end if;
 end process;
 
