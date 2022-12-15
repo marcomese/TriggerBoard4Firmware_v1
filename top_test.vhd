@@ -1313,7 +1313,7 @@ begin
     if swRst = '1' then
         trgBusy <= '0';
     elsif rising_edge(s_clock48M) then
-        if trgBusySet = '0' and trgBusyRst = '1' then
+        if trgBusyRst = '1' then
             trgBusy <= '0';
         elsif trgBusySet = '1' and trgBusyRst = '0' then
             trgBusy <= '1';
