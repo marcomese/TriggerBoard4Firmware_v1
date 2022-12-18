@@ -112,6 +112,8 @@ port (
 
     calibPeriod       : in std_logic_vector(15 downto 0);
 
+    trgNotInhibit     : out std_logic;
+
     debug_triggerIN   : in std_logic
 );
 end test_file;
@@ -238,6 +240,8 @@ port(
     turretsCounters      : out std_logic_vector(159 downto 0);
 
     calibPeriod          : in std_logic_vector(15 downto 0);
+
+    trgNotInhibit        : out std_logic;
 
     trg_to_DAQ_EASI      : out std_logic  -- attivo alto
 );
@@ -577,6 +581,8 @@ port map (
     holdoff              => holdoff,
 
     calibPeriod          => calibPeriod,
+
+    trgNotInhibit        => trgNotInhibit,
 
     trg_to_DAQ_EASI      => trigger_interno_sig
 );

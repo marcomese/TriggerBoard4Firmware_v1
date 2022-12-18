@@ -371,6 +371,8 @@ port (
 
     calibPeriod       : in std_logic_vector(15 downto 0);
 
+    trgNotInhibit     : out std_logic;
+
     debug_triggerIN   : in std_logic
 
 );
@@ -378,15 +380,16 @@ end component;
 
 component aliveDeadTCnt is
 port(
-    clock      : in  std_logic;
-    clock200k  : in  std_logic;
-    reset      : in  std_logic;
-    busyState  : in  std_logic;
-    acqState   : in  std_logic;
-    trigger    : in  std_logic;
-    aliveCount : out std_logic_vector(31 downto 0);
-    deadCount  : out std_logic_vector(31 downto 0);
-    lostCount  : out std_logic_vector(15 downto 0)
+    clock         : in  std_logic;
+    clock200k     : in  std_logic;
+    reset         : in  std_logic;
+    busyState     : in  std_logic;
+    acqState      : in  std_logic;
+    trigger       : in  std_logic;
+    trgNotInhibit : in  std_logic;
+    aliveCount    : out std_logic_vector(31 downto 0);
+    deadCount     : out std_logic_vector(31 downto 0);
+    lostCount     : out std_logic_vector(15 downto 0)
 );
 end component;
 
@@ -696,6 +699,19 @@ port(
 );
 end component;
 
+component pulseExt is
+generic(
+    clkFreq    : real;
+    pulseWidth : real
+);
+port(
+    clk        : in  std_logic;
+    rst        : in  std_logic;
+    sigIn      : in  std_logic;
+    sigOut     : out std_logic
+);
+end component;
+
 constant concurrentTriggers : natural := 6;
 constant prescaledTriggers  : natural := 4;
 constant holdOffBits        : natural := 16;
@@ -755,6 +771,9 @@ signal s_CLK_READ_2      : std_logic;
 signal s_SR_IN_READ_2    : std_logic;
 
 signal s_RST_B_READ_2    : std_logic;
+
+signal trgNotInhibit,
+       trgNotInhibit48Mhz : std_logic;
 
 ---------------------------------------------------
 -- Segnali per cses_reg_file_manager
@@ -1273,6 +1292,8 @@ port map(
 
     calibPeriod => s_calibPeriod,
 
+    trgNotInhibit => trgNotInhibit,
+
     debug_triggerIN => s_start_debug
 );
 
@@ -1323,17 +1344,30 @@ begin
     end if;
 end process;
 
+trgNotInhib48MhzInst: pulseExt
+generic map(
+    clkFreq    => 100.0e6,
+    pulseWidth => 20.8e-9
+)
+port map(
+    clk        => s_clock200M,
+    rst        => s_global_rst,
+    sigIn      => trgNotInhibit,
+    sigOut     => trgNotInhibit48Mhz
+);
+
 aliveDeadinst: aliveDeadTCnt
 port map(
-    clock      => s_clock48M,
-    clock200k  => clk200k_sig,
-    reset      => swRst,
-    busyState  => trgInhibit,
-    acqState   => s_acquisition_state,
-    trigger    => extendedTriggerOut,
-    aliveCount => aliveCount,
-    deadCount  => deadCount,
-    lostCount  => lostCount
+    clock         => s_clock48M,
+    clock200k     => clk200k_sig,
+    reset         => swRst,
+    busyState     => trgNotInhibit48Mhz,
+    acqState      => s_acquisition_state,
+    trigger       => extendedTriggerOut,
+    trgNotInhibit => trgNotInhibit48Mhz,
+    aliveCount    => aliveCount,
+    deadCount     => deadCount,
+    lostCount     => lostCount
 );
 
 crc32 <= (others => '0'); -- (not implemented yet)

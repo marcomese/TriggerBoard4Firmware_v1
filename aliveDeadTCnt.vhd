@@ -4,15 +4,16 @@ use IEEE.NUMERIC_STD.all;
 
 entity aliveDeadTCnt is
 port(
-    clock      : in  std_logic;
-    clock200k  : in  std_logic;
-    reset      : in  std_logic;
-    busyState  : in  std_logic;
-    acqState   : in  std_logic;
-    trigger    : in  std_logic;
-    aliveCount : out std_logic_vector(31 downto 0);
-    deadCount  : out std_logic_vector(31 downto 0);
-    lostCount  : out std_logic_vector(15 downto 0)
+    clock         : in  std_logic;
+    clock200k     : in  std_logic;
+    reset         : in  std_logic;
+    busyState     : in  std_logic;
+    acqState      : in  std_logic;
+    trigger       : in  std_logic;
+    trgNotInhibit : in  std_logic;
+    aliveCount    : out std_logic_vector(31 downto 0);
+    deadCount     : out std_logic_vector(31 downto 0);
+    lostCount     : out std_logic_vector(15 downto 0)
 );
 end aliveDeadTCnt;
 
@@ -132,7 +133,7 @@ port map(
     Aclr   => reset,
     Sload  => trigger200k,
     Clock  => clock,
-    Enable => acqState and busyState and trigger,
+    Enable => acqState and busyState and trgNotInhibit,
     Data   => (others => '0'),
     Q      => lost_count
 );

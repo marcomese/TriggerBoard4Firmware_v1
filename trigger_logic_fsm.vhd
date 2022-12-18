@@ -50,6 +50,8 @@ port(
 
     calibPeriod          : in std_logic_vector(15 downto 0);
 
+    trgNotInhibit        : out std_logic;
+
     trg_to_DAQ_EASI      : out std_logic  -- attivo alto
 );
 end TRIGGER_logic_FSM;
@@ -253,6 +255,8 @@ rate1SecOut <= rate_time_sig;
 turrets(4 downto 0) <= plane(4 downto 0);
 
 turretsFlags <= turretsFlagsSig;
+
+trgNotInhibit <= trigger;
 
 fallingSync1: process(clock, reset, trigger_in_1)
 begin
@@ -518,8 +522,8 @@ begin
    end if;
 end process;
 
-trigger_PMTmasked_1 <= trigger_sincro_1;-- and PMT_mask_int_1(i);
-trigger_PMTmasked_2 <= trigger_sincro_2;-- and PMT_mask_int_2(i);
+trigger_PMTmasked_1 <= trigger_sincro_1 and PMT_mask_int_1;
+trigger_PMTmasked_2 <= trigger_sincro_2 and PMT_mask_int_2;
 
 
 PMT_mask_plane_gen: for i in 0 to 31 generate
@@ -602,7 +606,7 @@ turretsFlagsSig(7 downto 5) <= (others => '0');
 
 flagRegSigInst: process(clock, swRst)
 begin
-    if reset = '1' then
+    if swRst = '1' then
         trg1FlagSync <= (others => '0');
         trg2FlagSync <= (others => '0');
         turrFlagSync <= (others => '0');
@@ -615,7 +619,7 @@ end process;
 
 trgFlag1Gen: for i in 0 to 31 generate
 begin
-    trgFlag1Inst: process(clock, swRst, trg1FlagSync(i), flagsRst)
+    trgFlag1Inst: process(clock, swRst, acquisition_state, trg1FlagSync(i), flagsRst)
     begin
         if swRst = '1' then
             trgFlag1(i) <= '0';
@@ -637,7 +641,7 @@ end generate;
 
 trgFlag2Gen: for i in 0 to 31 generate
 begin
-    trgFlag2Inst: process(clock, swRst, trg2FlagSync(i), flagsRst)
+    trgFlag2Inst: process(clock, swRst, acquisition_state, trg2FlagSync(i), flagsRst)
     begin
         if swRst = '1' then
             trgFlag2(i) <= '0';
@@ -659,7 +663,7 @@ end generate;
 
 turrFlagGen: for i in 0 to 4 generate
 begin
-    turrFlagInst: process(clock, swRst, turrFlagSync(i), flagsRst)
+    turrFlagInst: process(clock, swRst, acquisition_state, turrFlagSync(i), flagsRst)
     begin
         if swRst = '1' then
             turrFlag(i) <= '0';
@@ -750,7 +754,7 @@ end process;
 
 -- FSM combinational block(NEXT_STATE_DECODE)
 	
-fsm: process(pres_state, debug, acquisition_state, trigger, debug, count)
+fsm: process(pres_state, debug, trgInhibit, acquisition_state, trigger, debug, count, calibRise)
 begin
     next_state <= pres_state;
 
