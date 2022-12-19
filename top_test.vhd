@@ -1309,12 +1309,14 @@ port map(
     timestamp     => ppsCount
 );
 
-ppsCountReg: process(s_clock48M, s_global_rst)
+ppsCountReg: process(s_clock48M, s_global_rst, trgBusySet)
 begin
     if s_global_rst = '1' then
         ppsCountSync <= (others => '0');
     elsif rising_edge(s_clock48M) then
-        ppsCountSync <= ppsCount;
+        if trgBusySet = '1' then
+            ppsCountSync <= ppsCount;
+        end if;
     end if;
 end process;
 
