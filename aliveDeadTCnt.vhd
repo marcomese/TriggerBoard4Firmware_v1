@@ -6,6 +6,7 @@ entity aliveDeadTCnt is
 port(
     clock         : in  std_logic;
     clock200k     : in  std_logic;
+    clock100M     : in  std_logic;
     reset         : in  std_logic;
     busyState     : in  std_logic;
     acqState      : in  std_logic;
@@ -132,7 +133,7 @@ lostCounterInst: counterLostTrg
 port map(
     Aclr   => reset,
     Sload  => trigger200k,
-    Clock  => clock,
+    Clock  => clock100M,
     Enable => acqState and busyState and trgNotInhibit,
     Data   => (others => '0'),
     Q      => lost_count

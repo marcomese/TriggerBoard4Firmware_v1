@@ -384,6 +384,7 @@ component aliveDeadTCnt is
 port(
     clock         : in  std_logic;
     clock200k     : in  std_logic;
+    clock100M     : in  std_logic;
     reset         : in  std_logic;
     busyState     : in  std_logic;
     acqState      : in  std_logic;
@@ -775,8 +776,7 @@ signal s_SR_IN_READ_2    : std_logic;
 
 signal s_RST_B_READ_2    : std_logic;
 
-signal trgNotInhibit,
-       trgNotInhibit48Mhz : std_logic;
+signal trgNotInhibit     : std_logic;
 
 ---------------------------------------------------
 -- Segnali per cses_reg_file_manager
@@ -1351,27 +1351,16 @@ begin
     end if;
 end process;
 
-trgNotInhib48MhzInst: pulseExt
-generic map(
-    clkFreq    => 100.0e6,
-    pulseWidth => 20.8e-9
-)
-port map(
-    clk        => s_clock200M,
-    rst        => s_global_rst,
-    sigIn      => trgNotInhibit,
-    sigOut     => trgNotInhibit48Mhz
-);
-
 aliveDeadinst: aliveDeadTCnt
 port map(
     clock         => s_clock48M,
     clock200k     => clk200k_sig,
+    clock100M     => s_clock200M,
     reset         => swRst,
     busyState     => trgInhibit,
     acqState      => s_acquisition_state,
     trigger       => extendedTriggerOut,
-    trgNotInhibit => trgNotInhibit48Mhz,
+    trgNotInhibit => trgNotInhibit,
     aliveCount    => aliveCount,
     deadCount     => deadCount,
     lostCount     => lostCount
