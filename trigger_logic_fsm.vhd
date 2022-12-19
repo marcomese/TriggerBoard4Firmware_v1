@@ -225,9 +225,8 @@ signal  s_trgExtPulse,
 
 signal  turretsFlagsSig    : std_logic_vector(7 downto 0);
 
-signal  turretsCountersVal : std_logic_vector(159 downto 0);
-
-signal  turretsCntEn       : std_logic_vector(4 downto 0);
+signal  turrGate,
+        turretsCntEn       : std_logic_vector(4 downto 0);
 
 signal  trgFlag1,
         trgFlag2           : std_logic_vector(31 downto 0);
@@ -440,18 +439,38 @@ begin
     );
 end generate PMT_counter_process2;
 
+turrCntGateGen: for i in 0 to 4 generate
+begin
+    turrCntGate_n: process(clock, swRst, plane(i), turretsCntEn(i))
+    begin
+        if swRst = '1' then
+            turrGate(i) <= '0';
+        elsif rising_edge(clock) then
+            if plane(i) = '1' and turretsCntEn(i) = '0' then
+                turrGate(i) <= '1';
+            elsif turretsCntEn(i) = '1' then
+                turrGate(i) <= '0';
+            else
+                turrGate(i) <= turrGate(i);
+            end if;
+        end if;
+    end process;
+end generate;
+
 turretsCntEnEdge: for i in 0 to 4 generate
 begin
-    turrCntEdge_i: edgeDetector
-    generic map(
-        edge      => '1'
-    )
-    port map(
-        clk       => clock,
-        rst       => reset,
-        signalIn  => plane(i),
-        signalOut => turretsCntEn(i)
-    );
+    turrCntInst: process(clock, swRst, turrGate(i), trg_to_DAQ_EASI)
+    begin
+        if swRst = '1' then
+            turretsCntEn(i) <= '0';
+        elsif rising_edge(clock) then
+            if turrGate(i) = '1' and trg_to_DAQ_EASI = '1' then
+                turretsCntEn(i) <= '1';
+            else
+                turretsCntEn(i) <= '0';
+            end if;
+        end if;
+    end process;
 end generate;
 
 turretsCountersInst: for i in 0 to 4 generate
@@ -459,11 +478,11 @@ begin
     turretsCounter_i: counter32BitSload
     port map(
         Aclr   => reset,
-        Sload  => reset_counter,
+        Sload  => swRst,
         Clock  => clock,
         Enable => turretsCntEn(i),
         Data   => (others => '0'),
-        Q      => turretsCountersVal(31+(i*32) downto i*32)
+        Q      => turretsCounters(31+(i*32) downto i*32)
     );
 end generate;
 
@@ -474,12 +493,10 @@ begin
         if reset='1' then
             PMT_rate_1(i)   <= (others => '0');
             PMT_rate_2(i)   <= (others => '0');
-            turretsCounters <= (others => '0');
         elsif rising_edge(clock) then
             if rise_rate = '1' then
                 PMT_rate_1(i)(15 downto 0) <= count_pmt_1(i)(15 downto 0);
                 PMT_rate_2(i)(15 downto 0) <= count_pmt_2(i)(15 downto 0);
-                turretsCounters            <= turretsCountersVal;
             end if;
         end if;
     end process;
