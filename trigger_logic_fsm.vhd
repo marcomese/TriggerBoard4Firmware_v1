@@ -32,6 +32,7 @@ port(
 			
     PMT_rate             : out std_logic_vector(1023 downto 0);	
     mask_rate            : out std_logic_vector(319 downto 0);
+    mask_grb             : out std_logic_vector(31 downto 0);
 
     trigger_flag_1       : out std_logic_vector(31 downto 0);	
     trigger_flag_2       : out std_logic_vector(31 downto 0);			
@@ -115,6 +116,8 @@ port(
 
     rate_time_sig	     : in  std_logic; --1 secondo	
 
+    rate_5ms             : in  std_logic;
+
     mask_rate_0          : out std_logic_vector(31 downto 0);
     mask_rate_1          : out std_logic_vector(15 downto 0);
     mask_rate_2          : out std_logic_vector(15 downto 0);
@@ -125,6 +128,8 @@ port(
     mask_rate_7          : out std_logic_vector(15 downto 0);
     mask_rate_8          : out std_logic_vector(15 downto 0);
     mask_rate_9          : out std_logic_vector(15 downto 0);
+
+    mask_grb             : out std_logic_vector(31 downto 0);
 
     trgExtIn             : in  std_logic;
 
@@ -162,6 +167,7 @@ constant TRG_LENGHT : integer := 9;
 --constant TRG_LENGHT : integer := 9; -- Number of clock cycles 96MHz
 --constant TRG_LENGHT : integer := 4; -- Number of clock cycles 48MHz
 constant RATE_TIME  : integer := 200000; -- 1 sec a 200kHz
+constant RATE_5MS_TIME : integer := 1000; -- 5 ms a 200kHz
 
 type count_array is array (0 to 31) of std_logic_vector(15 downto 0);
 
@@ -193,13 +199,17 @@ signal  idle,
         trigger : std_logic;
 
 signal  time_cnt : integer range 0 to RATE_TIME;
+signal  time_5ms_cnt : integer range 0 to RATE_5MS_TIME;
 
 signal  calibCount : std_logic_vector(15 downto 0);
 
 signal  calibSig,
         calibRise  : std_logic;
 
-signal  rate_time_sig, rise_rate, reset_counter : std_logic;
+signal  rate_time_sig,
+        rise_rate,
+        reset_counter,
+        rate_5ms_sig  : std_logic;
 
 signal  mask_rate_0_sig : std_logic_vector(31 downto 0);
 
@@ -590,6 +600,8 @@ port map(
 
     rate_time_sig	=> rise_rate,
 
+    rate_5ms => rate_5ms_sig,
+
     mask_rate_0 => mask_rate_0_sig,
     mask_rate_1 => mask_rate_1_sig,
     mask_rate_2 => mask_rate_2_sig,
@@ -600,6 +612,8 @@ port map(
     mask_rate_7 => mask_rate_7_sig,
     mask_rate_8 => mask_rate_8_sig,
     mask_rate_9 => mask_rate_9_sig,
+
+    mask_grb    => mask_grb,
 
     trgExtIn => s_trgExt100ns,
 
@@ -834,7 +848,7 @@ begin
 end process;
 
 -- contatore 1 secondo
-counter100ms: process(reset, clock200k, time_cnt)
+counter1s: process(reset, clock200k, time_cnt)
 begin
    if reset= '1' then 
       time_cnt <= 0;
@@ -848,6 +862,22 @@ begin
             rate_time_sig <= '0';
         end if;       
    end if;
+end process;
+
+counter5ms: process(reset, clock200k, time_5ms_cnt)
+begin
+    if reset = '1' then
+        time_5ms_cnt <= 0;
+        rate_5ms_sig <= '0';
+    elsif rising_edge(clock200k) then
+        if time_5ms_cnt = RATE_5MS_TIME-1 then
+            time_5ms_cnt <= 0;
+            rate_5ms_sig <= '1';
+        else
+            time_5ms_cnt <= time_5ms_cnt + 1;
+            rate_5ms_sig <= '0';
+        end if;
+    end if;
 end process;
 
 sincronizzatore_rate : process(reset, clock, rate_time_sig)

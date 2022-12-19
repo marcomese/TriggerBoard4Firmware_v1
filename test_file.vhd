@@ -44,6 +44,7 @@ port (
 
     PMT_rate          : out std_logic_vector(1023 downto 0);
     mask_rate         : out std_logic_vector(319 downto 0);
+    mask_grb          : out std_logic_vector(31 downto 0);
     trigger_flag_1    : out std_logic_vector(31 downto 0);
     trigger_flag_2    : out std_logic_vector(31 downto 0);
 
@@ -223,6 +224,7 @@ port(
 			
     PMT_rate             : out std_logic_vector(1023 downto 0);	
     mask_rate            : out std_logic_vector(319 downto 0);
+    mask_grb             : out std_logic_vector(31 downto 0);
 
     trigger_flag_1       : out std_logic_vector(31 downto 0);	
     trigger_flag_2       : out std_logic_vector(31 downto 0);			
@@ -564,6 +566,7 @@ port map (
     calibration_state    => calibration_state_sig,
     acquisition_state    => acquisition_state_sig,
 
+    mask_grb             => mask_grb,
     mask_rate            => s_mask_rate,
     PMT_rate             => s_PMT_rate,				
 

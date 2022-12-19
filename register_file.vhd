@@ -86,6 +86,7 @@ port(
 
     PMT_rate            : in std_logic_vector(1023 downto 0);
     mask_rate           : in std_logic_vector(319 downto 0);
+    mask_grb            : in std_logic_vector(31 downto 0);
     board_temp          : in std_logic_vector(31 downto 0)
 );
 end register_file;
@@ -223,6 +224,7 @@ constant STATUS_REG_MIR_ADDR          : std_logic_vector(ADDR_LENGHT - 1 downto 
 constant CMD_REG_MIR_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000082";
 constant TRG_COUNTER_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000083";
 constant PPS_COUNTER_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000084";
+constant MASK_RATE_GRB_ADDR           : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000085";
 constant REF_DAC_1_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000A0";
 constant REF_DAC_2_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000A1";
 constant PCKTS_IN_FIFO_ADDR           : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000B2";
@@ -312,7 +314,8 @@ constant PRESC_M1_M0_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 
 -- rimosso il registro CAL_FREQ (169-1=168)
 -- ho rimosso 10 registri di dato non utilizzati (168-10=158)
 -- aggiungo 4 registri di telemetria (158+4=162)
-constant REGISTER_FILE_LENGTH    : integer := 162;
+-- aggiungo un registro per grb (162+1=163)
+constant REGISTER_FILE_LENGTH    : integer := 163;
 
 
 -- define the map of the address this is used to get the local address of the register
@@ -412,6 +415,7 @@ constant address_vector : addr_vector_t(0 to REGISTER_FILE_LENGTH - 1) :=
     (addr => CMD_REG_MIR_ADDR,          mode => RO),
     (addr => TRG_COUNTER_ADDR,          mode => RO),
     (addr => PPS_COUNTER_ADDR,          mode => RO),
+    (addr => MASK_RATE_GRB_ADDR,        mode => RO),
     (addr => REF_DAC_1_ADDR,            mode => RW),
     (addr => REF_DAC_2_ADDR,            mode => RW),
     (addr => PCKTS_IN_FIFO_ADDR,        mode => RO),
@@ -588,6 +592,7 @@ constant register_vector_reset : mem_t(0 to REGISTER_FILE_LENGTH - 1) :=
     x"00000000",  -- CMD_REG_MIR_ADDR
     x"00000000",  -- TRG_COUNTER_ADDR
     x"00000000", --  PPS_COUNTER_ADDR
+    x"00000000", --  MASK_RATE_GRB_ADDR
 
     -- DAC piedistalli
     refDac1Def,  -- REF_DAC_1_ADDR
@@ -1048,6 +1053,8 @@ begin
                 register_vector(get_local_addr(CMD_REG_MIR_ADDR, address_vector))     <= register_vector(get_local_addr(CMD_REG_ADDR, address_vector));
                 register_vector(get_local_addr(TRG_COUNTER_ADDR, address_vector))     <= trgCounter;
                 register_vector(get_local_addr(PPS_COUNTER_ADDR, address_vector))     <= ppsCounter;
+
+                register_vector(get_local_addr(MASK_RATE_GRB_ADDR, address_vector))   <= mask_grb;
 
                 register_vector(get_local_addr(PCKTS_IN_FIFO_ADDR, address_vector))   <= std_logic_vector(to_unsigned(fifoPckCnt,32));
 

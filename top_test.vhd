@@ -302,6 +302,8 @@ port (
 
     PMT_rate          : out std_logic_vector(1023 downto 0);
     mask_rate         : out std_logic_vector(319 downto 0);
+    mask_grb          : out std_logic_vector(31 downto 0);
+
     trigger_flag_1    : out std_logic_vector(31 downto 0);
     trigger_flag_2    : out std_logic_vector(31 downto 0);
 
@@ -591,6 +593,7 @@ port(
 
     PMT_rate            : in std_logic_vector(1023 downto 0);
     mask_rate           : in std_logic_vector(319 downto 0);
+    mask_grb            : in std_logic_vector(31 downto 0);
     board_temp          : in std_logic_vector(31 downto 0)
 );
 end component;
@@ -822,6 +825,7 @@ signal s_calibration_state : std_logic;
 
 signal s_PMT_rate          : std_logic_vector(1023 downto 0);
 signal s_mask_rate       : std_logic_vector(319 downto 0);
+signal s_mask_grb        : std_logic_vector(31 downto 0);
 
 signal s_trigger_flag_1,
        s_trigger_flag_2  : std_logic_vector(31 downto 0);
@@ -1224,6 +1228,7 @@ port map(
     calibration_state    => s_calibration_state,
     PMT_rate => s_PMT_rate,
     mask_rate => s_mask_rate,
+    mask_grb => s_mask_grb,
     trigger_flag_1 => s_trigger_flag_1,
     trigger_flag_2 => s_trigger_flag_2,
 
@@ -1614,6 +1619,7 @@ port map(
 
     PMT_rate => s_PMT_rate,
     mask_rate => s_mask_rate,
+    mask_grb => s_mask_grb,
     board_temp => s_board_temp
 );
 

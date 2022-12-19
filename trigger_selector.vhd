@@ -28,6 +28,8 @@ port(
 
     rate_time_sig	     : in  std_logic; --1 secondo	
 
+    rate_5ms             : in  std_logic;
+
     mask_rate_0          : out std_logic_vector(31 downto 0);
     mask_rate_1          : out std_logic_vector(15 downto 0);
     mask_rate_2          : out std_logic_vector(15 downto 0);
@@ -38,6 +40,8 @@ port(
     mask_rate_7          : out std_logic_vector(15 downto 0);
     mask_rate_8          : out std_logic_vector(15 downto 0);
     mask_rate_9          : out std_logic_vector(15 downto 0);
+
+    mask_grb             : out std_logic_vector(31 downto 0);
 
     trgExtIn             : in  std_logic;
 
@@ -126,12 +130,12 @@ signal  trigger,
 
 signal  plane_masked             : std_logic_vector(11 downto 0);
 
-signal  count_0                  : std_logic_vector(31 downto 0);
+signal  count_0,
+        count_grb                : std_logic_vector(31 downto 0);
 
 signal  count_n                  : countArray;
 
-signal  reset_counter,
-        TR1_masked,
+signal  TR1_masked,
         TR2_masked,
         LAT_1_masked,
         LAT_2_masked,
@@ -191,10 +195,6 @@ signal  trgIDStoreSig,
 
 signal  trgVecSig,
         trgVecSR                 : std_logic_vector(concurrentTriggers-1 downto 0);
-
-attribute syn_replicate : boolean;
-
-attribute syn_replicate of reset_counter : signal is false;
 
 begin
 
@@ -312,19 +312,10 @@ begin
     );
 end generate sincronizzatore;
 
-reset_counter_register: process(swRst, clock, rate_time_sig)
-begin
-    if swRst='1' then
-       reset_counter <= '1';
-    elsif rising_edge(clock) then
-       reset_counter <= rate_time_sig;
-    end if;
-end process;
-
 countPresc_NInst: counter32BitSload
 port map(
     Aclr   => swRst,
-    Sload  => reset_counter,
+    Sload  => rate_time_sig,
     Clock  => clock,
     Enable => rise(0),
     Data   => (others => '0'),
@@ -336,13 +327,23 @@ begin
     count_NInst: counter16BitSload
     port map(
         Aclr   => swRst,
-        Sload  => reset_counter,
+        Sload  => rate_time_sig,
         Clock  => clock,
         Enable => rise(i),
         Data   => (others => '0'),
         Q      => count_n(i)
     );
 end generate;
+
+countGRB_NInst: counter32BitSload
+port map(
+    Aclr   => swRst,
+    Sload  => rate_5ms,
+    Clock  => clock,
+    Enable => rise(8),
+    Data   => (others => '0'),
+    Q      => count_grb
+);
 
 time_register: process(swRst, clock, rate_time_sig, count_n)
 begin
@@ -369,6 +370,17 @@ begin
             mask_rate_7 <= count_n(7);
             mask_rate_8 <= count_n(8);
             mask_rate_9 <= count_n(9);
+        end if;
+    end if;
+end process;
+
+time_5ms_register: process(swRst, clock, rate_5ms, count_grb)
+begin
+    if swRst = '1' then
+        mask_grb <= (others => '0');
+    elsif rising_edge(clock) then
+        if rate_5ms = '1' then
+            mask_grb <= count_grb;
         end if;
     end if;
 end process;
