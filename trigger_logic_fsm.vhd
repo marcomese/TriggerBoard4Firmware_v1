@@ -31,7 +31,7 @@ port(
     acquisition_state    : in  std_logic;
 			
     PMT_rate             : out std_logic_vector(1023 downto 0);	
-    mask_rate            : out std_logic_vector(319 downto 0);
+    mask_rate            : out std_logic_vector(175 downto 0);
     mask_grb             : out std_logic_vector(31 downto 0);
 
     trigger_flag_1       : out std_logic_vector(31 downto 0);	
@@ -622,16 +622,16 @@ port map(
     trg_int => trigger
 );
 
-mask_rate <= X"0009" & mask_rate_9_sig &
-             X"0008" & mask_rate_8_sig &
-             X"0007" & mask_rate_7_sig &
-             X"0006" & mask_rate_6_sig &
-             X"0005" & mask_rate_5_sig &
-             X"0004" & mask_rate_4_sig &
-             X"0003" & mask_rate_3_sig &
-             X"0002" & mask_rate_2_sig &
-             X"0001" & mask_rate_1_sig &
-             mask_rate_0_sig;
+mask_rate <= mask_rate_9_sig &  -- 175 -> 160
+             mask_rate_8_sig &  -- 159 -> 144
+             mask_rate_7_sig &  -- 143 -> 128
+             mask_rate_6_sig &  -- 127 -> 112
+             mask_rate_5_sig &  -- 111 -> 96
+             mask_rate_4_sig &  --  95 -> 80
+             mask_rate_3_sig &  --  79 -> 64
+             mask_rate_2_sig &  --  63 -> 48
+             mask_rate_1_sig &  --  47 -> 32
+             mask_rate_0_sig;   --  31 -> 0
 
 turretsFlagsSig(7 downto 5) <= (others => '0');
 

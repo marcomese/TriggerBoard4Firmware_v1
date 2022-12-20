@@ -85,7 +85,7 @@ port(
     calibPeriod         : out std_logic_vector(15 downto 0);
 
     PMT_rate            : in std_logic_vector(1023 downto 0);
-    mask_rate           : in std_logic_vector(319 downto 0);
+    mask_rate           : in std_logic_vector(175 downto 0);
     mask_grb            : in std_logic_vector(31 downto 0);
     board_temp          : in std_logic_vector(31 downto 0)
 );
@@ -108,9 +108,6 @@ constant RST_WORD           : std_logic_vector(31 downto 0) := x"0DA00DA0";
 
 constant dataLenConst       : std_logic_vector(31 downto 0) := x"0000003E";
 
-constant dataRegsStart      : natural := 46;
-constant dataRegsStop       : natural := 158;
-
 -- define the memory array
 type mem_t is array (natural range <>) of std_logic_vector(DATA_LENGHT - 1 downto 0);
 
@@ -126,9 +123,6 @@ end record;
 
 -- define the type for the address vector that store the address map table
 type addr_vector_t is array (natural range <>) of addr_t;
-
-constant refDac1LocalAddr   : natural := 93;
-constant refDac2LocalAddr   : natural := 94;
 
 -- control registers
 constant ID_REG_ADDR                  : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000000";
@@ -216,15 +210,11 @@ constant MASK_RATE_02_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 
 constant MASK_RATE_03_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000007A";
 constant MASK_RATE_04_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000007B";
 constant MASK_RATE_05_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000007C";
-constant MASK_RATE_06_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000007D";
-constant MASK_RATE_07_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000007E";
-constant MASK_RATE_08_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000007F";
-constant MASK_RATE_09_ADDR            : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000080";
-constant STATUS_REG_MIR_ADDR          : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000081";
-constant CMD_REG_MIR_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000082";
-constant TRG_COUNTER_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000083";
-constant PPS_COUNTER_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000084";
-constant MASK_RATE_GRB_ADDR           : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000085";
+constant STATUS_REG_MIR_ADDR          : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000007D";
+constant CMD_REG_MIR_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000007E";
+constant TRG_COUNTER_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"0000007F";
+constant PPS_COUNTER_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000080";
+constant MASK_RATE_GRB_ADDR           : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"00000081";
 constant REF_DAC_1_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000A0";
 constant REF_DAC_2_ADDR               : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000A1";
 constant PCKTS_IN_FIFO_ADDR           : std_logic_vector(ADDR_LENGHT - 1 downto 0) := x"000000B2";
@@ -315,8 +305,14 @@ constant PRESC_M1_M0_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 
 -- ho rimosso 10 registri di dato non utilizzati (168-10=158)
 -- aggiungo 4 registri di telemetria (158+4=162)
 -- aggiungo un registro per grb (162+1=163)
-constant REGISTER_FILE_LENGTH    : integer := 163;
+-- rimuovo 4 registri mask rate (li compatto) (163-4=159)
+constant REGISTER_FILE_LENGTH    : integer := 159;
 
+constant dataRegsStart      : natural := 46;
+constant dataRegsStop       : natural := REGISTER_FILE_LENGTH-2;
+
+constant refDac1LocalAddr   : natural := 93;
+constant refDac2LocalAddr   : natural := 94;
 
 -- define the map of the address this is used to get the local address of the register
 constant address_vector : addr_vector_t(0 to REGISTER_FILE_LENGTH - 1) :=
@@ -407,10 +403,6 @@ constant address_vector : addr_vector_t(0 to REGISTER_FILE_LENGTH - 1) :=
     (addr => MASK_RATE_03_ADDR,         mode => RO),   
     (addr => MASK_RATE_04_ADDR,         mode => RO),   
     (addr => MASK_RATE_05_ADDR,         mode => RO),   
-    (addr => MASK_RATE_06_ADDR,         mode => RO),   
-    (addr => MASK_RATE_07_ADDR,         mode => RO),   
-    (addr => MASK_RATE_08_ADDR,         mode => RO),
-    (addr => MASK_RATE_09_ADDR,         mode => RO),
     (addr => STATUS_REG_MIR_ADDR,       mode => RO),
     (addr => CMD_REG_MIR_ADDR,          mode => RO),
     (addr => TRG_COUNTER_ADDR,          mode => RO),
@@ -584,10 +576,6 @@ constant register_vector_reset : mem_t(0 to REGISTER_FILE_LENGTH - 1) :=
     x"00000000",  -- MASK_RATE_03_ADDR            
     x"00000000",  -- MASK_RATE_04_ADDR            
     x"00000000",  -- MASK_RATE_05_ADDR            
-    x"00000000",  -- MASK_RATE_06_ADDR            
-    x"00000000",  -- MASK_RATE_07_ADDR            
-    x"00000000",  -- MASK_RATE_08_ADDR
-    x"00000000", --  MASK_RATE_09_ADDR
     x"00000000",  -- STATUS_REG_MIR_ADDR
     x"00000000",  -- CMD_REG_MIR_ADDR
     x"00000000",  -- TRG_COUNTER_ADDR
@@ -1038,16 +1026,12 @@ begin
                 register_vector(get_local_addr(PMT_RATE_01_ADDR, address_vector))     <= PMT_rate(63   downto   32);
                 register_vector(get_local_addr(PMT_RATE_00_ADDR, address_vector))     <= PMT_rate(31   downto    0);
 
-                register_vector(get_local_addr(MASK_RATE_00_ADDR, address_vector))    <= mask_rate(31  downto    0);
-                register_vector(get_local_addr(MASK_RATE_01_ADDR, address_vector))    <= mask_rate(63  downto   32);
-                register_vector(get_local_addr(MASK_RATE_02_ADDR, address_vector))    <= mask_rate(95  downto   64);
-                register_vector(get_local_addr(MASK_RATE_03_ADDR, address_vector))    <= mask_rate(127 downto   96);
-                register_vector(get_local_addr(MASK_RATE_04_ADDR, address_vector))    <= mask_rate(159 downto  128);
-                register_vector(get_local_addr(MASK_RATE_05_ADDR, address_vector))    <= mask_rate(191 downto  160);
-                register_vector(get_local_addr(MASK_RATE_06_ADDR, address_vector))    <= mask_rate(223 downto  192);
-                register_vector(get_local_addr(MASK_RATE_07_ADDR, address_vector))    <= mask_rate(255 downto  224);
-                register_vector(get_local_addr(MASK_RATE_08_ADDR, address_vector))    <= mask_rate(287 downto  256);
-                register_vector(get_local_addr(MASK_RATE_09_ADDR, address_vector))    <= mask_rate(319 downto  288);
+                register_vector(get_local_addr(MASK_RATE_00_ADDR, address_vector))    <= mask_rate(31  downto 0);
+                register_vector(get_local_addr(MASK_RATE_01_ADDR, address_vector))    <= mask_rate(63  downto 32);
+                register_vector(get_local_addr(MASK_RATE_02_ADDR, address_vector))    <= mask_rate(95  downto 64);
+                register_vector(get_local_addr(MASK_RATE_03_ADDR, address_vector))    <= mask_rate(127 downto 96);
+                register_vector(get_local_addr(MASK_RATE_04_ADDR, address_vector))    <= mask_rate(159 downto 128);
+                register_vector(get_local_addr(MASK_RATE_05_ADDR, address_vector))    <= x"0000" & mask_rate(175 downto 160);
 
                 register_vector(get_local_addr(STATUS_REG_MIR_ADDR, address_vector))  <= register_vector(get_local_addr(STATUS_REG_ADDR, address_vector));
                 register_vector(get_local_addr(CMD_REG_MIR_ADDR, address_vector))     <= register_vector(get_local_addr(CMD_REG_ADDR, address_vector));
