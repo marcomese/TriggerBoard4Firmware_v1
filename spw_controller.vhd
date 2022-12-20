@@ -47,7 +47,7 @@ entity spw_controller is
     i_data_in           : in    std_logic_vector(g_spw_data_width - 1 downto 0);  --! spw address from cpu
     o_data_out          : out    std_logic_vector(g_spw_data_width - 1 downto 0);     --! spw write data from cpu
     o_we                : out   std_logic;                                           --! spw enable from cpu
-    o_addr              : out   std_logic_vector(g_spw_data_width - 1 downto 0);                                           --! spw write enable from cpu    
+    o_addr              : out   std_logic_vector(g_spw_addr_width - 1 downto 0);                                           --! spw write enable from cpu    
     i_write_done        : in    std_logic;
     o_busy              : out  std_logic;
 
@@ -165,91 +165,29 @@ type mem_t is array (natural range <>) of std_logic_vector(g_spw_data_width - 1 
   signal s_sm_status  : std_logic_vector(2 downto 0);
   signal s_sm_rx_status  : std_logic_vector(3 downto 0);
 
---  signal s_burst_counter      : std_logic_vector(g_spw_data_width - 1 downto 0);
-  signal s_burst_counter      : unsigned(g_spw_data_width - 1 downto 0);
+  signal s_burst_counter      : std_logic_vector(g_spw_data_width - 1 downto 0);
+--  signal s_burst_counter      : unsigned(g_spw_data_width - 1 downto 0);
   signal s_reset                    :   std_logic;
 
   signal s_start_reply        :std_logic;
-  signal s_addr_to_write      : integer;
-  signal s_addr_to_write_std  : std_logic_vector(g_spw_data_width - 1 downto 0); 
+  signal s_addr_to_write_std  : std_logic_vector(g_spw_addr_width - 1 downto 0); 
 
   signal s_burst_count        : std_logic_vector(g_spw_data_width - 1 downto 0); 
   signal s_burst_count_uns        : unsigned(g_spw_data_width - 1 downto 0); 
 
-  --signal enBurstCounter,
-         --rstBurstCounter : std_logic;
+  signal enBurstCounter,
+         rstBurstCounter : std_logic;
 
-  attribute keep: boolean;
-  attribute noprune: boolean;
-  attribute mark_debug: boolean;
-
-  attribute keep of   s_tx_data      : signal is true;
-  attribute keep of   s_tx_write                : signal is true;
-  attribute keep of   s_tx_flag    : signal is true;
-  attribute keep of   s_tx_rdy    : signal is true;
-  attribute keep of   s_sm_status     : signal is true;
-  attribute keep of   s_counter     : signal is true;
-  attribute keep of   s_sm_rx_status : signal is true;
-  attribute keep of   s_command_received : signal is true;
-  attribute keep of   s_rx_address_byte : signal is true;
-  attribute keep of   s_rx_data_byte : signal is true;
-  attribute keep of   s_counter_rx : signal is true;
-  attribute keep of  s_start_reply             : signal is true;
-  attribute keep of  s_data_to_send   : signal is true; 
-  attribute keep of  s_addr_to_send   : signal is true; 
-  attribute keep of s_burst_counter  : signal is true; 
-  attribute keep of s_addr_to_write : signal is true; 
-  attribute keep of s_burst_count  : signal is true; 
-  attribute keep of  o_busy               : signal is true; 
-  attribute keep of  s_addr_to_write_std : signal is true; 
-
-  attribute noprune of   s_tx_data      : signal is true;
-  attribute noprune of   s_tx_write                : signal is true;
-  attribute noprune of   s_tx_flag    : signal is true;
-  attribute noprune of   s_tx_rdy    : signal is true;
-  attribute noprune of   s_sm_status     : signal is true;
-  attribute noprune of   s_counter     : signal is true;
-  attribute noprune of   s_sm_rx_status : signal is true;
-  attribute noprune of   s_command_received : signal is true;
-  attribute noprune of   s_rx_address_byte : signal is true;
-  attribute noprune of   s_rx_data_byte : signal is true;
-  attribute noprune of   s_counter_rx : signal is true;
-  attribute noprune of  s_start_reply             : signal is true;
-  attribute noprune of  s_data_to_send   : signal is true; 
-  attribute noprune of  s_addr_to_send   : signal is true; 
-  attribute noprune of s_burst_counter  : signal is true; 
-  attribute noprune of s_addr_to_write : signal is true; 
-  attribute noprune of s_burst_count  : signal is true; 
-  attribute noprune of  o_busy               : signal is true; 
-  attribute noprune of  s_addr_to_write_std : signal is true; 
-
-  attribute mark_debug of   s_tx_data      : signal is true;
-  attribute mark_debug of   s_tx_write                : signal is true;
-  attribute mark_debug of   s_tx_flag    : signal is true;
-  attribute mark_debug of   s_tx_rdy    : signal is true;
-  attribute mark_debug of   s_sm_status     : signal is true;
-  attribute mark_debug of   s_counter     : signal is true;
-  attribute mark_debug of   s_sm_rx_status : signal is true;
-  attribute mark_debug of   s_command_received : signal is true;
-  attribute mark_debug of   s_rx_address_byte : signal is true;
-  attribute mark_debug of   s_rx_data_byte : signal is true;
-  attribute mark_debug of   s_counter_rx : signal is true;
-  attribute mark_debug of  s_start_reply             : signal is true;
-  attribute mark_debug of  s_data_to_send   : signal is true; 
-  attribute mark_debug of  s_addr_to_send   : signal is true; 
-  attribute mark_debug of s_burst_counter  : signal is true; 
-  attribute mark_debug of s_addr_to_write : signal is true; 
-  attribute mark_debug of s_burst_count  : signal is true; 
-  attribute mark_debug of  o_busy               : signal is true; 
-  attribute mark_debug of  s_addr_to_write_std : signal is true; 
-
---component counter32Bit is
-    --port( Aclr   : in    std_logic;
-          --Clock  : in    std_logic;
-          --Enable : in    std_logic;
-          --Q      : out   std_logic_vector(30 downto 0)
-        --);
---end component;
+component counter32BitSload is
+port(
+    Aclr   : in    std_logic;
+    Sload  : in    std_logic;
+    Clock  : in    std_logic;
+    Enable : in    std_logic;
+    Data   : in    std_logic_vector(31 downto 0);
+    Q      : out   std_logic_vector(31 downto 0)
+);
+end component;
 
 begin
 
@@ -273,7 +211,6 @@ begin
 -------------------------------------------------------------------------------
 -- Internal assignments
 -------------------------------------------------------------------------------                        
-  s_addr_to_write <= to_integer(unsigned(s_addr_to_write_std));
   s_burst_count_uns <= unsigned(s_burst_count);
 -------------------------------------------------------------------------------
 -- Processes declarations
@@ -296,9 +233,9 @@ begin
 
       s_start_reply <= '0';
 
-      --rstBurstCounter <= '0';
-      --enBurstCounter <= '0';
-      s_burst_counter <= x"00000000";
+      rstBurstCounter <= '0';
+      enBurstCounter <= '0';
+      --s_burst_counter <= x"00000000";
       s_addr_to_write_std <= (others=>'0');
       s_tx_data <= (others=>'0');
       s_data_to_send <= (others=>(others=>'0'));
@@ -372,10 +309,10 @@ begin
               s_counter    <= 0;
               
               if(s_command_received = c_read_burst_command) then 
---                  enBurstCounter <= '1';
-                s_burst_counter <= s_burst_counter + 1;
-              --else
-                  --enBurstCounter <= '0';
+                  enBurstCounter <= '1';
+                --s_burst_counter <= s_burst_counter + 1;
+              else
+                  enBurstCounter <= '0';
               end if;
 
             end if;
@@ -384,7 +321,7 @@ begin
           
         when c_closing =>
 
---          enBurstCounter <= '0';
+          enBurstCounter <= '0';
 
           -- close connection sending a EOP
           if (s_tx_rdy = '1') then
@@ -468,7 +405,7 @@ begin
 
           -- Acquire the next 4 data byte as data
           o_rxread <= '1';
-          s_addr_to_write_std <= s_rx_address_byte(3) & s_rx_address_byte(2) & s_rx_address_byte(1) & s_rx_address_byte(0);
+          s_addr_to_write_std <= s_rx_address_byte(0);--s_rx_address_byte(3) & s_rx_address_byte(2) & s_rx_address_byte(1) & s_rx_address_byte(0);
 
           if ( (i_rxvalid = '1') and (i_rxflag = '0') ) then
 
@@ -550,10 +487,10 @@ begin
           s_data_to_send(1) <= i_data_in(15 downto 8) ;
           s_data_to_send(0) <= i_data_in(7 downto 0)  ;
           
-          s_addr_to_send(3) <= s_addr_to_write_std(31 downto 24);
-          s_addr_to_send(2) <= s_addr_to_write_std(23 downto 16);
-          s_addr_to_send(1) <= s_addr_to_write_std(15 downto 8) ;
-          s_addr_to_send(0) <= s_addr_to_write_std(7 downto 0)  ;
+          s_addr_to_send(3) <= (others => '0');
+          s_addr_to_send(2) <= (others => '0');
+          s_addr_to_send(1) <= (others => '0');
+          s_addr_to_send(0) <= s_addr_to_write_std;
 
           s_start_reply <= '1';
 
@@ -569,15 +506,15 @@ begin
 
         when c_wait_burst =>
           
-          if(s_burst_counter = s_burst_count_uns)then 
+          if(unsigned(s_burst_counter) = s_burst_count_uns)then 
 
             s_sm_rx_status <= c_idle;
---            rstBurstCounter <= '1';
-            s_burst_counter <= x"00000000";
+            rstBurstCounter <= '1';
+            --s_burst_counter <= x"00000000";
 
           else
 
---            rstBurstCounter <= '0';
+            rstBurstCounter <= '0';
 
             if(s_sm_status = c_closed and s_tx_rdy = '1')then
             
@@ -606,13 +543,15 @@ begin
 
   end process send_process;
 
---burstCounterInst: counter32Bit
---port map(
-    --Aclr   => s_reset or rstBurstCounter,
-    --Clock  => i_spw_clk,
-    --Enable => enBurstCounter,
-    --Q      => s_burst_counter
---);
+burstCounterInst: counter32BitSload
+port map(
+    Aclr   => s_reset,
+    Sload  => rstBurstCounter,
+    Clock  => i_spw_clk,
+    Enable => enBurstCounter,
+    Data   => (others => '0'),
+    Q      => s_burst_counter
+);
   
 
 end architecture spw_controller_arch;

@@ -525,7 +525,7 @@ port(
     rst                   : in std_logic;
     we                    : in std_logic;
     en                    : in std_logic;
-    addr                  : in std_logic_vector(31 downto 0);
+    addr                  : in std_logic_vector(7 downto 0);
     di                    : in std_logic_vector(31 downto 0);
     do                    : out std_logic_vector(31 downto 0);
     o_write_done          : out    std_logic;
@@ -792,7 +792,7 @@ signal s_txflag          : std_logic;
 signal s_txdata          : std_logic_vector(7 downto 0);
 
 signal s_we              : std_logic;
-signal s_addr            : std_logic_vector(31 downto 0);
+signal s_addr            : std_logic_vector(7 downto 0);
 signal s_di              : std_logic_vector(31 downto 0);
 signal s_do              : std_logic_vector(31 downto 0);
 
@@ -1447,7 +1447,7 @@ port map(
 
 instSpwController: spw_controller
 generic map(
-    g_spw_addr_width    => 12,
+    g_spw_addr_width    => 8,
     g_spw_data_width    => 32,
     g_spw_addr_offset   => x"000",
     g_spw_num           => 0,
