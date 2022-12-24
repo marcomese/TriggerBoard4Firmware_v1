@@ -411,7 +411,7 @@ constant address_vector : addr_vector_t(0 to REGISTER_FILE_LENGTH - 1) :=
     (addr => REF_DAC_1_ADDR,            mode => RW),
     (addr => REF_DAC_2_ADDR,            mode => RW),
     (addr => PCKTS_IN_FIFO_ADDR,        mode => RO),
-    (addr => ACQDATALEN_ADDR,           mode => RW),
+    (addr => ACQDATALEN_ADDR,           mode => RO),
     (addr => ACQDATA0_ADDR,             mode => RO),
     (addr => ACQDATA1_ADDR,             mode => RO),
     (addr => ACQDATA2_ADDR,             mode => RO),
@@ -663,7 +663,7 @@ constant register_vector_reset : mem_t(0 to REGISTER_FILE_LENGTH - 1) :=
 signal register_vector : mem_t(0 to REGISTER_FILE_LENGTH - 1);
 
 -- the signal local_address is the conversion of the remote address to local using the address_vector
-signal local_address        : integer;
+signal local_address        : integer range 0 to 2**ADDR_LENGHT-1;
 
 signal clk_counter : unsigned(31 downto 0) := (others => '0');
 

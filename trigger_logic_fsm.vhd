@@ -598,7 +598,7 @@ port map(
 
     apply_trigger_mask => apply_trigger_mask,
 
-    rate_time_sig	=> rise_rate,
+    rate_time_sig	=> reset_counter,
 
     rate_5ms => rate_5ms_sig,
 
