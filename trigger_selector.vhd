@@ -256,7 +256,7 @@ trigger(2)   <= (TR1 and TR2) and RAN_01;
 
 trigger(3)   <= (TR1 and TR2) and RAN_02;
 
-trigger(4)   <= veto_lateral and not (TR1 and veto_bottom);
+trigger(4)   <= veto_lateral and not (TR1 or veto_bottom);
 
 trigger(5)   <= TR1 and TR2 and RAN_12;
 
