@@ -309,10 +309,10 @@ constant PRESC_M1_M0_ADDR             : std_logic_vector(ADDR_LENGHT - 1 downto 
 constant REGISTER_FILE_LENGTH    : integer := 159;
 
 constant dataRegsStart      : natural := 46;
-constant dataRegsStop       : natural := REGISTER_FILE_LENGTH-2;
+constant dataRegsStop       : natural := REGISTER_FILE_LENGTH-4;
 
-constant refDac1LocalAddr   : natural := 93;
-constant refDac2LocalAddr   : natural := 94;
+constant refDac1LocalAddr   : natural := 90;
+constant refDac2LocalAddr   : natural := 91;
 
 -- define the map of the address this is used to get the local address of the register
 constant address_vector : addr_vector_t(0 to REGISTER_FILE_LENGTH - 1) :=
