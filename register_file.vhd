@@ -809,6 +809,7 @@ begin
         PMT_mask_1             <= (others => '0'); 
         PMT_mask_2             <= (others => '0'); 
 
+        dataReadyOutSig        <= '0';
 
         sw_rst_pipe_0             <= '0';
         sw_rst_pipe_1             <= '0';
