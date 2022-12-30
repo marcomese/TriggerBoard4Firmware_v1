@@ -18,6 +18,7 @@ port(
 
     plane                : in  std_logic_vector(31 downto 0);
     planeT1And           : in  std_logic_vector(4 downto 0);
+    planeRAN5to8And      : in  std_logic_vector(3 downto 0);
 
     generic_trigger_mask : in  std_logic_vector(31 downto 0);	
     trigger_mask         : in  std_logic_vector(31 downto 0);
@@ -186,7 +187,11 @@ signal  TR1,
         LAT_2,
         LAT_3,
         LAT_4,
-        BOT_00                   : std_logic;
+        BOT_00,
+        RAN_05AND,
+        RAN_06AND,
+        RAN_07AND,
+        RAN_08AND                : std_logic;
 
 signal  triggerIDSig             : std_logic_vector(7 downto 0);
 
@@ -230,6 +235,11 @@ LAT_2  <= plane(29);
 LAT_3  <= plane(30);
 LAT_4  <= plane(31);
 
+RAN_05AND <= planeRAN5to8And(0);
+RAN_06AND <= planeRAN5to8And(1);
+RAN_07AND <= planeRAN5to8And(2);
+RAN_08AND <= planeRAN5to8And(3);
+
 internal_values: process(reset, clock, apply_trigger_mask)
 begin
     if reset='1' then
@@ -262,11 +272,11 @@ trigger(5)   <= TR1 and TR2 and RAN_12;
 
 trigger(6)   <= veto_bottom and EN1 and EN2 and not (TR1 or TR2 or veto_lateral);
 
-trigger(7)   <= (RAN_05 or RAN_06 or RAN_07 or RAN_08) and not (TR1 or TR2 or
-                                                                RAN_01 or RAN_02 or RAN_03 or RAN_04 or
-                                                                RAN_09 or RAN_10 or RAN_11 or RAN_12 or
-                                                                veto_lateral or veto_bottom or
-                                                                EN1 or EN2);
+trigger(7)   <= (RAN_05AND or RAN_06AND or RAN_07AND or RAN_08AND) and not (TR1 or TR2 or
+                                                                            RAN_01 or RAN_02 or RAN_03 or RAN_04 or
+                                                                            RAN_09 or RAN_10 or RAN_11 or RAN_12 or
+                                                                            veto_lateral or veto_bottom or
+                                                                            EN1 or EN2);
 
 trigger(8)   <= (EN1 or EN2) and not (TR1 or TR2 or
                                       RAN_01 or RAN_02 or RAN_03 or RAN_04 or
@@ -335,14 +345,24 @@ begin
     );
 end generate;
 
-countGRB_NInst: counter32BitSload
+countGRBRAN_NInst: counter16BitSload
+port map(
+    Aclr   => swRst,
+    Sload  => rate_5ms,
+    Clock  => clock,
+    Enable => rise(7),
+    Data   => (others => '0'),
+    Q      => count_grb(15 downto 0)
+);
+
+countGRBLYSO_NInst: counter16BitSload
 port map(
     Aclr   => swRst,
     Sload  => rate_5ms,
     Clock  => clock,
     Enable => rise(8),
     Data   => (others => '0'),
-    Q      => count_grb
+    Q      => count_grb(31 downto 16)
 );
 
 time_register: process(swRst, clock, rate_time_sig, count_n)

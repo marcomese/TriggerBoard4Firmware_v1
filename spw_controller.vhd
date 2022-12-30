@@ -22,7 +22,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
---use work.hepd_gmx_pkg.all;
 -------------------------------------------------------------------------------
 --! Entity declaration
 -------------------------------------------------------------------------------
@@ -33,8 +32,8 @@ entity spw_controller is
     g_spw_addr_width  : integer := 16; --! spw address width generic parameter
     g_spw_data_width  : integer := 32; --! spw data width generic parameter
     g_spw_addr_offset : unsigned := x"0000";     --! component address offset generic parameter
-    g_spw_num        : integer := 32; --! spw number generic parameter
-    g_spw_idx        : unsigned(7 downto 0) := x"00"  --! unique ID index generic parameter
+    g_spw_num         : integer := 32; --! spw number generic parameter
+    g_spw_idx         : unsigned(7 downto 0) := x"00"  --! unique ID index generic parameter
     
   );
 
@@ -85,26 +84,30 @@ type word_to_byte_t is array (natural range <>) of std_logic_vector(7 downto 0);
 
   constant c_eop : std_logic_vector(7 downto 0) := x"00";
 
-  constant c_idle_tx          : std_logic_vector(2 downto 0) := "000";
-  constant c_ready            : std_logic_vector(2 downto 0) := "001";
-  constant c_sending_address  : std_logic_vector(2 downto 0) := "010";
-  constant c_sending_data     : std_logic_vector(2 downto 0) := "011";
-  constant c_closing          : std_logic_vector(2 downto 0) := "100";
-  constant c_closed           : std_logic_vector(2 downto 0) := "101";
+type smState is (
+  c_idle_tx,
+  c_ready,
+  c_sending_address,
+  c_sending_data,
+  c_closing,
+  c_closed
+);
 
-  constant c_idle               : std_logic_vector(3 downto 0) := "0000";
-  constant c_get_address        : std_logic_vector(3 downto 0) := "0001";
-  constant c_get_data           : std_logic_vector(3 downto 0) := "0010";
-  constant c_wait_eop           : std_logic_vector(3 downto 0) := "0011";
-  constant c_execute_command    : std_logic_vector(3 downto 0) := "0101";
-  constant c_reply              : std_logic_vector(3 downto 0) := "0110";
-  constant c_wait_burst         : std_logic_vector(3 downto 0) := "0111";
-  constant c_refresh_addr       : std_logic_vector(3 downto 0) := "1000";
-  constant c_refresh_data       : std_logic_vector(3 downto 0) := "1001";
+type smRxState is (
+  c_idle,
+  c_get_address,
+  c_get_data,
+  c_wait_eop,
+  c_execute_command,
+  c_reply,
+  c_wait_burst,
+  c_refresh_addr,
+  c_refresh_data
+);
 
-  constant c_spacewire_read_cmd       : std_logic_vector(7 downto 0) := x"03";
-  constant c_spacewire_write_cmd      : std_logic_vector(7 downto 0) := x"0C";
-  constant c_read_burst_command       : std_logic_vector(7 downto 0) := x"EE";   
+  constant c_spacewire_read_cmd     : std_logic_vector(7 downto 0) := x"03";
+  constant c_spacewire_write_cmd    : std_logic_vector(7 downto 0) := x"0C";
+  constant c_read_burst_command     : std_logic_vector(7 downto 0) := x"EE";   
 
 -------------------------------------------------------------------------------
 -- Signals Definitions
@@ -114,30 +117,30 @@ type word_to_byte_t is array (natural range <>) of std_logic_vector(7 downto 0);
   signal s_data_to_send             : word_to_byte_t(3 downto 0);
   signal s_addr_to_send             : word_to_byte_t(3 downto 0);
 
-  signal s_tx_data                  :   std_logic_vector(7 downto 0);
-  signal s_tx_write                 :   std_logic;
-  signal s_tx_flag                  :   std_logic;
-  signal s_tx_rdy                   :   std_logic;
+  signal s_tx_data                  : std_logic_vector(7 downto 0);
+  signal s_tx_write                 : std_logic;
+  signal s_tx_flag                  : std_logic;
+  signal s_tx_rdy                   : std_logic;
 
-  signal s_command_received : std_logic_vector(7 downto 0);
-  signal s_rx_address_byte  : word_to_byte_t(3 downto 0);
-  signal s_rx_data_byte     : word_to_byte_t(3 downto 0);
-  signal s_counter_rx : integer range 0 to 3;
+  signal s_command_received         : std_logic_vector(7 downto 0);
+  signal s_rx_address_byte          : word_to_byte_t(3 downto 0);
+  signal s_rx_data_byte             : word_to_byte_t(3 downto 0);
+  signal s_counter_rx               : integer range 0 to 3;
   
-  signal s_counter : integer range 0 to 3;
-  signal s_command : std_logic_vector(7 downto 0);
+  signal s_counter                  : integer range 0 to 3;
+  signal s_command                  : std_logic_vector(7 downto 0);
 
-  signal s_sm_status  : std_logic_vector(2 downto 0);
-  signal s_sm_rx_status  : std_logic_vector(3 downto 0);
+  signal s_sm_status                : smState;
+  signal s_sm_rx_status             : smRxState;
 
-  signal s_burst_counter      : unsigned(g_spw_data_width - 1 downto 0);
-  signal s_reset                    :   std_logic;
+  signal s_burst_counter            : unsigned(g_spw_data_width - 1 downto 0);
+  signal s_reset                    : std_logic;
 
-  signal s_start_reply        :std_logic;
-  signal s_addr_to_write_std  : std_logic_vector(g_spw_addr_width - 1 downto 0); 
+  signal s_start_reply              : std_logic;
+  signal s_addr_to_write_std        : std_logic_vector(g_spw_addr_width - 1 downto 0); 
 
-  signal s_burst_count        : std_logic_vector(g_spw_data_width - 1 downto 0); 
-  signal s_burst_count_uns        : unsigned(g_spw_data_width - 1 downto 0); 
+  signal s_burst_count              : std_logic_vector(g_spw_data_width - 1 downto 0); 
+  signal s_burst_count_uns          : unsigned(g_spw_data_width - 1 downto 0); 
 
 begin
 
@@ -348,7 +351,7 @@ begin
 
           -- Acquire the next 4 data byte as data
           o_rxread <= '1';
-          s_addr_to_write_std <= s_rx_address_byte(0);--s_rx_address_byte(3) & s_rx_address_byte(2) & s_rx_address_byte(1) & s_rx_address_byte(0);
+          s_addr_to_write_std <= s_rx_address_byte(0);
 
           if ( (i_rxvalid = '1') and (i_rxflag = '0') ) then
 

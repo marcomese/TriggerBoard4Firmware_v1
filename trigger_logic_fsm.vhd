@@ -106,6 +106,7 @@ port(
 
     plane                : in  std_logic_vector(31 downto 0);
     planeT1And           : in  std_logic_vector(4 downto 0);
+    planeRAN5to8And      : in  std_logic_vector(3 downto 0);
 
     generic_trigger_mask : in  std_logic_vector(31 downto 0);	
     trigger_mask         : in  std_logic_vector(31 downto 0);
@@ -161,11 +162,7 @@ port(
 );
 end component;
 
---constant TRG_LENGHT : integer := 19; -- Number of clock cycles 200MHz
 constant TRG_LENGHT : integer := 9;
---constant TRG_LENGHT : integer := 18; -- Number of clock cycles 192MHz
---constant TRG_LENGHT : integer := 9; -- Number of clock cycles 96MHz
---constant TRG_LENGHT : integer := 4; -- Number of clock cycles 48MHz
 constant RATE_TIME  : integer := 200000; -- 1 sec a 200kHz
 constant RATE_5MS_TIME : integer := 1000; -- 5 ms a 200kHz
 
@@ -191,6 +188,8 @@ signal  trigger_sincro_1,
         PMT_mask_int_2      : std_logic_vector(31 downto 0);
 
 signal  planeT1And : std_logic_vector(4 downto 0);
+
+signal  planeRAN5to8And : std_logic_vector(3 downto 0);
 
 signal  count   : integer range 0 to TRG_LENGHT;
 
@@ -253,10 +252,6 @@ signal  trg1FlagSync,
         trg2FlagSync        : std_logic_vector(31 downto 0);
 signal  turrFlagSync        : std_logic_vector(4 downto 0);
 
---attribute syn_replicate : boolean;
-
---attribute syn_replicate of reset_counter : signal is false;
-
 begin
 
 rate1SecOut <= rate_time_sig;
@@ -303,28 +298,6 @@ begin
     end if;
 end process;
 
---sincronizzatore1: genericSync
---generic map(
-    --sigNum => 32
---)
---port map(
-    --clk    => clock,
-    --rst    => reset,
-    --sigIn  => trigger_in_1,
-    --sigOut => trigger_in_sync_1
---);
---
---sincronizzatore2: genericSync
---generic map(
-    --sigNum => 32
---)
---port map(
-    --clk    => clock,
-    --rst    => reset,
-    --sigIn  => trigger_in_2,
-    --sigOut => trigger_in_sync_2
---);
-
 rise1Gen: for i in 0 to 31 generate
     rise1Inst: edgeDetector
     generic map(
@@ -350,36 +323,6 @@ rise2Gen: for i in 0 to 31 generate
         signalOut => rise_2(i)
     );
 end generate;
-
---sincronizzatore1 : for i in 0 to 31 generate
---begin
-    --edge_trigger_i: process(reset, clock, trigger_in_1)
-    --variable resync_i : std_logic_vector(1 to 3);
-    --begin
-        --if reset='1' then
-            --rise_1(i) <= '0';
-            --resync_i  := (others => '0');
-        --elsif rising_edge(clock) then
-            --rise_1(i) <= resync_i(2) and not resync_i(3);
-            --resync_i  := trigger_in_1(i) & resync_i(1 to 2);
-        --end if;
-    --end process;
---end generate sincronizzatore1;
---
---sincronizzatore2 : for i in 0 to 31 generate
---begin
-    --edge_trigger_i: process(reset, clock, trigger_in_2)
-    --variable resync_i : std_logic_vector(1 to 3);
-    --begin
-       --if reset='1' then
-            --rise_2(i) <= '0';
-            --resync_i  := (others => '0');
-       --elsif rising_edge(clock) then
-            --rise_2(i) <= resync_i(2) and not resync_i(3);
-            --resync_i  := trigger_in_2(i) & resync_i(1 to 2);
-       --end if;
-    --end process;
---end generate sincronizzatore2;
 
 sincroExt: process(reset, clock, trgExtIn)
 variable ffQ : std_logic_vector(1 to 3);
@@ -555,26 +498,17 @@ trigger_PMTmasked_2 <= trigger_sincro_2 and PMT_mask_int_2;
 
 PMT_mask_plane_gen: for i in 0 to 31 generate
 begin
-    --syncProc: process(clock, reset)
-    --begin
-        --if reset = '1' then
-            --plane(i) <= '0';
-        --elsif rising_edge(clock) then
-            plane(i) <= trigger_PMTmasked_1(i) or trigger_PMTmasked_2(i);
-        --end if;
-    --end process;
+    plane(i) <= trigger_PMTmasked_1(i) or trigger_PMTmasked_2(i);
 end generate PMT_mask_plane_gen;
 
 planeT1MaskGen: for i in 0 to 4 generate
 begin
-    --planeT1MaskProc: process(clock, reset)
-    --begin
-        --if reset = '1' then
-            --planeT1And(i) <= '0';
-        --elsif rising_edge(clock) then
-            planeT1And(i) <= trigger_PMTmasked_1(i) and trigger_PMTmasked_2(i);
-        --end if;
-    --end process;
+    planeT1And(i) <= trigger_PMTmasked_1(i) and trigger_PMTmasked_2(i);
+end generate;
+
+planeRANANDGen: for i in 0 to 3 generate
+begin
+    planeRAN5to8And(i) <= trigger_PMTmasked_1(i+13) and trigger_PMTmasked_2(i+13);
 end generate;
 
 trigger_selector_component : TRIGGER_selector
@@ -590,6 +524,7 @@ port map(
 
     plane  => plane,
     planeT1And => planeT1And,
+    planeRAN5to8And => planeRAN5to8And,
 
     generic_trigger_mask => generic_trigger_mask,
     trigger_mask => trigger_mask,
