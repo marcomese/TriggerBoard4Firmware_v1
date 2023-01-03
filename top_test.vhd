@@ -525,7 +525,7 @@ port(
     rst                   : in std_logic;
     we                    : in std_logic;
     en                    : in std_logic;
-    addr                  : in std_logic_vector(7 downto 0);
+    addr                  : in std_logic_vector(31 downto 0);
     di                    : in std_logic_vector(31 downto 0);
     do                    : out std_logic_vector(31 downto 0);
     o_write_done          : out    std_logic;
@@ -792,7 +792,7 @@ signal s_txflag          : std_logic;
 signal s_txdata          : std_logic_vector(7 downto 0);
 
 signal s_we              : std_logic;
-signal s_addr            : std_logic_vector(7 downto 0);
+signal s_addr            : std_logic_vector(31 downto 0);
 signal s_di              : std_logic_vector(31 downto 0);
 signal s_do              : std_logic_vector(31 downto 0);
 
