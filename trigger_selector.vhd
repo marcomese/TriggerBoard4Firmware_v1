@@ -17,8 +17,7 @@ port(
     clock                : in  std_logic;  
 
     plane                : in  std_logic_vector(31 downto 0);
-    planeT1And           : in  std_logic_vector(4 downto 0);
-    planeRAN5to8And      : in  std_logic_vector(3 downto 0);
+    planeAnd             : in  std_logic_vector(31 downto 0);
 
     generic_trigger_mask : in  std_logic_vector(31 downto 0);	
     trigger_mask         : in  std_logic_vector(31 downto 0);
@@ -176,6 +175,8 @@ signal  TR1,
         RAN_12,
         EN1,
         EN2,
+        EN1_AND,
+        EN2_AND,
         TR1_02,
         TR1_03,
         TR1_04,
@@ -206,7 +207,6 @@ begin
 triggerID <= triggerIDSig;
 
 TR1    <= plane(0) or plane(1) or plane(2) or plane(3) or plane(4);
-TR1AND <= planeT1And(0) or planeT1And(1) or planeT1And(2) or planeT1And(3) or planeT1And(4);
 TR2    <= plane(5) or plane(6) or plane(7) or plane(8);
 RAN_01 <= plane(9);
 RAN_02 <= plane(10);
@@ -235,10 +235,13 @@ LAT_2  <= plane(29);
 LAT_3  <= plane(30);
 LAT_4  <= plane(31);
 
-RAN_05AND <= planeRAN5to8And(0);
-RAN_06AND <= planeRAN5to8And(1);
-RAN_07AND <= planeRAN5to8And(2);
-RAN_08AND <= planeRAN5to8And(3);
+TR1AND <= planeAnd(0) or planeAnd(1) or planeAnd(2) or planeAnd(3) or planeAnd(4);
+EN1_AND   <= planeAnd(21) or planeAnd(22) or planeAnd(23);
+EN2_AND   <= planeAnd(24) or planeAnd(25) or planeAnd(26);
+RAN_05AND <= planeAnd(13);
+RAN_06AND <= planeAnd(14);
+RAN_07AND <= planeAnd(15);
+RAN_08AND <= planeAnd(16);
 
 internal_values: process(reset, clock, apply_trigger_mask)
 begin
@@ -273,16 +276,10 @@ trigger(5)   <= TR1 and TR2 and RAN_12;
 trigger(6)   <= veto_bottom and EN1 and EN2 and not (TR1 or TR2 or veto_lateral);
 
 trigger(7)   <= (RAN_05AND or RAN_06AND or RAN_07AND or RAN_08AND) and not (TR1 or TR2 or
-                                                                            RAN_01 or RAN_02 or RAN_03 or RAN_04 or
-                                                                            RAN_09 or RAN_10 or RAN_11 or RAN_12 or
                                                                             veto_lateral or veto_bottom or
                                                                             EN1 or EN2);
 
-trigger(8)   <= (EN1 or EN2) and not (TR1 or TR2 or
-                                      RAN_01 or RAN_02 or RAN_03 or RAN_04 or
-                                      RAN_05 or RAN_06 or RAN_07 or RAN_08 or
-                                      RAN_09 or RAN_10 or RAN_11 or RAN_12 or
-                                      veto_lateral or veto_bottom);
+trigger(8)   <= (EN1_AND or EN2_AND) and not (TR1 or TR2 or veto_lateral or veto_bottom);
 
 trigger(9)   <= TR1_masked and TR2_masked and
                 plane_masked(0) and plane_masked(1) and plane_masked(2) and plane_masked(3) and

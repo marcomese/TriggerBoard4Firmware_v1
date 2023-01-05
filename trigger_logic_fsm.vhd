@@ -105,8 +105,7 @@ port(
     clock                : in  std_logic;  
 
     plane                : in  std_logic_vector(31 downto 0);
-    planeT1And           : in  std_logic_vector(4 downto 0);
-    planeRAN5to8And      : in  std_logic_vector(3 downto 0);
+    planeAnd             : in  std_logic_vector(31 downto 0);
 
     generic_trigger_mask : in  std_logic_vector(31 downto 0);	
     trigger_mask         : in  std_logic_vector(31 downto 0);
@@ -187,9 +186,7 @@ signal  trigger_sincro_1,
         PMT_mask_int_1,
         PMT_mask_int_2      : std_logic_vector(31 downto 0);
 
-signal  planeT1And : std_logic_vector(4 downto 0);
-
-signal  planeRAN5to8And : std_logic_vector(3 downto 0);
+signal  planeAnd : std_logic_vector(31 downto 0);
 
 signal  count   : integer range 0 to TRG_LENGHT;
 
@@ -501,14 +498,9 @@ begin
     plane(i) <= trigger_PMTmasked_1(i) or trigger_PMTmasked_2(i);
 end generate PMT_mask_plane_gen;
 
-planeT1MaskGen: for i in 0 to 4 generate
+planeT1MaskGen: for i in 0 to 31 generate
 begin
-    planeT1And(i) <= trigger_PMTmasked_1(i) and trigger_PMTmasked_2(i);
-end generate;
-
-planeRANANDGen: for i in 0 to 3 generate
-begin
-    planeRAN5to8And(i) <= trigger_PMTmasked_1(i+13) and trigger_PMTmasked_2(i+13);
+    planeAnd(i) <= trigger_PMTmasked_1(i) and trigger_PMTmasked_2(i);
 end generate;
 
 trigger_selector_component : TRIGGER_selector
@@ -523,8 +515,7 @@ port map(
     swRst => swRst,
 
     plane  => plane,
-    planeT1And => planeT1And,
-    planeRAN5to8And => planeRAN5to8And,
+    planeAnd => planeAnd,
 
     generic_trigger_mask => generic_trigger_mask,
     trigger_mask => trigger_mask,
