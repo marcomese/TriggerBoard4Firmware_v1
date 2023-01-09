@@ -411,7 +411,7 @@ constant address_vector : addr_vector_t(0 to REGISTER_FILE_LENGTH - 1) :=
     (addr => REF_DAC_1_ADDR,            mode => RW),
     (addr => REF_DAC_2_ADDR,            mode => RW),
     (addr => PCKTS_IN_FIFO_ADDR,        mode => RO),
-    (addr => ACQDATALEN_ADDR,           mode => RO),
+    (addr => ACQDATALEN_ADDR,           mode => RW),
     (addr => ACQDATA0_ADDR,             mode => RO),
     (addr => ACQDATA1_ADDR,             mode => RO),
     (addr => ACQDATA2_ADDR,             mode => RO),
