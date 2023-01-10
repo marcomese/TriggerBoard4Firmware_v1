@@ -78,69 +78,38 @@ architecture spw_controller_arch of spw_controller is
 -------------------------------------------------------------------------------
 
 type word_to_byte_t is array (natural range <>) of std_logic_vector(7 downto 0);
-type register_mode_t is (RW, RO);
-type mem_t is array (natural range <>) of std_logic_vector(g_spw_data_width - 1 downto 0);
---type addr_t is 
-  --record
-      --addr        : unsigned(g_spw_addr_width - 1 downto 0);
-      --modeLocal   : register_mode_t;
-      --modeRemote  : register_mode_t;
-  --end record;
---type addr_vector_t is array (natural range <>) of addr_t;
 
 -------------------------------------------------------------------------------
 -- Constants Definitions
 -------------------------------------------------------------------------------
-  constant c_register_file_length    : integer := 20;
-
-  --constant c_spw_ctrl_reg_address    : unsigned((g_spw_addr_width - 1) downto 0) := c_spw_ba + to_unsigned(1,g_spw_addr_width);
-
-  constant c_spw_id_reg_data         : std_logic_vector((g_spw_data_width - 1) downto 0) := std_logic_vector(x"73707730" + g_spw_idx);
-  constant c_spw_def_data            : std_logic_vector((g_spw_data_width - 1) downto 0) := c_spw_id_reg_data;
-   
-  constant c_spw_address_rst            : std_logic_vector( (g_spw_data_width - 1) downto 0) := x"BADCACCA"; --! spw mismatch data register reset value @MMAP:rst     
-  constant c_spw_write_data_rst         : std_logic_vector( (g_spw_data_width - 1) downto 0) := x"BADCACCA"; --! spw mismatch address register reset value @MMAP:rst
-  constant c_spw_read_data_rst          : std_logic_vector( (g_spw_data_width - 1) downto 0) := x"BADCACCA"; --! spw reset interrupt register reset value @MMAP:rst   
-  constant c_spw_start_command_rst      : std_logic_vector( (g_spw_data_width - 1) downto 0) := x"BADCACCA"; --! spw reset interrupt register reset value @MMAP:rst   
-  constant c_spw_status_rst             : std_logic_vector( (g_spw_data_width - 1) downto 0) := x"BADCACCA"; --! spw reset interrupt register reset value @MMAP:rst   
-  constant c_burst_count_rst            : std_logic_vector( (g_spw_data_width - 1) downto 0) := x"00000001"; --! spw reset interrupt register reset value @MMAP:rst   
-  constant c_spw_reset_rst              : std_logic_vector( (g_spw_data_width - 1) downto 0) := x"FFFFFFFF"; --! spw reset interrupt register reset value @MMAP:rst   
 
   constant c_eop : std_logic_vector(7 downto 0) := x"00";
-  constant c_eep : std_logic_vector(7 downto 0) := x"01";
-  constant c_write_command  : std_logic_vector(7 downto 0) := x"0C";    
-  constant c_read_command   : std_logic_vector(7 downto 0) := x"03";    
 
-  constant c_idle_tx          : std_logic_vector(2 downto 0) := "000";
-  constant c_ready            : std_logic_vector(2 downto 0) := "001";
-  constant c_sending_address  : std_logic_vector(2 downto 0) := "010";
-  constant c_sending_data     : std_logic_vector(2 downto 0) := "011";
-  constant c_closing          : std_logic_vector(2 downto 0) := "100";
-  constant c_closed           : std_logic_vector(2 downto 0) := "101";
+type smState is (
+  c_idle_tx,
+  c_ready,
+  c_sending_address,
+  c_sending_data,
+  c_closing,
+  c_closed
+);
 
-  constant c_idle               : std_logic_vector(3 downto 0) := "0000";
-  constant c_get_address        : std_logic_vector(3 downto 0) := "0001";
-  constant c_get_data           : std_logic_vector(3 downto 0) := "0010";
-  constant c_wait_eop           : std_logic_vector(3 downto 0) := "0011";
-  constant c_finish_rx          : std_logic_vector(3 downto 0) := "0100";
-  constant c_execute_command    : std_logic_vector(3 downto 0) := "0101";
-  constant c_reply              : std_logic_vector(3 downto 0) := "0110";
-  constant c_wait_burst         : std_logic_vector(3 downto 0) := "0111";
-  constant c_refresh_addr       : std_logic_vector(3 downto 0) := "1000";
-  constant c_refresh_data       : std_logic_vector(3 downto 0) := "1001";
+type smRxState is (
+  c_idle,
+  c_get_address,
+  c_get_data,
+  c_wait_eop,
+  c_execute_command,
+  c_reply,
+  c_wait_burst,
+  c_refresh_addr,
+  c_refresh_data
+);
 
-  constant c_spacewire_free_cmd       : std_logic_vector(7 downto 0) := x"00";
-  constant c_spacewire_read_cmd       : std_logic_vector(7 downto 0) := x"03";
-  constant c_spacewire_write_cmd      : std_logic_vector(7 downto 0) := x"0C";
-  constant c_spacewire_post_write_cmd : std_logic_vector(7 downto 0) := x"30";
-  constant c_spacewire_undef_cmd      : std_logic_vector(7 downto 0) := x"FF";
-  constant c_read_burst_command       : std_logic_vector(7 downto 0) := x"EE";   
+  constant c_spacewire_read_cmd     : std_logic_vector(7 downto 0) := x"03";
+  constant c_spacewire_write_cmd    : std_logic_vector(7 downto 0) := x"0C";
+  constant c_read_burst_command     : std_logic_vector(7 downto 0) := x"EE";   
 
-  constant c_sm_busy                   : std_logic_vector(31 downto 0) := x"62757379";
-  constant c_sm_idle                   : std_logic_vector(31 downto 0) := x"69646c65";
-  constant c_reset_cmd                 : std_logic_vector(31 downto 0) := x"69696969";
-
-  constant c_burst_count_special_address : std_logic_vector(31 downto 0) := x"00000000";
 -------------------------------------------------------------------------------
 -- Signals Definitions
 -------------------------------------------------------------------------------
@@ -149,104 +118,30 @@ type mem_t is array (natural range <>) of std_logic_vector(g_spw_data_width - 1 
   signal s_data_to_send             : word_to_byte_t(3 downto 0);
   signal s_addr_to_send             : word_to_byte_t(3 downto 0);
 
-  signal s_tx_data                  :   std_logic_vector(7 downto 0);
-  signal s_tx_write                 :   std_logic;
-  signal s_tx_flag                  :   std_logic;
-  signal s_tx_rdy                   :   std_logic;
+  signal s_tx_data                  : std_logic_vector(7 downto 0);
+  signal s_tx_write                 : std_logic;
+  signal s_tx_flag                  : std_logic;
+  signal s_tx_rdy                   : std_logic;
 
-  signal s_command_received : std_logic_vector(7 downto 0);
-  signal s_rx_address_byte  : word_to_byte_t(3 downto 0);
-  signal s_rx_data_byte     : word_to_byte_t(3 downto 0);
-  signal s_counter_rx : integer range 0 to 3;
+  signal s_command_received         : std_logic_vector(7 downto 0);
+  signal s_rx_address_byte          : word_to_byte_t(3 downto 0);
+  signal s_rx_data_byte             : word_to_byte_t(3 downto 0);
+  signal s_counter_rx               : integer range 0 to 3;
   
-  signal s_counter : integer range 0 to 3;
-  signal s_command : std_logic_vector(7 downto 0);
+  signal s_counter                  : integer range 0 to 3;
+  signal s_command                  : std_logic_vector(7 downto 0);
 
-  signal s_sm_status  : std_logic_vector(2 downto 0);
-  signal s_sm_rx_status  : std_logic_vector(3 downto 0);
+  signal s_sm_status                : smState;
+  signal s_sm_rx_status             : smRxState;
 
---  signal s_burst_counter      : std_logic_vector(g_spw_data_width - 1 downto 0);
-  signal s_burst_counter      : unsigned(g_spw_data_width - 1 downto 0);
-  signal s_reset                    :   std_logic;
+  signal s_burst_counter            : unsigned(g_spw_data_width - 1 downto 0);
+  signal s_reset                    : std_logic;
 
-  signal s_start_reply        :std_logic;
-  signal s_addr_to_write      : integer;
-  signal s_addr_to_write_std  : std_logic_vector(g_spw_data_width - 1 downto 0); 
+  signal s_start_reply              : std_logic;
+  signal s_addr_to_write_std        : std_logic_vector(g_spw_data_width - 1 downto 0); 
 
-  signal s_burst_count        : std_logic_vector(g_spw_data_width - 1 downto 0); 
-  signal s_burst_count_uns        : unsigned(g_spw_data_width - 1 downto 0); 
-
-  --signal enBurstCounter,
-         --rstBurstCounter : std_logic;
-
-  attribute keep: boolean;
-  attribute noprune: boolean;
-  attribute mark_debug: boolean;
-
-  attribute keep of   s_tx_data      : signal is true;
-  attribute keep of   s_tx_write                : signal is true;
-  attribute keep of   s_tx_flag    : signal is true;
-  attribute keep of   s_tx_rdy    : signal is true;
-  attribute keep of   s_sm_status     : signal is true;
-  attribute keep of   s_counter     : signal is true;
-  attribute keep of   s_sm_rx_status : signal is true;
-  attribute keep of   s_command_received : signal is true;
-  attribute keep of   s_rx_address_byte : signal is true;
-  attribute keep of   s_rx_data_byte : signal is true;
-  attribute keep of   s_counter_rx : signal is true;
-  attribute keep of  s_start_reply             : signal is true;
-  attribute keep of  s_data_to_send   : signal is true; 
-  attribute keep of  s_addr_to_send   : signal is true; 
-  attribute keep of s_burst_counter  : signal is true; 
-  attribute keep of s_addr_to_write : signal is true; 
-  attribute keep of s_burst_count  : signal is true; 
-  attribute keep of  s_addr_to_write_std : signal is true; 
-
-  attribute noprune of   s_tx_data      : signal is true;
-  attribute noprune of   s_tx_write                : signal is true;
-  attribute noprune of   s_tx_flag    : signal is true;
-  attribute noprune of   s_tx_rdy    : signal is true;
-  attribute noprune of   s_sm_status     : signal is true;
-  attribute noprune of   s_counter     : signal is true;
-  attribute noprune of   s_sm_rx_status : signal is true;
-  attribute noprune of   s_command_received : signal is true;
-  attribute noprune of   s_rx_address_byte : signal is true;
-  attribute noprune of   s_rx_data_byte : signal is true;
-  attribute noprune of   s_counter_rx : signal is true;
-  attribute noprune of  s_start_reply             : signal is true;
-  attribute noprune of  s_data_to_send   : signal is true; 
-  attribute noprune of  s_addr_to_send   : signal is true; 
-  attribute noprune of s_burst_counter  : signal is true; 
-  attribute noprune of s_addr_to_write : signal is true; 
-  attribute noprune of s_burst_count  : signal is true; 
-  attribute noprune of  s_addr_to_write_std : signal is true; 
-
-  attribute mark_debug of   s_tx_data      : signal is true;
-  attribute mark_debug of   s_tx_write                : signal is true;
-  attribute mark_debug of   s_tx_flag    : signal is true;
-  attribute mark_debug of   s_tx_rdy    : signal is true;
-  attribute mark_debug of   s_sm_status     : signal is true;
-  attribute mark_debug of   s_counter     : signal is true;
-  attribute mark_debug of   s_sm_rx_status : signal is true;
-  attribute mark_debug of   s_command_received : signal is true;
-  attribute mark_debug of   s_rx_address_byte : signal is true;
-  attribute mark_debug of   s_rx_data_byte : signal is true;
-  attribute mark_debug of   s_counter_rx : signal is true;
-  attribute mark_debug of  s_start_reply             : signal is true;
-  attribute mark_debug of  s_data_to_send   : signal is true; 
-  attribute mark_debug of  s_addr_to_send   : signal is true; 
-  attribute mark_debug of s_burst_counter  : signal is true; 
-  attribute mark_debug of s_addr_to_write : signal is true; 
-  attribute mark_debug of s_burst_count  : signal is true; 
-  attribute mark_debug of  s_addr_to_write_std : signal is true; 
-
---component counter32Bit is
-    --port( Aclr   : in    std_logic;
-          --Clock  : in    std_logic;
-          --Enable : in    std_logic;
-          --Q      : out   std_logic_vector(30 downto 0)
-        --);
---end component;
+  signal s_burst_count              : std_logic_vector(g_spw_data_width - 1 downto 0); 
+  signal s_burst_count_uns          : unsigned(g_spw_data_width - 1 downto 0); 
 
 begin
 
@@ -255,7 +150,7 @@ begin
 -------------------------------------------------------------------------------
 
   s_tx_rdy          <= i_txrdy;
-  s_reset           <= i_reset;-- or s_reset_command_edge;
+  s_reset           <= i_reset;
 -------------------------------------------------------------------------------
 -- Output assignments
 -------------------------------------------------------------------------------
@@ -270,7 +165,6 @@ begin
 -------------------------------------------------------------------------------
 -- Internal assignments
 -------------------------------------------------------------------------------                        
-  s_addr_to_write <= to_integer(unsigned(s_addr_to_write_std));
   s_burst_count_uns <= unsigned(s_burst_count);
 -------------------------------------------------------------------------------
 -- Processes declarations
@@ -282,7 +176,7 @@ begin
   begin
 
     if (s_reset = '1') then
-      
+
       s_sm_status           <= c_idle_tx;
       s_tx_write            <= '0';
       s_tx_flag             <= '0';
@@ -293,8 +187,6 @@ begin
 
       s_start_reply <= '0';
 
-      --rstBurstCounter <= '0';
-      --enBurstCounter <= '0';
       s_burst_counter <= x"00000000";
       s_addr_to_write_std <= (others=>'0');
       s_tx_data <= (others=>'0');
@@ -303,6 +195,11 @@ begin
       s_rx_data_byte <=  (others=>(others=>'0'));
       s_addr_to_send <=  (others=>(others=>'0'));
       s_burst_count <= (others=>'0');
+
+      o_data_out <= (others => '0');
+
+      o_we <= '0';
+      o_rxread <= '1';
 
     elsif(rising_edge(i_spw_clk)) then
 
@@ -364,10 +261,7 @@ begin
               s_counter    <= 0;
               
               if(s_command_received = c_read_burst_command) then 
---                  enBurstCounter <= '1';
                 s_burst_counter <= s_burst_counter + 1;
-              --else
-                  --enBurstCounter <= '0';
               end if;
 
             end if;
@@ -375,8 +269,6 @@ begin
           end if;
           
         when c_closing =>
-
---          enBurstCounter <= '0';
 
           -- close connection sending a EOP
           if (s_tx_rdy = '1') then
@@ -564,12 +456,9 @@ begin
           if(s_burst_counter = s_burst_count_uns)then 
 
             s_sm_rx_status <= c_idle;
---            rstBurstCounter <= '1';
             s_burst_counter <= x"00000000";
 
           else
-
---            rstBurstCounter <= '0';
 
             if(s_sm_status = c_closed and s_tx_rdy = '1')then
             
@@ -597,14 +486,5 @@ begin
     end if;
 
   end process send_process;
-
---burstCounterInst: counter32Bit
---port map(
-    --Aclr   => s_reset or rstBurstCounter,
-    --Clock  => i_spw_clk,
-    --Enable => enBurstCounter,
-    --Q      => s_burst_counter
---);
-  
 
 end architecture spw_controller_arch;
