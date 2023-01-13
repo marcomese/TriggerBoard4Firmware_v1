@@ -231,7 +231,8 @@ signal  s_trgExtPulse,
 
 signal  turretsFlagsSig    : std_logic_vector(7 downto 0);
 
-signal  turrGate,
+signal  turrRise,
+        turrGate,
         turretsCntEn       : std_logic_vector(4 downto 0);
 
 signal  trgFlag1,
@@ -389,21 +390,35 @@ begin
     );
 end generate PMT_counter_process2;
 
+turrRiseGen: for i in 0 to 4 generate
+begin
+    turrRiseInst: edgeDetector
+    generic map(
+        edge      => '1'
+    )
+    port map(
+        clk       => clock,
+        rst       => reset,
+        signalIn  => plane(i),
+        signalOut => turrRise(i)
+    );
+end generate;
+
 turrCntGateGen: for i in 0 to 4 generate
 begin
-    turrCntGate_n: process(clock, swRst, plane(i), turretsCntEn(i))
+    turrCntGate_n: process(clock, swRst, turrRise(i), trg_to_DAQ_EASI)
     begin
         if swRst = '1' then
             turrGate(i) <= '0';
         elsif rising_edge(clock) then
-            if plane(i) = '1' and turretsCntEn(i) = '0' then
+            if turrRise(i) = '1' and trg_to_DAQ_EASI = '0' then
                 turrGate(i) <= '1';
-            elsif turretsCntEn(i) = '1' then
+            elsif trg_to_DAQ_EASI = '1' then
                 turrGate(i) <= '0';
             else
                 turrGate(i) <= turrGate(i);
             end if;
-        end if;
+         end if;
     end process;
 end generate;
 
