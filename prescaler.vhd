@@ -19,11 +19,13 @@ end prescaler;
 
 architecture architecture_prescaler of prescaler is
 
-component counter16Bit is
+component counter16BitSload is
 port(
     Aclr   : in  std_logic;
+    Sload  : in  std_logic;
     Clock  : in  std_logic;
     Enable : in  std_logic;
+    Data   : in   std_logic_vector(15 downto 0);
     Q      : out std_logic_vector(15 downto 0)
 );
 end component;
@@ -36,32 +38,45 @@ signal   holdoffCountVec : std_logic_vector(holdoffBits-1 downto 0);
 
 signal   clearCount      : std_logic;
 
+signal   trgOutSig       : std_logic;
+
 begin
 
-triggerOut <= clearCount;
-
-holdoffCount <= to_integer(unsigned(holdoffCountVec));
-
-clearProc: process(clk, rst, holdoffCount, holdoff)
+trgOutFF: process(clk, rst, trgOutSig)
 begin
     if rst = '1' then
-        clearCount <= '0';
+        triggerOut <= '0';
     elsif rising_edge(clk) then
-        if holdoffCount /= 0 and holdoffCount = unsigned(holdoff) then
-            clearCount <= '1';
+        if trgOutSig = '1' then
+            triggerOut <= triggerIn;
         else
-            clearCount <= '0';
+            triggerOut <= '0';
         end if;
     end if;
 end process;
 
--- per migliorare il timing uso un contatore look-ahead!!!
+holdoffCount <= to_integer(unsigned(holdoffCountVec));
 
-holdoffCounterInst: counter16Bit
+trgOutSig <= '1' when (holdoffCount = unsigned(holdoff) - 1) else '0';
+
+clearSyncInst: process(clk, rst)
+begin
+    if rst = '1' then
+        clearCount <= '1';
+    elsif rising_edge(clk) then
+        clearCount <= trgOutSig and triggerIn;
+    end if;
+end process;
+
+---- per migliorare il timing uso un contatore look-ahead!!!
+
+holdoffCounterInst: counter16BitSload
 port map(
-    Aclr   => rst or clearCount,
+    Aclr   => rst,
+    Sload  => clearCount,
     Clock  => clk,
     Enable => triggerIn,
+    Data   => (others => '0'),
     Q      => holdOffCountVec
 );
 

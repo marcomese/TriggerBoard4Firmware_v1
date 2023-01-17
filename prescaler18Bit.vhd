@@ -19,8 +19,10 @@ architecture architecture_prescaler18Bit of prescaler18Bit is
 component counter18Bit is
 port(
     Aclr   : in  std_logic;
+    Sload  : in  std_logic;
     Clock  : in  std_logic;
     Enable : in  std_logic;
+    Data   : in  std_logic_vector(17 downto 0);
     Q      : out std_logic_vector(17 downto 0)
 );
 end component;
@@ -32,25 +34,35 @@ constant maxHoldoff      : natural := natural(2**holdoffBits-1);
 signal   holdoffCount    : natural range 0 to maxHoldoff-1;
 
 signal   holdoffCountVec : std_logic_vector(holdoffBits-1 downto 0);
-
 signal   clearCount      : std_logic;
+
+signal   trgOutSig       : std_logic;
 
 begin
 
-triggerOut <= clearCount;
+trgOutFF: process(clk, rst, trgOutSig)
+begin
+    if rst = '1' then
+        triggerOut <= '0';
+    elsif rising_edge(clk) then
+        if trgOutSig = '1' then
+            triggerOut <= triggerIn;
+        else
+            triggerOut <= '0';
+        end if;
+    end if;
+end process;
 
 holdoffCount <= to_integer(unsigned(holdoffCountVec));
 
-clearProc: process(clk, rst, holdoffCount, holdoff)
+trgOutSig <= '1' when (holdoffCount = unsigned(holdoff) - 1) else '0';
+
+clearSyncInst: process(clk, rst)
 begin
     if rst = '1' then
-        clearCount <= '0';
+        clearCount <= '1';
     elsif rising_edge(clk) then
-        if holdoffCount /= 0 and holdoffCount = unsigned(holdoff) then
-            clearCount <= '1';
-        else
-            clearCount <= '0';
-        end if;
+        clearCount <= trgOutSig and triggerIn;
     end if;
 end process;
 
@@ -58,9 +70,11 @@ end process;
 
 holdoffCounterInst: counter18Bit
 port map(
-    Aclr   => rst or clearCount,
+    Aclr   => rst,
+    Sload  => clearCount,
     Clock  => clk,
     Enable => triggerIn,
+    Data   => (others => '0'),
     Q      => holdOffCountVec
 );
 

@@ -43,7 +43,8 @@ port (
     calibration_state : out std_logic;
 
     PMT_rate          : out std_logic_vector(1023 downto 0);
-    mask_rate         : out std_logic_vector(319 downto 0);
+    mask_rate         : out std_logic_vector(175 downto 0);
+    mask_grb          : out std_logic_vector(31 downto 0);
     trigger_flag_1    : out std_logic_vector(31 downto 0);
     trigger_flag_2    : out std_logic_vector(31 downto 0);
 
@@ -72,9 +73,6 @@ port (
 
     pwr_on_citiroc1 : in std_logic;
     pwr_on_citiroc2 : in std_logic;
-
-    rstCIT1out : out std_logic;
-    rstCIT2out : out std_logic;
 
     trigger_in_1    : in std_logic_vector(31 downto 0);
     trigger_in_2    : in std_logic_vector(31 downto 0);    
@@ -112,6 +110,10 @@ port (
     rate1SecOut       : out std_logic;
 
     holdoff           : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
+
+    calibPeriod       : in std_logic_vector(15 downto 0);
+
+    trgNotInhibit     : out std_logic;
 
     debug_triggerIN   : in std_logic
 );
@@ -165,6 +167,8 @@ port(
     clk200k           : in std_logic;
     reset             : in std_logic;
 
+    enable            : in std_logic;
+
     configure_command : in std_logic;
     config_vector     : in std_logic_vector(1143 downto 0);
 
@@ -215,8 +219,10 @@ generic(
 );
 port(
     reset                : in  std_logic;
+    swRst                : in  std_logic;
     clock                : in  std_logic;  
-    clock200k            : in  std_logic;  
+    clock200k            : in  std_logic;
+    trgInhibit           : in  std_logic;
     debug                : in  std_logic;
     trigger_in_1         : in  std_logic_vector(31 downto 0);
     trigger_in_2         : in  std_logic_vector(31 downto 0);
@@ -226,28 +232,32 @@ port(
     trigger_mask         : in  std_logic_vector(31 downto 0);
     apply_trigger_mask   : in  std_logic;
     apply_PMT_mask       : in  std_logic;
-    start_readers        : in  std_logic;
-
-    triggerID            : out std_logic_vector(7 downto 0);
 
     calibration_state    : in  std_logic;
     acquisition_state    : in  std_logic;
 			
     PMT_rate             : out std_logic_vector(1023 downto 0);	
-    mask_rate            : out std_logic_vector(319 downto 0);
+    mask_rate            : out std_logic_vector(175 downto 0);
+    mask_grb             : out std_logic_vector(31 downto 0);
 
     trigger_flag_1       : out std_logic_vector(31 downto 0);	
     trigger_flag_2       : out std_logic_vector(31 downto 0);			
 
+    triggerID            : out std_logic_vector(7 downto 0);
+
     trgExtIn             : in  std_logic;
 
-    rate1SecOut          : out std_logic;
-
     holdoff              : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
+
+    rate1SecOut          : out std_logic;
 
     turrets              : out std_logic_vector(4 downto 0);
     turretsFlags         : out std_logic_vector(7 downto 0);
     turretsCounters      : out std_logic_vector(159 downto 0);
+
+    calibPeriod          : in std_logic_vector(15 downto 0);
+
+    trgNotInhibit        : out std_logic;
 
     trg_to_DAQ_EASI      : out std_logic  -- attivo alto
 );
@@ -292,7 +302,7 @@ signal s_trigger_flag_1,
        s_trigger_flag_2 : std_logic_vector(31 downto 0);
 
 signal s_pmt_rate : std_logic_vector(1023 downto 0);
-signal s_mask_rate : std_logic_vector(319 downto 0);
+signal s_mask_rate : std_logic_vector(175 downto 0);
 
 signal s_config_vector : std_logic_vector(1143 downto 0);
 
@@ -303,16 +313,11 @@ signal holdSignal_2 : std_logic;
 
 signal acquisition_state_sig : std_logic;
 signal calibration_state_sig : std_logic;
-signal start_readers_sig     : std_logic;
 
 signal s_dataReady           : std_logic;
 
-signal  rstCIT1FF,
-        rstCIT2FF,
-        rstCIT1,
-        rstCIT2              : std_logic;
-
-signal  maskedTrigger        : std_logic;
+signal  pwrOnCIT1FF,
+        pwrOnCIT2FF          : std_logic;
 
 begin
 
@@ -320,8 +325,7 @@ clk <= clockSYS;
 
 s_config_vector <= config_vector;
 
-maskedTrigger <= trigger_interno_sig and (not triggerInhibit);
-triggerOUT <= maskedTrigger;
+triggerOUT <= trigger_interno_sig;
 
 PMT_rate <= s_PMT_rate;
 mask_rate <= s_mask_rate;
@@ -396,22 +400,21 @@ port map(
     delayVal  => holdDelayConst
 );
 
-rstCIT1Gen: process(rst, clock200k)
+enableCIT1Gen: process(rst, clock200k)
 begin
     if rst = '1' then
-        rstCIT1FF <= '0';
+        pwrOnCIT1FF <= '0';
     elsif rising_edge(clock200k) then
-        rstCIT1FF <= pwr_on_citiroc1;
+        pwrOnCIT1FF <= pwr_on_citiroc1;
     end if;
 end process;
-
-rstCIT1 <= not rstCIT1FF;
-rstCIT1out <= rstCIT1;
 
 configCit1Inst: config_CITIROC_1
 port map(  
     clk200k           => clock200k,
-    reset             => rstCIT1,
+    reset             => rst,
+
+    enable            => pwrOnCIT1FF,
 
     configure_command => conf_comm_200k_1, 
     config_vector     => s_config_vector,
@@ -438,22 +441,21 @@ port map(
     delayVal  => holdDelayConst
 );
 
-rstCIT2Gen: process(rst, clock200k)
+enableCIT2Gen: process(rst, clock200k)
 begin
     if rst = '1' then
-        rstCIT2FF <= '0';
+        pwrOnCIT2FF <= '0';
     elsif rising_edge(clock200k) then
-        rstCIT2FF <= pwr_on_citiroc2;
+        pwrOnCIT2FF <= pwr_on_citiroc2;
     end if;
 end process;
-
-rstCIT2 <= not rstCIT2FF;
-rstCIT2out <= rstCIT2;
 
 configCit2Inst: config_CITIROC_1
 port map(  
     clk200k           => clock200k,
-    reset             => rstCIT2,
+    reset             => rst,
+
+    enable            => pwrOnCIT2FF,
 
     configure_command => conf_comm_200k_2, 
     config_vector     => s_config_vector,
@@ -478,7 +480,7 @@ port map(
     SDATA_hg    => SDATA_hg_1,
     SDATA_lg    => SDATA_lg_1,
 
-    trigger_int => maskedTrigger,
+    trigger_int => trigger_interno_sig,
 
     CS          => CS_1,
     SCLK        => SCLK_1_sig,
@@ -503,7 +505,7 @@ port map(
     SDATA_hg    => SDATA_hg_2,
     SDATA_lg    => SDATA_lg_2,
 
-    trigger_int => maskedTrigger,
+    trigger_int => trigger_interno_sig,
 
     CS          => CS_2,
     SCLK        => SCLK_2_sig,
@@ -553,8 +555,6 @@ begin
    end if;
 end process;
 
-start_readers_sig <= acquisition_state_sig or calibration_state_sig;
-
 triggerLogicFSMInst: TRIGGER_logic_FSM
 generic map(
     concurrentTriggers   => concurrentTriggers,
@@ -562,9 +562,11 @@ generic map(
     holdOffBits          => holdOffBits
 )
 port map (
-    reset                => sw_rst,
+    reset                => rst,
+    swRst                => sw_rst,
     clock                => clk,
     clock200k            => clock200k,
+    trgInhibit           => triggerInhibit,
     debug                => trigger_int_sig,
     trigger_in_1         => trigger_in_1,
     trigger_in_2         => trigger_in_2,
@@ -574,13 +576,13 @@ port map (
     trigger_mask         => trigger_mask,
     apply_trigger_mask   => apply_trigger_mask,
     apply_PMT_mask       => apply_PMT_mask,
-    start_readers        => start_readers_sig,
 
     triggerID            => triggerID,
 
     calibration_state    => calibration_state_sig,
     acquisition_state    => acquisition_state_sig,
 
+    mask_grb             => mask_grb,
     mask_rate            => s_mask_rate,
     PMT_rate             => s_PMT_rate,				
 
@@ -596,6 +598,10 @@ port map (
     turretsCounters      => turretsCounters,
 
     holdoff              => holdoff,
+
+    calibPeriod          => calibPeriod,
+
+    trgNotInhibit        => trgNotInhibit,
 
     trg_to_DAQ_EASI      => trigger_interno_sig
 );

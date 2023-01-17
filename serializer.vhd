@@ -3,22 +3,23 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity serializer is
-    Generic(
-        parallelWidth      : natural;
-        resetValue         : std_logic_vector(parallelWidth-1 downto 0);
-        shiftBits          : natural := 1;
-        shiftDirection     : bit     := '0' -- 0 sinistra, 1 destra
-    );
-    Port(
-        parallelIN      : in    std_logic_vector(parallelWidth-1 downto 0);
-        serialIN        : in    std_logic;
-        load            : in    std_logic;
-        shift           : in    std_logic;
-        serialOUT       : out   std_logic;
-        shiftDone       : out   std_logic;
-        clk             : in    std_logic;
-        rst             : in    std_logic
-        );
+generic(
+    parallelWidth   : natural;
+    resetValue      : std_logic_vector(parallelWidth-1 downto 0);
+    shiftBits       : natural := 1;
+    shiftDirection  : bit     := '0' -- 0 sinistra, 1 destra
+);
+port(
+    clk             : in  std_logic;
+    rst             : in  std_logic;
+    clear           : in  std_logic;
+    load            : in  std_logic;
+    shift           : in  std_logic;
+    parallelIN      : in  std_logic_vector(parallelWidth-1 downto 0);
+    serialIN        : in  std_logic;
+    serialOUT       : out std_logic;
+    shiftDone       : out std_logic
+);
 end serializer;
 
 architecture Behavioral of serializer is
@@ -43,7 +44,7 @@ shiftDone <= shiftDoneSignal;
 
 serialOUT <= dataSig(dataSig'length-1) when shiftDirection = '0' else dataSig(0);
 
-bitCountFSMregs: process(all)
+bitCountFSMregs: process(clk, rst)
 begin
     if rst = '1' then
         currState       <= idle;
@@ -58,7 +59,7 @@ begin
     end if;
 end process;
 
-bitCountFSMcomb: process(all)
+bitCountFSMcomb: process(currState, shift, bitCountSig)
 begin
     case currState is   
         when idle =>
@@ -90,7 +91,7 @@ begin
     end case;
 end process;
 
-bitCountFSMout: process(all)
+bitCountFSMout: process(nextState)
 begin
     case nextState is   
         when idle =>
@@ -105,12 +106,12 @@ begin
 
         when lastBit =>
             shiftDoneSignalF <= '1';
-            bitCounterRstF   <= '0';
+            bitCounterRstF   <= '1';
             shiftSigF        <= '1';
 
         when endState =>
             shiftDoneSignalF <= '0';
-            bitCounterRstF   <= '1';
+            bitCounterRstF   <= '0';
             shiftSigF        <= '0';
 
         when others =>
@@ -120,23 +121,27 @@ begin
     end case;
 end process;
 
-bitCounter: process(all) 
+bitCounter: process(clk, rst, clear, bitCounterRst) 
 begin
-    if bitCounterRst = '1' then
+    if rst = '1' then
         bitCountSig  <= 0;
     elsif rising_edge(clk) then
-        if shiftSig = '1' then
+        if clear = '1' or bitCounterRst = '1' then
+            bitCountSig <= 0;
+        elsif shiftSig = '1' then
             bitCountSig  <= bitCountSig + 1;
         end if;
     end if;
 end process;
 
-memory: process(all)
+memory: process(clk, rst, clear, load, shiftSig)
 begin
     if rst = '1' then
         dataSig <= resetValue;
     elsif clk = '1' and clk'event then
-        if load = '1' then
+        if clear = '1' then
+            dataSig <= resetValue;
+        elsif load = '1' then
             dataSig <= parallelIN;
         elsif shiftSig = '1' and shiftDirection = '0' then
             dataSig <= dataSig(dataSig'length-2 downto 0) & serialIN;

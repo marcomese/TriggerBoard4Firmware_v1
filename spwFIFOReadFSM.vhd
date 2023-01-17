@@ -206,7 +206,7 @@ begin
             locsCounterEnSigF  <= '0';
             loadBuffSigF       <= '0';
             nextWordSigF       <= '0';
-            dataReadySigF      <= '0';
+            dataReadySigF      <= '1';
 
         when others =>
             locsCounterRstSigF <= '0';

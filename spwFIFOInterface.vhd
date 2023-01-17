@@ -2,7 +2,6 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 use IEEE.MATH_REAL.ALL;
-use IEEE.STD_LOGIC_MISC.ALL;
 
 entity spwFIFOInterface is
 generic(
@@ -20,13 +19,14 @@ port(
     acqData             : in  std_logic_vector(acqDataLen-1 downto 0);
 
     pcktCounter         : out natural;
-    trigCounter         : out std_logic_vector(31 downto 0);
 
     regAcqData          : out std_logic_vector(acqDataLen-1 downto 0);
     writeDataLen        : out std_logic;
     dataReadyIn         : in  std_logic;
 
     dpcuBusyIn          : in  std_logic;
+
+    dataWrittenInFIFO   : out std_logic;
 
     fifoDATA            : out std_logic_vector(fifoWidth-1 downto 0);
     fifoQ               : in  std_logic_vector(fifoWidth-1 downto 0);
@@ -45,15 +45,6 @@ constant nLocs           : natural := natural(ceil(real(acqData'length)/real(fif
 constant wordsInLoc      : natural := natural(ceil(real(fifoWidth)/32.0));
 constant maxPcktsInFIFO  : natural := natural(ceil(real(fifoDepth)/real(nLocs)));
 constant pcktCntBits     : natural := natural(ceil(log2(real(maxPcktsInFIFO-1))));
-
-component counter32Bit is
-port(
-    Aclr   : in    std_logic;
-    Clock  : in    std_logic;
-    Enable : in    std_logic;
-    Q      : out   std_logic_vector(31 downto 0)
-);
-end component;
 
 component spwFIFOWriteFSM is
 generic(
@@ -124,27 +115,25 @@ signal   pckPres,
          readDoneSig,
          readEn             : std_logic;
 
-signal   triggerCnt         : std_logic_vector(31 downto 0);
-
 signal   acqDataOutSig      : std_logic_vector(acqDataLen-1 downto 0);
 
 begin
 
 pcktCounter      <= pcktCnt;
 
-pckPres          <= or_reduce(std_logic_vector(to_unsigned(pcktCnt,pcktCntBits)));
+pckPres          <= '1' when pcktCnt /= 0 else '0';
 
 startWriteSig    <= adcDataReady and (not fifoAFULL);
 
 regAcqData       <= acqDataOutSig;
-
-trigCounter      <= triggerCnt;
 
 readEn           <= dpcuBusyIn and (not dataReadyIn) and (not fifoEmpty);
 
 readDoneSig      <= dpcuBusyRising and (not dataReadyIn);
 
 writeDataLen     <= buffDataReady;
+
+dataWrittenInFIFO <= fifoDataReady;
 
 dpcuBusyRisingEdgeInst: edgeDetector
 generic map(
@@ -171,14 +160,6 @@ begin
         end if;
     end if;
 end process;
-
-triggerCounterInst: counter32Bit
-port map(
-    Aclr   => rst,
-    Clock  => clk,
-    Enable => startWriteSig,
-    Q      => triggerCnt
-);
 
 spwFIFOWriteInst: spwFIFOWriteFSM
 generic map(

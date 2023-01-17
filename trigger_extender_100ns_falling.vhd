@@ -2,16 +2,16 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity trigger_extender_100ns is
+entity trigger_extender_100ns_falling is
 port(
     clock       : in  STD_LOGIC;
     reset       : in  STD_LOGIC;
     trigger_in  : in  STD_LOGIC;
     trigger_out : out  STD_LOGIC
 );
-end trigger_extender_100ns;
+end trigger_extender_100ns_falling;
 
-architecture Behavioral of trigger_extender_100ns is
+architecture Behavioral of trigger_extender_100ns_falling is
 
 constant TRG_LENGHT : integer := 10; -- Number of clock cycles 100MHz
 --constant TRG_LENGHT : integer := 20; -- Number of clock cycles 200MHz
@@ -40,7 +40,7 @@ signal pres_state, next_state: state_values;
 
 signal counterRst, counterRstF : std_logic;
 
-component counter5Bit is
+component counter5BitFalling is
 port(
     Aclr   : in    std_logic;
     Sload  : in    std_logic;
@@ -61,7 +61,7 @@ begin
         pres_state  <= wait_state;
         trg <= '0' ;
         counterRst  <= '1';
-    elsif rising_edge(clock) then
+    elsif falling_edge(clock) then
         pres_state  <= next_state;
         trg <= trg_i;
         counterRst  <= counterRstF;
@@ -103,7 +103,7 @@ begin
     end if;
 end process;
 
-trgLenCounterInst: counter5Bit
+trgLenCounterInst: counter5BitFalling
 port map(
     Aclr   => reset,
     Sload  => counterRst,

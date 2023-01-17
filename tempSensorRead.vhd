@@ -58,7 +58,7 @@ signal   sclkSig, sclkUpdate, sclkRise,
          clearTRegSig, clearTRegSigF,
          dataReadySig, dataReadySigF : std_logic;
 
-signal   tempData                    : std_logic_vector(sDataWidth downto 0);
+signal   tempData                    : std_logic_vector(sDataWidth+1 downto 0);
 
 begin
 

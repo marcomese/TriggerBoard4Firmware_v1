@@ -234,17 +234,14 @@ end component;
 
 component ppsCounter is
 generic(
-    clkFreq        : real;
-    resolution     : real;
-    ppsCountWidth  : natural;
-    fineCountWidth : natural
+    clk_freq      : natural := 50; -- clock freq in MHz
+    pps_reset_len : natural := 40  -- PSS reset len in us
 );
 port(
-    clk            : in  std_logic;
-    rst            : in  std_logic;
-    enable         : in  std_logic;
-    ppsIn          : in  std_logic;
-    counterOut     : out std_logic_vector((ppsCountWidth+fineCountWidth)-1 downto 0)
+    clk : in std_logic;
+    rst : in std_logic;
+    PPS : in std_logic;
+    timestamp  : out std_logic_vector(31 downto 0)
 );
 end component;
 
@@ -257,6 +254,15 @@ port(
     enPwrAnaOut : out std_logic;
     pGoodDigIn  : in  std_logic;
     pGoodAnaIn  : in  std_logic
+);
+end component;
+
+component counter32Bit is
+port(
+    Aclr   : in    std_logic;
+    Clock  : in    std_logic;
+    Enable : in    std_logic;
+    Q      : out   std_logic_vector(31 downto 0)
 );
 end component;
 
@@ -295,7 +301,9 @@ port (
     calibration_state : out std_logic;
 
     PMT_rate          : out std_logic_vector(1023 downto 0);
-    mask_rate         : out std_logic_vector(319 downto 0);
+    mask_rate         : out std_logic_vector(175 downto 0);
+    mask_grb          : out std_logic_vector(31 downto 0);
+
     trigger_flag_1    : out std_logic_vector(31 downto 0);
     trigger_flag_2    : out std_logic_vector(31 downto 0);
 
@@ -324,9 +332,6 @@ port (
 
     pwr_on_citiroc1 : in std_logic;
     pwr_on_citiroc2 : in std_logic;
-
-    rstCIT1out : out std_logic;
-    rstCIT2out : out std_logic;
 
     trigger_in_1    : in std_logic_vector(31 downto 0);
     trigger_in_2    : in std_logic_vector(31 downto 0);
@@ -366,6 +371,10 @@ port (
 
     holdoff           : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
+    calibPeriod       : in std_logic_vector(15 downto 0);
+
+    trgNotInhibit     : out std_logic;
+
     debug_triggerIN   : in std_logic
 
 );
@@ -373,15 +382,16 @@ end component;
 
 component aliveDeadTCnt is
 port(
-    clock      : in  std_logic;
-    clock200k  : in  std_logic;
-    reset      : in  std_logic;
-    trgInhibit : in  std_logic;
-    acqState   : in  std_logic;
-    trigger    : in  std_logic;
-    aliveCount : out std_logic_vector(31 downto 0);
-    deadCount  : out std_logic_vector(31 downto 0);
-    lostCount  : out std_logic_vector(15 downto 0)
+    clock         : in  std_logic;
+    clock200k     : in  std_logic;
+    reset         : in  std_logic;
+    busyState     : in  std_logic;
+    acqState      : in  std_logic;
+    trigger       : in  std_logic;
+    trgNotInhibit : in  std_logic;
+    aliveCount    : out std_logic_vector(31 downto 0);
+    deadCount     : out std_logic_vector(31 downto 0);
+    lostCount     : out std_logic_vector(15 downto 0)
 );
 end component;
 
@@ -401,13 +411,14 @@ port(
     acqData             : in  std_logic_vector(acqDataLen-1 downto 0);
 
     pcktCounter         : out natural;
-    trigCounter         : out std_logic_vector(31 downto 0);
 
     regAcqData          : out std_logic_vector(acqDataLen-1 downto 0);
     writeDataLen        : out std_logic;
     dataReadyIn         : in  std_logic;
 
     dpcuBusyIn          : in  std_logic;
+
+    dataWrittenInFIFO   : out std_logic;
 
     fifoDATA            : out std_logic_vector(fifoWidth-1 downto 0);
     fifoQ               : in  std_logic_vector(fifoWidth-1 downto 0);
@@ -575,8 +586,14 @@ port(
 
     holdoff             : out std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
+    trgCounter          : in std_logic_vector(31 downto 0);
+    ppsCounter          : in std_logic_vector(31 downto 0);
+
+    calibPeriod         : out std_logic_vector(15 downto 0);
+
     PMT_rate            : in std_logic_vector(1023 downto 0);
-    mask_rate           : in std_logic_vector(319 downto 0);
+    mask_rate           : in std_logic_vector(175 downto 0);
+    mask_grb            : in std_logic_vector(31 downto 0);
     board_temp          : in std_logic_vector(31 downto 0)
 );
 end component;
@@ -597,10 +614,11 @@ generic(
 port(
     clk24M     : in  std_logic;
     rst        : in  std_logic;
+    enable     : in  std_logic;
+    send       : in  std_logic;
 	dacHGVal   : in  std_logic_vector(15 downto 0);
     dacLGVal   : in  std_logic_vector(15 downto 0);
     enableSclk : out std_logic;
-    send       : in  std_logic;
     confDone   : out std_logic;
     dout       : out std_logic;
     syncHG     : out std_logic;
@@ -684,6 +702,19 @@ port(
 );
 end component;
 
+component pulseExt is
+generic(
+    clkFreq    : real;
+    pulseWidth : real
+);
+port(
+    clk        : in  std_logic;
+    rst        : in  std_logic;
+    sigIn      : in  std_logic;
+    sigOut     : out std_logic
+);
+end component;
+
 constant concurrentTriggers : natural := 6;
 constant prescaledTriggers  : natural := 4;
 constant holdOffBits        : natural := 16;
@@ -744,6 +775,9 @@ signal s_SR_IN_READ_2    : std_logic;
 
 signal s_RST_B_READ_2    : std_logic;
 
+signal trgNotInhibit,
+       trgNotInhibit48Mhz : std_logic;
+
 ---------------------------------------------------
 -- Segnali per cses_reg_file_manager
 ---------------------------------------------------
@@ -790,7 +824,8 @@ signal s_acquisition_state : std_logic;
 signal s_calibration_state : std_logic;
 
 signal s_PMT_rate          : std_logic_vector(1023 downto 0);
-signal s_mask_rate       : std_logic_vector(319 downto 0);
+signal s_mask_rate       : std_logic_vector(175 downto 0);
+signal s_mask_grb        : std_logic_vector(31 downto 0);
 
 signal s_trigger_flag_1,
        s_trigger_flag_2  : std_logic_vector(31 downto 0);
@@ -851,8 +886,6 @@ signal fifoEMPTY    : std_logic;
 signal fifoWACK     : std_logic;
 signal fifoDVLD     : std_logic;
 
-signal rstCIT1out, rstCIT2out : std_logic;
-
 signal writeDone    : std_logic;
 signal spwCtrlBusy  : std_logic;
 signal trgInhibit   : std_logic;
@@ -894,10 +927,12 @@ signal  tempData,
 signal  rate1SecSig,
         rate1SecSigRise,
         enableTsens,
-        tempCsOut1,
-        tempCsOut2,
         temp1Completed,
         temp2Completed       : std_logic;
+
+signal  trgBusy,
+        trgBusySet,
+        trgBusyRst           : std_logic;
 
 signal  aliveCount,
         deadCount            : std_logic_vector(31 downto 0);
@@ -913,6 +948,10 @@ signal  s_turretsCounters    : std_logic_vector(159 downto 0);
 signal  s_triggerID          : std_logic_vector(7 downto 0);
 
 signal  crc32                : std_logic_vector(31 downto 0);
+
+signal  s_calibPeriod        : std_logic_vector(15 downto 0);
+
+signal  s_clock200Mto100M    : std_logic;
 
 begin
 
@@ -931,8 +970,8 @@ NOR32_2  <= 'Z' when s_pwr_on_citiroc2 = '1' else '0';
 NOR32T_1 <= 'Z' when s_pwr_on_citiroc1 = '1' else '0';
 NOR32T_2 <= 'Z' when s_pwr_on_citiroc2 = '1' else '0';
 
-RESETB_PA_1 <= '0';
-RESETB_PA_2 <= '0';
+RESETB_PA_1 <= s_pwr_on_citiroc1;
+RESETB_PA_2 <= s_pwr_on_citiroc2;
 
 clk48BufInst: CLKINT
 port map(
@@ -940,9 +979,16 @@ port map(
     Y => s_clock48M
 );
 
+clk200DivInst: clkDiv2
+port map(
+    rst    => s_global_rst,
+    clkIn  => clock200M,
+    clkOut => s_clock200Mto100M
+);
+
 clk200BufInst: CLKINT
 port map(
-    A => clock200M,
+    A => s_clock200Mto100M,--clock200M,
     Y => s_clock200M
 );
 
@@ -991,7 +1037,7 @@ dpcuBusyInSync  <= dpcu_tdaq_sync(2);
 dpcuTrgHoldSync <= dpcu_tdaq_sync(1);
 tdaqBusyInSync  <= dpcu_tdaq_sync(0);
 
-trgInhibit <= (not dpcuTrgHoldSync) or (not tdaqBusyInSync) or fifoAFULL;
+trgInhibit <= (not dpcuTrgHoldSync) or (not tdaqBusyInSync) or fifoAFULL or trgBusy;
 
 triggerOutExpand: trigger_extender_100ns
 port map(
@@ -1001,8 +1047,8 @@ port map(
     trigger_out => extendedTriggerOut
 );
 
-PS_global_trig_1 <= extendedTriggerOut;
-PS_global_trig_2 <= extendedTriggerOut;
+PS_global_trig_1 <= trigger_interno_sig;--extendedTriggerOut;
+PS_global_trig_2 <= trigger_interno_sig;--extendedTriggerOut;
 
 TRG     <= extendedTriggerOut;
 
@@ -1014,6 +1060,14 @@ TRG_4   <= s_turrets(3);
 TRG_5   <= s_turrets(4);
 
 wdRst <= not RST_FROM_SUPERVISOR;
+
+triggerCntInst: counter32Bit
+port map(
+    Aclr   => swRst,
+    Clock  => s_clock48M,
+    Enable => trgBusySet,
+    Q      => trigCounter
+);
 
 watchDogInst: watchDogCtrl
 generic map(
@@ -1174,6 +1228,7 @@ port map(
     calibration_state    => s_calibration_state,
     PMT_rate => s_PMT_rate,
     mask_rate => s_mask_rate,
+    mask_grb => s_mask_grb,
     trigger_flag_1 => s_trigger_flag_1,
     trigger_flag_2 => s_trigger_flag_2,
 
@@ -1202,9 +1257,6 @@ port map(
 
     pwr_on_citiroc1 => s_pwr_on_citiroc1,
     pwr_on_citiroc2 => s_pwr_on_citiroc2,
-
-    rstCIT1out => rstCIT1out,
-    rstCIT2out => rstCIT2out,
 
     trigger_in_1 => s_trigger_in_1,
     trigger_in_2 => s_trigger_in_2,
@@ -1243,44 +1295,86 @@ port map(
 
     holdoff => holdoff,
 
+    calibPeriod => s_calibPeriod,
+
+    trgNotInhibit => trgNotInhibit,
+
     debug_triggerIN => s_start_debug
 );
 
 ppsCounterInst: ppsCounter
 generic map(
-    clkFreq        => 48.0e6,
-    resolution     => 16.0e-6,
-    ppsCountWidth  => 16,
-    fineCountWidth => 16
+    clk_freq      => 48,
+    pps_reset_len => 4
 )
 port map(
-    clk            => s_clock48M,
-    rst            => s_global_rst,
-    enable         => s_acquisition_state,
-    ppsIn          => dpcuPPSSync,
-    counterOut     => ppsCount
+    clk           => s_clock48M,
+    rst           => s_global_rst,
+    PPS           => dpcuPPSSync,
+    timestamp     => ppsCount
 );
 
-ppsCountReg: process(s_clock48M, s_global_rst)
+ppsCountReg: process(s_clock48M, s_global_rst, trgBusySet)
 begin
     if s_global_rst = '1' then
         ppsCountSync <= (others => '0');
     elsif rising_edge(s_clock48M) then
-        ppsCountSync <= ppsCount;
+        if trgBusySet = '1' then
+            ppsCountSync <= ppsCount;
+        end if;
     end if;
 end process;
 
+trgBusySetEdge: edgeDetector
+generic map(
+    edge      => '1'
+)
+port map(
+    clk       => s_clock48M,
+    rst       => s_global_rst,
+    signalIn  => extendedTriggerOut,
+    signalOut => trgBusySet
+);
+
+trgBusyInst: process(s_clock48M, swRst)
+begin
+    if swRst = '1' then
+        trgBusy <= '0';
+    elsif rising_edge(s_clock48M) then
+        if trgBusyRst = '1' then
+            trgBusy <= '0';
+        elsif trgBusySet = '1' and trgBusyRst = '0' then
+            trgBusy <= '1';
+        else
+            trgBusy <= trgBusy;
+        end if;
+    end if;
+end process;
+
+trgNotInhib48MhzInst: pulseExt
+generic map(
+    clkFreq    => 100.0e6,
+    pulseWidth => 20.8e-9
+)
+port map(
+    clk        => s_clock200M,
+    rst        => s_global_rst,
+    sigIn      => trgNotInhibit,
+    sigOut     => trgNotInhibit48Mhz
+);
+
 aliveDeadinst: aliveDeadTCnt
 port map(
-    clock      => s_clock48M,
-    clock200k  => clk200k_sig,
-    reset      => swRst,
-    trgInhibit => trgInhibit,
-    acqState   => s_acquisition_state,
-    trigger    => extendedTriggerOut,
-    aliveCount => aliveCount,
-    deadCount  => deadCount,
-    lostCount  => lostCount
+    clock         => s_clock48M,
+    clock200k     => clk200k_sig,
+    reset         => swRst,
+    busyState     => trgInhibit,
+    acqState      => s_acquisition_state,
+    trigger       => extendedTriggerOut,
+    trgNotInhibit => trgNotInhibit48Mhz,
+    aliveCount    => aliveCount,
+    deadCount     => deadCount,
+    lostCount     => lostCount
 );
 
 crc32 <= (others => '0'); -- (not implemented yet)
@@ -1314,7 +1408,6 @@ port map(
     acqData        => acqData,
 
     pcktCounter    => pcktCounter,
-    trigCounter    => trigCounter,
 
     regAcqData     => regAcqData,
 
@@ -1322,6 +1415,8 @@ port map(
     dataReadyIn    => dataReadyOutSigBuff,
 
     writeDataLen   => writeDataLen,
+
+    dataWrittenInFIFO => trgBusyRst,
 
     fifoDATA       => fifoDATA,
     fifoQ          => fifoQ,
@@ -1352,7 +1447,7 @@ port map(
 
 instSpwController: spw_controller
 generic map(
-    g_spw_addr_width    => 12,
+    g_spw_addr_width    => 8,
     g_spw_data_width    => 32,
     g_spw_addr_offset   => x"000",
     g_spw_num           => 0,
@@ -1517,8 +1612,14 @@ port map(
 
     holdoff => holdoff,
 
+    ppsCounter => ppsCountSync,
+    trgCounter => trigCounter,
+
+    calibPeriod => s_calibPeriod,
+
     PMT_rate => s_PMT_rate,
     mask_rate => s_mask_rate,
+    mask_grb => s_mask_grb,
     board_temp => s_board_temp
 );
 
@@ -1540,7 +1641,8 @@ generic map(
 )
 port map(
     clk24M     => s_clock24MBuff,
-    rst        => rstCIT1out,
+    rst        => s_global_rst,
+    enable     => s_pwr_on_citiroc1,
 	dacHGVal   => s_refDAC1(31 downto 16),
     dacLGVal   => s_refDAC1(15 downto 0),
     enableSclk => enableSclk_1,
@@ -1558,7 +1660,8 @@ generic map(
 )
 port map(
     clk24M   => s_clock24MBuff,
-    rst      => rstCIT2out,
+    rst        => s_global_rst,
+    enable     => s_pwr_on_citiroc2,
 	dacHGVal => s_refDAC2(31 downto 16),
     dacLGVal => s_refDAC2(15 downto 0),
     enableSclk => enableSclk_2,
