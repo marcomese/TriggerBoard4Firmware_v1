@@ -826,6 +826,7 @@ variable resync : std_logic_vector(1 to 3):=(others=> '0');
 begin
    if reset='1' then
         rise_rate <= '0';
+        resync := (others => '0');
    elsif rising_edge(clock) then
         rise_rate <= resync(2) and not resync(3);
         resync := rate_time_sig & resync(1 to 2);

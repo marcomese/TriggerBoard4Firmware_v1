@@ -595,6 +595,7 @@ variable resync : std_logic_vector(1 to 3);
 begin
     if rst='1' then
         trigger_int_sig <= '0';
+        resync := (others => '0');
     elsif rising_edge(clk) then
         trigger_int_sig <= resync(2) and not resync(3);
         resync := debug_triggerIN & resync(1 to 2);
