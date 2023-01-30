@@ -202,6 +202,8 @@ signal  trgIDStoreSig,
 signal  trgVecSig,
         trgVecSR                 : std_logic_vector(concurrentTriggers-1 downto 0);
 
+signal  trgIDSDelay              : std_logic_vector(4 downto 0);
+
 begin
 
 triggerID <= triggerIDSig;
@@ -467,14 +469,19 @@ end process;
 
 trgVecSig <= triggerIntVecSync & trigger_prescaled;
 
-trigger_int <= '1' when unsigned(trgVecSig) /= 0 else '0';--or_reduce(trgVecSig);
+trigger_int <= '1' when unsigned(trgVecSig) /= 0 else '0';
 
 trgIDStrSigInst: process(clock, reset, trigger_int)
 begin
     if reset = '1' then
         trgIDStoreSig <= '0';
     elsif rising_edge(clock) then
-        trgIDStoreSig <= trigger_int;
+        trgIDSDelay(0) <= trigger_int;
+        trgIDSDelay(1) <= trgIDSDelay(0);
+        trgIDSDelay(2) <= trgIDSDelay(1);
+        trgIDSDelay(3) <= trgIDSDelay(2);
+        trgIDSDelay(4) <= trgIDSDelay(3);
+        trgIDStoreSig  <= trgIDSDelay(4);
     end if;
 end process;
 
