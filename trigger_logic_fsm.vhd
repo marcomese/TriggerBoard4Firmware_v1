@@ -245,6 +245,8 @@ signal  fallingTrg1, fallingTrg2,
 
 signal  triggeredMasks      : std_logic_vector(maskNum-1 downto 0);
 
+signal  trgValidation       : std_logic;
+
 begin
 
 rate1SecOut <= rate_time_sig;
@@ -636,7 +638,12 @@ begin
 end process;
 
 -- FSM combinational block(NEXT_STATE_DECODE)
-	
+
+trgValidationProcess: process(clock, reset, triggeredMasks)
+begin
+    trgValidation <= '1' when triggeredMasks /= 0 else '0';
+end process;
+
 fsm: process(pres_state, debug, trgInhibit, acquisition_state, trigger, debug, count, calibRise)
 begin
     next_state <= pres_state;
@@ -645,7 +652,7 @@ begin
         when wait_state => -- sistema in attesa
             if trgInhibit = '1' then
                 next_state <= wait_state;
-            elsif debug = '1' or (calibRise = '1' and trigger = '0') or (acquisition_state = '1' and trigger = '1' and triggeredMasks /= 0) then
+            elsif debug = '1' or (calibRise = '1' and trigger = '0') or (acquisition_state = '1' and trigger = '1' and trgValidation = '1') then
                 next_state <= trg_state;
             else
                 next_state <= wait_state;

@@ -204,6 +204,8 @@ signal  trgVecSig,
 
 signal  trgIDSDelay              : std_logic_vector(4 downto 0);
 
+signal  validatedTrg             : std_logic_vector(maskNum-1 downto 0);
+
 signal  trg_intSIG               : std_logic;
 
 begin
@@ -327,12 +329,24 @@ begin
     );
 end generate sincronizzatore;
 
+validTrgGen: for i in 0 to maskNum-1 generate
+begin
+    validTrgProc: process(clock, reset, trigger(i), trg_intSIG)
+    begin
+        if reset = '1' then
+            validatedTrg(i) <= '0';
+        elsif rising_edge(clock) then
+            validatedTrg(i) <= trigger(i) and trg_intSIG;
+        end if;
+    end process;
+end generate;
+
 countPresc_NInst: counter32BitSload
 port map(
     Aclr   => swRst,
     Sload  => rate_time_sig,
     Clock  => clock,
-    Enable => trigger(0) and trg_intSIG,
+    Enable => validatedTrg(0),
     Data   => (others => '0'),
     Q      => count_0
 );
@@ -344,7 +358,7 @@ begin
         Aclr   => swRst,
         Sload  => rate_time_sig,
         Clock  => clock,
-        Enable => trigger(i) and trg_intSIG,
+        Enable => validatedTrg(i),
         Data   => (others => '0'),
         Q      => count_n(i)
     );
@@ -355,7 +369,7 @@ port map(
     Aclr   => swRst,
     Sload  => rate_5ms,
     Clock  => clock,
-    Enable => trigger(7) and trg_intSIG,
+    Enable => validatedTrg(7),
     Data   => (others => '0'),
     Q      => count_grb(15 downto 0)
 );
@@ -365,7 +379,7 @@ port map(
     Aclr   => swRst,
     Sload  => rate_5ms,
     Clock  => clock,
-    Enable => trigger(8) and trg_intSIG,
+    Enable => validatedTrg(8),
     Data   => (others => '0'),
     Q      => count_grb(31 downto 16)
 );
