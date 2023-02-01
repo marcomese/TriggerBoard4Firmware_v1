@@ -268,6 +268,7 @@ end component;
 
 component test_file is
 generic(
+    maskNum              : natural;
     concurrentTriggers   : natural;
     prescaledTriggers    : natural;
     holdOffBits          : natural
@@ -715,6 +716,7 @@ port(
 );
 end component;
 
+constant maskNum            : natural := 10;
 constant concurrentTriggers : natural := 6;
 constant prescaledTriggers  : natural := 4;
 constant holdOffBits        : natural := 16;
@@ -1195,6 +1197,7 @@ dataReadyOut <= dataReadyOutSigBuff;
 
 inst_test_file: test_file
 generic map(
+    maskNum              => maskNum,
     concurrentTriggers   => concurrentTriggers,
     prescaledTriggers    => prescaledTriggers,
     holdOffBits          => holdOffBits

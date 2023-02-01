@@ -9,6 +9,7 @@ use IEEE.MATH_REAL.ALL;
 
 entity test_file is
 generic(
+    maskNum              : natural;
     concurrentTriggers   : natural;
     prescaledTriggers    : natural;
     holdOffBits          : natural
@@ -199,6 +200,7 @@ end component;
 
 component TRIGGER_logic_FSM is
 generic(
+    maskNum              : natural;
     concurrentTriggers   : natural;
     prescaledTriggers    : natural;
     holdOffBits          : natural
@@ -541,6 +543,7 @@ end process;
 
 triggerLogicFSMInst: TRIGGER_logic_FSM
 generic map(
+    maskNum              => maskNum,
     concurrentTriggers   => concurrentTriggers,
     prescaledTriggers    => prescaledTriggers,
     holdOffBits          => holdOffBits

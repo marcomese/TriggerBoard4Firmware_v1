@@ -7,6 +7,7 @@ use proasic3l.all;
 
 entity TRIGGER_selector is
 generic(
+    maskNum              : natural;
     concurrentTriggers   : natural;
     prescaledTriggers    : natural;
     holdOffBits          : natural
@@ -46,6 +47,8 @@ port(
     trgExtIn             : in  std_logic;
 
     holdoff              : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
+
+    triggeredMasks       : out std_logic_vector(maskNum-1 downto 0);
 
     trg_int              : out std_logic  -- attivo alto
 );
@@ -120,10 +123,7 @@ port(
 );
 end component;
 
-constant maskNum                 : natural := 10;
-
 type countArray is array (natural range 1 to maskNum-1) of std_logic_vector(15 downto 0);
-
 
 signal  trigger,
         rise                     : std_logic_vector(maskNum-1 downto 0);
@@ -204,7 +204,13 @@ signal  trgVecSig,
 
 signal  trgIDSDelay              : std_logic_vector(4 downto 0);
 
+signal  trg_intSIG               : std_logic;
+
 begin
+
+triggeredMasks <= trigger;
+
+trg_int   <= trg_intSIG;
 
 triggerID <= triggerIDSig;
 
@@ -326,7 +332,7 @@ port map(
     Aclr   => swRst,
     Sload  => rate_time_sig,
     Clock  => clock,
-    Enable => rise(0),
+    Enable => trigger(0) and trg_intSIG,
     Data   => (others => '0'),
     Q      => count_0
 );
@@ -338,7 +344,7 @@ begin
         Aclr   => swRst,
         Sload  => rate_time_sig,
         Clock  => clock,
-        Enable => rise(i),
+        Enable => trigger(i) and trg_intSIG,
         Data   => (others => '0'),
         Q      => count_n(i)
     );
@@ -349,7 +355,7 @@ port map(
     Aclr   => swRst,
     Sload  => rate_5ms,
     Clock  => clock,
-    Enable => rise(7),
+    Enable => trigger(7) and trg_intSIG,
     Data   => (others => '0'),
     Q      => count_grb(15 downto 0)
 );
@@ -359,7 +365,7 @@ port map(
     Aclr   => swRst,
     Sload  => rate_5ms,
     Clock  => clock,
-    Enable => rise(8),
+    Enable => trigger(8) and trg_intSIG,
     Data   => (others => '0'),
     Q      => count_grb(31 downto 16)
 );
@@ -524,12 +530,12 @@ end process;
 mux_veto:process(trigger_mask_int, trigger_int, veto_lateral, veto_bottom, trgExtIn)
 begin
     case trigger_mask_int(31 downto 24) is
-        when X"00"  => trg_int <= trigger_int;
-        when X"01"  => trg_int <= trigger_int and not veto_lateral;
-        when X"02"  => trg_int <= trigger_int and not veto_bottom;
-        when X"03"  => trg_int <= trigger_int and not(veto_lateral or veto_bottom);
-        when X"04"  => trg_int <= trgExtIn;
-        when others => trg_int <= trigger_int;
+        when X"00"  => trg_intSIG <= trigger_int;
+        when X"01"  => trg_intSIG <= trigger_int and not veto_lateral;
+        when X"02"  => trg_intSIG <= trigger_int and not veto_bottom;
+        when X"03"  => trg_intSIG <= trigger_int and not(veto_lateral or veto_bottom);
+        when X"04"  => trg_intSIG <= trgExtIn;
+        when others => trg_intSIG <= trigger_int;
     end case;
 end process;
 

@@ -7,6 +7,7 @@ use proasic3l.all;
 
 entity TRIGGER_logic_FSM is
 generic(
+    maskNum              : natural;
     concurrentTriggers   : natural;
     prescaledTriggers    : natural;
     holdOffBits          : natural
@@ -95,6 +96,7 @@ end component;
 
 component TRIGGER_selector is
 generic(
+    maskNum              : natural;
     concurrentTriggers   : natural;
     prescaledTriggers    : natural;
     holdOffBits          : natural
@@ -134,6 +136,8 @@ port(
     trgExtIn             : in  std_logic;
 
     holdoff              : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
+
+    triggeredMasks       : out std_logic_vector(maskNum-1 downto 0);
 
     trg_int              : out std_logic  -- attivo alto
 );
@@ -238,6 +242,8 @@ signal  turrRise,
 signal  fallingTrg1, fallingTrg2,
         trigger_in_sync_1,
         trigger_in_sync_2   : std_logic_vector(31 downto 0);
+
+signal  triggeredMasks      : std_logic_vector(maskNum-1 downto 0);
 
 begin
 
@@ -508,6 +514,7 @@ end generate;
 
 trigger_selector_component : TRIGGER_selector
 generic map(
+    maskNum              => maskNum,
     concurrentTriggers   => concurrentTriggers,
     prescaledTriggers    => prescaledTriggers,
     holdOffBits          => holdOffBits
@@ -547,6 +554,8 @@ port map(
     trgExtIn => s_trgExt100ns,
 
     holdoff => holdoff,
+
+    triggeredMasks => triggeredMasks,
 
     trg_int => trigger
 );
@@ -636,7 +645,7 @@ begin
         when wait_state => -- sistema in attesa
             if trgInhibit = '1' then
                 next_state <= wait_state;
-            elsif debug = '1' or (calibRise = '1' and trigger = '0') or (acquisition_state = '1' and trigger = '1') then
+            elsif debug = '1' or (calibRise = '1' and trigger = '0') or (acquisition_state = '1' and trigger = '1' and triggeredMasks /= 0) then
                 next_state <= trg_state;
             else
                 next_state <= wait_state;
