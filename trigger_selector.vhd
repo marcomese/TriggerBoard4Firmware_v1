@@ -204,6 +204,8 @@ signal  trgVecSig,
 
 signal  trgIDSDelay              : std_logic_vector(4 downto 0);
 
+signal  genericSet               : std_logic;
+
 begin
 
 triggerID <= triggerIDSig;
@@ -237,7 +239,7 @@ LAT_2  <= plane(29);
 LAT_3  <= plane(30);
 LAT_4  <= plane(31);
 
-TR1AND <= planeAnd(0) or planeAnd(1) or planeAnd(2) or planeAnd(3) or planeAnd(4);
+TR1AND    <= planeAnd(0) or planeAnd(1) or planeAnd(2) or planeAnd(3) or planeAnd(4);
 EN1_AND   <= planeAnd(21) or planeAnd(22) or planeAnd(23);
 EN2_AND   <= planeAnd(24) or planeAnd(25) or planeAnd(26);
 RAN_05AND <= planeAnd(13);
@@ -248,9 +250,12 @@ RAN_08AND <= planeAnd(16);
 internal_values: process(reset, clock, apply_trigger_mask)
 begin
     if reset='1' then
+        genericSet <= '0';
         generic_trigger_mask_int <= (others=> '0');
         trigger_mask_int <= X"00000000";
     elsif rising_edge(clock) then
+        genericSet <= '1' when unsigned(generic_trigger_mask_int) /= 0 else '0';
+
         if apply_trigger_mask = '1' then
             generic_trigger_mask_int <= generic_trigger_mask;
             trigger_mask_int <= trigger_mask;
@@ -283,13 +288,14 @@ trigger(7)   <= (RAN_05AND or RAN_06AND or RAN_07AND or RAN_08AND) and not (TR1 
 
 trigger(8)   <= (EN1_AND or EN2_AND) and not (TR1 or TR2 or veto_lateral or veto_bottom);
 
-trigger(9)   <= TR1_masked and TR2_masked and
+trigger(9)   <= genericSet and 
+                (TR1_masked and TR2_masked and
                 plane_masked(0) and plane_masked(1) and plane_masked(2) and plane_masked(3) and
                 plane_masked(4) and plane_masked(5) and plane_masked(6) and plane_masked(7) and
                 plane_masked(8) and plane_masked(9) and plane_masked(10) and plane_masked(10) and plane_masked(11) and
                 EN1_masked and EN2_masked and
                 LAT_1_masked and LAT_2_masked and LAT_3_masked and LAT_4_masked and
-                BOT_00_masked;
+                BOT_00_masked);
 
 TR1_masked <= TR1 or (not generic_trigger_mask_int(0));
 TR2_masked <= TR2 or (not generic_trigger_mask_int(1));
