@@ -639,10 +639,10 @@ end process;
 
 -- FSM combinational block(NEXT_STATE_DECODE)
 
-trgValidationProcess: process(clock, reset, triggeredMasks)
-begin
+--trgValidationProcess: process(clock, reset, triggeredMasks)
+--begin
     trgValidation <= '1' when triggeredMasks /= 0 else '0';
-end process;
+--end process;
 
 fsm: process(pres_state, debug, trgInhibit, acquisition_state, trigger, debug, count, calibRise)
 begin
@@ -652,13 +652,13 @@ begin
         when wait_state => -- sistema in attesa
             if trgInhibit = '1' then
                 next_state <= wait_state;
-            elsif debug = '1' or (calibRise = '1' and trigger = '0') or (acquisition_state = '1' and trigger = '1' and trgValidation = '1') then
+            elsif debug = '1' or (calibRise = '1' and trigger = '0') or (acquisition_state = '1' and trigger = '1') then
                 next_state <= trg_state;
             else
                 next_state <= wait_state;
             end if;
 
-        when trg_state => 
+        when trg_state =>
             next_state <= idle_state;
 
         when idle_state => 
@@ -673,13 +673,13 @@ begin
     end case;
 end process;
 
-OUTPUT_DECODE: process(next_state)
+OUTPUT_DECODE: process(next_state, trgValidation)
 begin
     if next_state = wait_state then --  sistema in attesa
         trg_to_DAQ_EASI_i <= '0' ;
         idle_i            <= '0' ;
     elsif next_state = trg_state then 
-        trg_to_DAQ_EASI_i <= '1' ;
+        trg_to_DAQ_EASI_i <= '1' when trgValidation = '1' else '0';
         idle_i            <= '0' ;
     elsif next_state = idle_state then 
         trg_to_DAQ_EASI_i <= '0' ;

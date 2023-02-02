@@ -125,6 +125,8 @@ end component;
 
 type countArray is array (natural range 1 to maskNum-1) of std_logic_vector(15 downto 0);
 
+constant zero32bit               : std_logic_vector(31 downto 0) := (others => '0');
+
 signal  trigger,
         rise                     : std_logic_vector(maskNum-1 downto 0);
 
@@ -208,6 +210,8 @@ signal  validatedTrg             : std_logic_vector(maskNum-1 downto 0);
 
 signal  trg_intSIG               : std_logic;
 
+signal  genericSet               : std_logic;
+
 begin
 
 triggeredMasks <= trigger;
@@ -256,9 +260,12 @@ RAN_08AND <= planeAnd(16);
 internal_values: process(reset, clock, apply_trigger_mask)
 begin
     if reset='1' then
+        genericSet <= '0';
         generic_trigger_mask_int <= (others=> '0');
         trigger_mask_int <= X"00000000";
     elsif rising_edge(clock) then
+        genericSet <= '0' when generic_trigger_mask_int = zero32bit else '1';
+
         if apply_trigger_mask = '1' then
             generic_trigger_mask_int <= generic_trigger_mask;
             trigger_mask_int <= trigger_mask;
@@ -291,7 +298,8 @@ trigger(7)   <= (RAN_05AND or RAN_06AND or RAN_07AND or RAN_08AND) and not (TR1 
 
 trigger(8)   <= (EN1_AND or EN2_AND) and not (TR1 or TR2 or veto_lateral or veto_bottom);
 
-trigger(9)   <= TR1_masked and TR2_masked and
+trigger(9)   <= genericSet and 
+                TR1_masked and TR2_masked and
                 plane_masked(0) and plane_masked(1) and plane_masked(2) and plane_masked(3) and
                 plane_masked(4) and plane_masked(5) and plane_masked(6) and plane_masked(7) and
                 plane_masked(8) and plane_masked(9) and plane_masked(10) and plane_masked(10) and plane_masked(11) and
