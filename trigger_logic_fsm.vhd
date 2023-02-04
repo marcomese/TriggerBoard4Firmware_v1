@@ -93,6 +93,15 @@ port(
 );
 end component;
 
+component trigger_extender_100ns_falling is
+port(
+    clock       : in  STD_LOGIC;
+    reset       : in  STD_LOGIC;
+    trigger_in  : in  STD_LOGIC;
+    trigger_out : out STD_LOGIC
+);
+end component;
+
 component TRIGGER_selector is
 generic(
     concurrentTriggers   : natural;
@@ -325,7 +334,7 @@ end process;
 
 trigger_sampler_process_1 : for i in 0 to 31 generate
 begin
-    trigger_i: trigger_extender_100ns
+    trigger_i: trigger_extender_100ns_falling
     port map(
         clock => clock,
         reset => reset, 
@@ -336,7 +345,7 @@ end generate trigger_sampler_process_1;
 
 trigger_sampler_process_2 : for i in 0 to 31 generate
 begin
-    trigger_i: trigger_extender_100ns
+    trigger_i: trigger_extender_100ns_falling
     port map(
         clock => clock,
         reset => reset, 
