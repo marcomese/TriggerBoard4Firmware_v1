@@ -127,12 +127,17 @@ end component;
 component trgValidFSM is
 generic(
     nTrg        : natural;
-    nClk        : natural
+    nClk        : natural;
+    nVeto       : natural
 );
 port(
     clk         : in  std_logic;
     rst         : in  std_logic;
     trigger     : in  std_logic;
+    extTrg      : in  std_logic;
+    extTrgEn    : in  std_logic;
+    veto        : in  std_logic_vector(nVeto-1 downto 0);
+    vetoSel     : in  std_logic_vector(nVeto-1 downto 0);
     trgMasks    : in  std_logic_vector(nTrg-1 downto 0);
     validMasks  : out std_logic_vector(nTrg-1 downto 0);
     trgValid    : out std_logic;
@@ -226,13 +231,15 @@ signal  trgIDSDelay              : std_logic_vector(4 downto 0);
 
 signal  validMasks               : std_logic_vector(maskNum-1 downto 0);
 
-signal  trg_intSIG               : std_logic;
-
 signal  genericSet               : std_logic;
+
+signal  trgValidSig              : std_logic;
 
 begin
 
-startPeakDet <= trg_intSIG;
+trgValidOut <= trgValidSig;
+
+startPeakDet <= trigger_int;
 
 triggerID <= triggerIDSig;
 
@@ -501,17 +508,12 @@ trgVecSig <= triggerIntVecSync & trigger_prescaled;
 
 trigger_int <= '1' when unsigned(trgVecSig) /= 0 else '0';
 
-trgIDStrSigInst: process(clock, reset, trigger_int)
+trgIDStrSigInst: process(clock, reset, trgValidSig)
 begin
     if reset = '1' then
         trgIDStoreSig <= '0';
     elsif rising_edge(clock) then
-        trgIDSDelay(0) <= trigger_int;
-        trgIDSDelay(1) <= trgIDSDelay(0);
-        trgIDSDelay(2) <= trgIDSDelay(1);
-        trgIDSDelay(3) <= trgIDSDelay(2);
-        trgIDSDelay(4) <= trgIDSDelay(3);
-        trgIDStoreSig  <= trgIDSDelay(4);
+        trgIDStoreSig  <= trgValidSig;
     end if;
 end process;
 
@@ -551,30 +553,23 @@ begin
     end if;
 end process;
 
-mux_veto:process(trigger_mask_int, trigger_int, veto_lateral, veto_bottom, trgExtIn)
-begin
-    case trigger_mask_int(31 downto 24) is
-        when X"00"  => trg_intSIG <= trigger_int;
-        when X"01"  => trg_intSIG <= trigger_int and not veto_lateral;
-        when X"02"  => trg_intSIG <= trigger_int and not veto_bottom;
-        when X"03"  => trg_intSIG <= trigger_int and not(veto_lateral or veto_bottom);
-        when X"04"  => trg_intSIG <= trgExtIn;
-        when others => trg_intSIG <= trigger_int;
-    end case;
-end process;
-
 trgValidFSMInst: trgValidFSM
 generic map(
     nTrg        => maskNum,
-    nClk        => 3
+    nClk        => 3,
+    nVeto       => 2
 )
 port map(
     clk         => clock,
     rst         => swRst,
-    trigger     => trg_intSIG,
+    trigger     => trigger_int,
+    extTrg      => trgExtIn,
+    extTrgEn    => trigger_mask_int(26),
+    veto        => veto_bottom & veto_lateral,
+    vetoSel     => trigger_mask_int(25 downto 24),
     trgMasks    => trigger,
     validMasks  => validMasks,
-    trgValid    => trgValidOut,
+    trgValid    => trgValidSig,
     trgNotValid => trgNotValidOut
 );
 

@@ -246,10 +246,13 @@ signal  fallingTrg1,
         trigger_in_sync_1,
         trigger_in_sync_2   : std_logic_vector(31 downto 0);
 
-signal  trgValidSig,
+signal  startPeakDetSig,
+        trgValidSig,
         trgValidOutF        : std_logic;
 
 begin
+
+startPeakDet <= startPeakDetSig or calibRise or debug or trgExtIn;
 
 rate1SecOut <= rate_time_sig;
 
@@ -562,7 +565,7 @@ port map(
 
     trgNotValidOut => trgNotValidOut,
 
-    startPeakDet => startPeakDet
+    startPeakDet => startPeakDetSig
 );
 
 mask_rate <= mask_rate_9_sig &  -- 175 -> 160
