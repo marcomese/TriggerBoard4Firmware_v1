@@ -285,8 +285,9 @@ begin
         generic_trigger_mask_int <= (others=> '0');
         trigger_mask_int <= X"00000000";
     elsif rising_edge(clock) then
+        genericSet <= '1' when unsigned(generic_trigger_mask_int(20 downto 0)) /= 0 else '0';
+
         if apply_trigger_mask = '1' then
-            genericSet <= '1' when unsigned(generic_trigger_mask) /= 0 else '0';
             generic_trigger_mask_int <= generic_trigger_mask;
             trigger_mask_int <= trigger_mask;
         end if;
