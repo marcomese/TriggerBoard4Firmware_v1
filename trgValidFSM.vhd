@@ -96,7 +96,7 @@ begin
     end case;
 end process;
 
-outProc: process(nextState)
+outProc: process(nextState, trgMasks)
 begin
     case nextState is
         when idle =>

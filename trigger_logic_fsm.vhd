@@ -57,7 +57,7 @@ port(
 
     trgNotValidOut       : out std_logic;
 
-    trg_to_DAQ_EASI      : out std_logic  -- attivo alto
+    startPeakDet         : out std_logic  -- attivo alto
 );
 end TRIGGER_logic_FSM;
 
@@ -143,7 +143,7 @@ port(
 
     trgNotValidOut       : out std_logic;
 
-    trg_int              : out std_logic  -- attivo alto
+    startPeakDet         : out std_logic  -- attivo alto
 );
 end component;
 
@@ -182,9 +182,8 @@ type state_values is
     idle_state    -- idle per 100 ns
 );
 
-signal pres_state, next_state: state_values;
-
-signal  trg_to_DAQ_EASI_i   : std_logic;
+signal  pres_state, 
+        next_state          : state_values;
 
 signal  trigger_sincro_1,
         trigger_sincro_2,
@@ -194,28 +193,27 @@ signal  trigger_sincro_1,
         PMT_mask_int_1,
         PMT_mask_int_2      : std_logic_vector(31 downto 0);
 
-signal  planeAnd : std_logic_vector(31 downto 0);
+signal  planeAnd            : std_logic_vector(31 downto 0);
 
-signal  count   : integer range 0 to TRG_LENGHT;
+signal  count               : integer range 0 to TRG_LENGHT;
 
 signal  idle,
-        idle_i,
-        trigger : std_logic;
+        idle_i              : std_logic;
 
-signal  time_cnt : integer range 0 to RATE_TIME;
-signal  time_5ms_cnt : integer range 0 to RATE_5MS_TIME;
+signal  time_cnt            : integer range 0 to RATE_TIME;
+signal  time_5ms_cnt        : integer range 0 to RATE_5MS_TIME;
 
-signal  calibCount : std_logic_vector(15 downto 0);
+signal  calibCount          : std_logic_vector(15 downto 0);
 
 signal  calibSig,
-        calibRise  : std_logic;
+        calibRise           : std_logic;
 
 signal  rate_time_sig,
         rise_rate,
         reset_counter,
-        rate_5ms_sig  : std_logic;
+        rate_5ms_sig        : std_logic;
 
-signal  mask_rate_0_sig : std_logic_vector(31 downto 0);
+signal  mask_rate_0_sig     : std_logic_vector(31 downto 0);
 
 signal  mask_rate_1_sig,
         mask_rate_2_sig,
@@ -225,27 +223,31 @@ signal  mask_rate_1_sig,
         mask_rate_6_sig,
         mask_rate_7_sig,
         mask_rate_8_sig,
-        mask_rate_9_sig : std_logic_vector(15 downto 0);
+        mask_rate_9_sig     : std_logic_vector(15 downto 0);
 
 signal  count_pmt_1,
         count_pmt_2,
         pmt_rate_1,
-        pmt_rate_2      : count_array;
+        pmt_rate_2          : count_array;
 
-signal  rise_1, rise_2  : std_logic_vector(31 downto 0);
+signal  rise_1, rise_2      : std_logic_vector(31 downto 0);
 
 signal  s_trgExtPulse,
-        s_trgExt100ns   : std_logic;
+        s_trgExt100ns       : std_logic;
 
-signal  turretsFlagsSig    : std_logic_vector(7 downto 0);
+signal  turretsFlagsSig     : std_logic_vector(7 downto 0);
 
 signal  turrRise,
         turrGate,
-        turretsCntEn       : std_logic_vector(4 downto 0);
+        turretsCntEn        : std_logic_vector(4 downto 0);
 
-signal  fallingTrg1, fallingTrg2,
+signal  fallingTrg1, 
+        fallingTrg2,
         trigger_in_sync_1,
         trigger_in_sync_2   : std_logic_vector(31 downto 0);
+
+signal  trgValidSig,
+        trgValidOutF        : std_logic;
 
 begin
 
@@ -255,7 +257,7 @@ turrets(4 downto 0) <= plane(4 downto 0);
 
 turretsFlags <= turretsFlagsSig;
 
-trgNotInhibit <= trigger;
+trgNotInhibit <= trgValidSig;
 
 fallingSync1: process(clock, reset, trigger_in_1)
 begin
@@ -403,14 +405,14 @@ end generate;
 
 turrCntGateGen: for i in 0 to 4 generate
 begin
-    turrCntGate_n: process(clock, swRst, turrRise(i), trg_to_DAQ_EASI)
+    turrCntGate_n: process(clock, swRst, turrRise(i), trgValidSig)
     begin
         if swRst = '1' then
             turrGate(i) <= '0';
         elsif rising_edge(clock) then
-            if turrRise(i) = '1' and trg_to_DAQ_EASI = '0' then
+            if turrRise(i) = '1' and trgValidSig = '0' then
                 turrGate(i) <= '1';
-            elsif trg_to_DAQ_EASI = '1' then
+            elsif trgValidSig = '1' then
                 turrGate(i) <= '0';
             else
                 turrGate(i) <= turrGate(i);
@@ -421,12 +423,12 @@ end generate;
 
 turretsCntEnEdge: for i in 0 to 4 generate
 begin
-    turrCntInst: process(clock, swRst, turrGate(i), trg_to_DAQ_EASI)
+    turrCntInst: process(clock, swRst, turrGate(i), trgValidSig)
     begin
         if swRst = '1' then
             turretsCntEn(i) <= '0';
         elsif rising_edge(clock) then
-            if turrGate(i) = '1' and trg_to_DAQ_EASI = '1' then
+            if turrGate(i) = '1' and trgValidSig = '1' then
                 turretsCntEn(i) <= '1';
             else
                 turretsCntEn(i) <= '0';
@@ -556,11 +558,11 @@ port map(
 
     holdoff => holdoff,
 
-    trgValidOut => trgValidOut,
+    trgValidOut => trgValidSig,
 
     trgNotValidOut => trgNotValidOut,
 
-    trg_int => trigger
+    startPeakDet => startPeakDet
 );
 
 mask_rate <= mask_rate_9_sig &  -- 175 -> 160
@@ -576,14 +578,14 @@ mask_rate <= mask_rate_9_sig &  -- 175 -> 160
 
 turretsFlagsSig(7 downto 5) <= (others => '0');
 
-trigger_flag_register: process(swRst, clock, acquisition_state, calibration_state, trigger)
+trigger_flag_register: process(swRst, clock, acquisition_state, calibration_state, trgValidSig)
 begin
     if swRst='1' then
         trigger_flag_1              <= (others=> '0');
         trigger_flag_2              <= (others=> '0');
         turretsFlagsSig(4 downto 0) <= (others => '0');
     elsif rising_edge(clock) then
-        if (acquisition_state = '1' or calibration_state = '1') and trigger = '1' then
+        if (acquisition_state = '1' or calibration_state = '1') and trgValidSig = '1' then
             trigger_flag_1              <= trigger_PMTmasked_1;
             trigger_flag_2              <= trigger_PMTmasked_2;
             turretsFlagsSig(4 downto 0) <= plane(4 downto 0);
@@ -629,18 +631,18 @@ SYNC_PROC: process(reset, clock)
 begin
     if reset='1' then 
         pres_state      <= wait_state;
-        trg_to_DAQ_EASI <= '0' ;
+        trgValidOut     <= '0' ;
         idle            <= '0' ;
     elsif rising_edge(clock) then
         pres_state      <= next_state;
-        trg_to_DAQ_EASI <= trg_to_DAQ_EASI_i;
+        trgValidOut     <= trgValidOutF;
         idle            <= idle_i;
     end if;
 end process;
 
 -- FSM combinational block(NEXT_STATE_DECODE)
 	
-fsm: process(pres_state, debug, trgInhibit, acquisition_state, trigger, debug, count, calibRise)
+fsm: process(pres_state, debug, trgInhibit, acquisition_state, trgValidSig, debug, count, calibRise)
 begin
     next_state <= pres_state;
 
@@ -648,7 +650,7 @@ begin
         when wait_state => -- sistema in attesa
             if trgInhibit = '1' then
                 next_state <= wait_state;
-            elsif debug = '1' or (calibRise = '1' and trigger = '0') or (acquisition_state = '1' and trigger = '1') then
+            elsif debug = '1' or (calibRise = '1' and trgValidSig = '0') or (acquisition_state = '1' and trgValidSig = '1') then
                 next_state <= trg_state;
             else
                 next_state <= wait_state;
@@ -672,16 +674,16 @@ end process;
 OUTPUT_DECODE: process(next_state)
 begin
     if next_state = wait_state then --  sistema in attesa
-        trg_to_DAQ_EASI_i <= '0' ;
+        trgValidOutF      <= '0' ;
         idle_i            <= '0' ;
     elsif next_state = trg_state then 
-        trg_to_DAQ_EASI_i <= '1' ;
+        trgValidOutF      <= '1' ;
         idle_i            <= '0' ;
     elsif next_state = idle_state then 
-        trg_to_DAQ_EASI_i <= '0' ;
+        trgValidOutF      <= '0' ;
         idle_i            <= '1' ;
     else
-        trg_to_DAQ_EASI_i <= '0' ;
+        trgValidOutF      <= '0' ;
         idle_i            <= '0' ;
     end if; 
 end process;

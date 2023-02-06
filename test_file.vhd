@@ -250,7 +250,7 @@ port(
 
     trgNotValidOut       : out std_logic;
 
-    trg_to_DAQ_EASI      : out std_logic  -- attivo alto
+    startPeakDet         : out std_logic  -- attivo alto
 );
 end component;
 
@@ -311,7 +311,6 @@ signal  pwrOnCIT1FF,
 signal  trgValid             : std_logic;
 
 signal  trgNotValid          : std_logic;
-
 
 begin
 
@@ -599,7 +598,7 @@ port map (
 
     trgNotValidOut       => trgNotValid,
 
-    trg_to_DAQ_EASI      => startPeakDet
+    startPeakDet         => startPeakDet
 );
 
 edge_trigger: process(clk, rst, debug_triggerIN)

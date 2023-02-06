@@ -51,7 +51,7 @@ port(
 
     trgNotValidOut       : out std_logic;
 
-    trg_int              : out std_logic  -- attivo alto
+    startPeakDet         : out std_logic  -- attivo alto
 );
 end TRIGGER_selector;
 
@@ -226,17 +226,13 @@ signal  trgIDSDelay              : std_logic_vector(4 downto 0);
 
 signal  validMasks               : std_logic_vector(maskNum-1 downto 0);
 
-signal  trgValid                 : std_logic;
-
-signal  trgNotValid              : std_logic;
-
 signal  trg_intSIG               : std_logic;
 
 signal  genericSet               : std_logic;
 
 begin
 
-trg_int <= trg_intSIG;
+startPeakDet <= trg_intSIG;
 
 triggerID <= triggerIDSig;
 
