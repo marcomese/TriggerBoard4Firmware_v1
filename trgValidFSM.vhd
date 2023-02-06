@@ -5,17 +5,15 @@ use IEEE.NUMERIC_STD.ALL;
 entity trgValidFSM is
 generic(
     nTrg        : natural;
-    nClk        : natural;
-    nVeto       : natural
+    nClk        : natural
 );
 port(
     clk         : in  std_logic;
     rst         : in  std_logic;
     trigger     : in  std_logic;
     extTrg      : in  std_logic;
-    extTrgEn    : in  std_logic;
-    veto        : in  std_logic_vector(nVeto-1 downto 0);
-    vetoSel     : in  std_logic_vector(nVeto-1 downto 0);
+    veto        : in  std_logic_vector(1 downto 0);
+    vetoExtSel  : in  std_logic_vector(7 downto 0);
     trgMasks    : in  std_logic_vector(nTrg-1 downto 0);
     validMasks  : out std_logic_vector(nTrg-1 downto 0);
     trgValid    : out std_logic;
@@ -30,17 +28,15 @@ type    state is (idle, waitNclk, checkTriggers, trgValidState, trgInvalidState)
 signal  currState,
         nextState                      : state;
 
-signal  clkCounter                     : natural range 0 to nClk;
-
 signal  validMasksSig, validMasksSigF  : std_logic_vector(nTrg-1 downto 0);
-
-signal  maskedVetos                    : std_logic_vector(nVeto-1 downto 0);
 
 signal  vetoSig, extTrgSig,
         trgValidSig, trgValidSigF,
         trgInvalidSig, trgInvalidSigF,
         enClkCntSig, enClkCntSigF,
         rstClkCntSig, rstClkCntSigF    : std_logic;
+
+signal  clkCounter                     : natural range 0 to nClk;
 
 begin
 
@@ -50,14 +46,9 @@ trgValid    <= trgValidSig;
 
 trgNotValid <= trgInvalidSig;
 
-maskedVetoGen: for i in 0 to nVeto-1 generate
-begin
-    maskedVetos(i) <= vetoSel(i) and veto(i);
-end generate;
+extTrgSig <= extTrg and vetoExtSel(2);
 
-vetoSig <= '1' when unsigned(maskedVetos) /= 0 else '0';
-
-extTrgSig <= extTrg and extTrgEn;
+vetoSig   <= (veto(1) and vetoExtSel(1)) or (veto(0) and vetoExtSel(0));
 
 syncProc: process(clk, rst)
 begin
@@ -78,7 +69,7 @@ begin
     end if;
 end process;
 
-combProc: process(currState, trgMasks, trigger, clkCounter)
+combProc: process(currState, trgMasks, trigger, clkCounter, extTrgSig, vetoSig)
 begin
     case currState is
         when idle =>

@@ -127,17 +127,15 @@ end component;
 component trgValidFSM is
 generic(
     nTrg        : natural;
-    nClk        : natural;
-    nVeto       : natural
+    nClk        : natural
 );
 port(
     clk         : in  std_logic;
     rst         : in  std_logic;
     trigger     : in  std_logic;
     extTrg      : in  std_logic;
-    extTrgEn    : in  std_logic;
-    veto        : in  std_logic_vector(nVeto-1 downto 0);
-    vetoSel     : in  std_logic_vector(nVeto-1 downto 0);
+    veto        : in  std_logic_vector(1 downto 0);
+    vetoExtSel  : in  std_logic_vector(7 downto 0);
     trgMasks    : in  std_logic_vector(nTrg-1 downto 0);
     validMasks  : out std_logic_vector(nTrg-1 downto 0);
     trgValid    : out std_logic;
@@ -556,17 +554,15 @@ end process;
 trgValidFSMInst: trgValidFSM
 generic map(
     nTrg        => maskNum,
-    nClk        => 3,
-    nVeto       => 2
+    nClk        => 3
 )
 port map(
     clk         => clock,
     rst         => swRst,
     trigger     => trigger_int,
     extTrg      => trgExtIn,
-    extTrgEn    => trigger_mask_int(26),
     veto        => veto_bottom & veto_lateral,
-    vetoSel     => trigger_mask_int(25 downto 24),
+    vetoExtSel  => trigger_mask_int(31 downto 24),
     trgMasks    => trigger,
     validMasks  => validMasks,
     trgValid    => trgValidSig,
