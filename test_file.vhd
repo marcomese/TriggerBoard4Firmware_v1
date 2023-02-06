@@ -21,6 +21,7 @@ port (
 
     rst            : in std_logic;
 
+    startPeakDet   : out std_logic;
     triggerInhibit : in std_logic;
     triggerOUT     : out std_logic;
 
@@ -245,6 +246,10 @@ port(
 
     trgNotInhibit        : out std_logic;
 
+    trgValidOut          : out std_logic;
+
+    trgNotValidOut       : out std_logic;
+
     trg_to_DAQ_EASI      : out std_logic  -- attivo alto
 );
 end component;
@@ -282,8 +287,6 @@ signal hold_1_sig, hold_2_sig: std_logic;
 
 signal data_ready_2_sig, data_ready_1_sig, trigger_int_sig : std_logic;
 
-signal trigger_interno_sig : std_logic;
-
 signal s_trigger_flag_1, 
        s_trigger_flag_2 : std_logic_vector(31 downto 0);
 
@@ -305,13 +308,18 @@ signal s_dataReady           : std_logic;
 signal  pwrOnCIT1FF,
         pwrOnCIT2FF          : std_logic;
 
+signal  trgValid             : std_logic;
+
+signal  trgNotValid          : std_logic;
+
+
 begin
 
 clk <= clockSYS;
 
 s_config_vector <= config_vector;
 
-triggerOUT <= trigger_interno_sig;
+triggerOUT <= trgValid;
 
 PMT_rate <= s_PMT_rate;
 mask_rate <= s_mask_rate;
@@ -464,7 +472,7 @@ port map(
     SDATA_hg    => SDATA_hg_1,
     SDATA_lg    => SDATA_lg_1,
 
-    trigger_int => trigger_interno_sig,
+    trigger_int => trgValid,
 
     CS          => CS_1,
     SCLK        => SCLK_1_sig,
@@ -489,7 +497,7 @@ port map(
     SDATA_hg    => SDATA_hg_2,
     SDATA_lg    => SDATA_lg_2,
 
-    trigger_int => trigger_interno_sig,
+    trigger_int => trgValid,
 
     CS          => CS_2,
     SCLK        => SCLK_2_sig,
@@ -504,10 +512,10 @@ port map(
     data_ready  => data_ready_2_sig
 );
 
-hold_hg_1 <= holdSignal_1;
-hold_lg_1 <= holdSignal_1;
-hold_hg_2 <= holdSignal_2;
-hold_lg_2 <= holdSignal_2;
+hold_hg_1 <= holdSignal_1 or trgNotValid;
+hold_lg_1 <= holdSignal_1 or trgNotValid;
+hold_hg_2 <= holdSignal_2 or trgNotValid;
+hold_lg_2 <= holdSignal_2 or trgNotValid;
 
 ACQ_REGISTER: process(clk, rst, start_ACQ, stop_ACQ)
 begin
@@ -587,7 +595,11 @@ port map (
 
     trgNotInhibit        => trgNotInhibit,
 
-    trg_to_DAQ_EASI      => trigger_interno_sig
+    trgValidOut          => trgValid,
+
+    trgNotValidOut       => trgNotValid,
+
+    trg_to_DAQ_EASI      => startPeakDet
 );
 
 edge_trigger: process(clk, rst, debug_triggerIN)

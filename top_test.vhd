@@ -279,6 +279,7 @@ port (
     clock200k      : in std_logic;
     rst            : in std_logic;  --
 
+    startPeakDet   : out std_logic;
     triggerInhibit : in std_logic;
     triggerOUT     : out std_logic;
 
@@ -849,7 +850,7 @@ signal s_errpar      : std_logic;
 signal s_erresc      : std_logic;
 signal s_errcred     : std_logic;
 
-signal trigger_interno_sig : std_logic;
+signal validTrigger : std_logic;
 
 signal s_sendRefDAC,
        s_sendRefDAC_24M,
@@ -953,6 +954,8 @@ signal  s_calibPeriod        : std_logic_vector(15 downto 0);
 
 signal  s_clock200Mto100M    : std_logic;
 
+signal  startPeakDet        : std_logic;
+
 begin
 
 PWR_ON_1  <= s_pwr_on_citiroc1;
@@ -1043,12 +1046,12 @@ triggerOutExpand: trigger_extender_100ns
 port map(
     clock       => s_clock200M,
     reset       => s_global_rst,
-    trigger_in  => trigger_interno_sig,
+    trigger_in  => validTrigger,
     trigger_out => extendedTriggerOut
 );
 
-PS_global_trig_1 <= trigger_interno_sig;--extendedTriggerOut;
-PS_global_trig_2 <= trigger_interno_sig;--extendedTriggerOut;
+PS_global_trig_1 <= startPeakDet;
+PS_global_trig_2 <= startPeakDet;
 
 TRG     <= extendedTriggerOut;
 
@@ -1206,8 +1209,9 @@ port map(
     clock200k => clk200k_sig,
     rst => s_global_rst,
 
+    startPeakDet => startPeakDet,
     triggerInhibit => trgInhibit,
-    triggerOUT => trigger_interno_sig,
+    triggerOUT => validTrigger,
 
     turrets => s_turrets,
     turretsFlags => s_turretsFlags,

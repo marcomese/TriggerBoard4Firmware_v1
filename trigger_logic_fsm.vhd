@@ -53,6 +53,10 @@ port(
 
     trgNotInhibit        : out std_logic;
 
+    trgValidOut          : out std_logic;
+
+    trgNotValidOut       : out std_logic;
+
     trg_to_DAQ_EASI      : out std_logic  -- attivo alto
 );
 end TRIGGER_logic_FSM;
@@ -85,15 +89,6 @@ port(
 end component;
 
 component trigger_extender_100ns is
-port(
-    clock       : in  STD_LOGIC;
-    reset       : in  STD_LOGIC;
-    trigger_in  : in  STD_LOGIC;
-    trigger_out : out STD_LOGIC
-);
-end component;
-
-component trigger_extender_100ns_falling is
 port(
     clock       : in  STD_LOGIC;
     reset       : in  STD_LOGIC;
@@ -143,6 +138,10 @@ port(
     trgExtIn             : in  std_logic;
 
     holdoff              : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
+
+    trgValidOut          : out std_logic;
+
+    trgNotValidOut       : out std_logic;
 
     trg_int              : out std_logic  -- attivo alto
 );
@@ -334,7 +333,7 @@ end process;
 
 trigger_sampler_process_1 : for i in 0 to 31 generate
 begin
-    trigger_i: trigger_extender_100ns_falling
+    trigger_i: trigger_extender_100ns
     port map(
         clock => clock,
         reset => reset, 
@@ -345,7 +344,7 @@ end generate trigger_sampler_process_1;
 
 trigger_sampler_process_2 : for i in 0 to 31 generate
 begin
-    trigger_i: trigger_extender_100ns_falling
+    trigger_i: trigger_extender_100ns
     port map(
         clock => clock,
         reset => reset, 
@@ -556,6 +555,10 @@ port map(
     trgExtIn => s_trgExt100ns,
 
     holdoff => holdoff,
+
+    trgValidOut => trgValidOut,
+
+    trgNotValidOut => trgNotValidOut,
 
     trg_int => trigger
 );

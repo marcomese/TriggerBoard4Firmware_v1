@@ -47,6 +47,10 @@ port(
 
     holdoff              : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
+    trgValidOut          : out std_logic;
+
+    trgNotValidOut       : out std_logic;
+
     trg_int              : out std_logic  -- attivo alto
 );
 end TRIGGER_selector;
@@ -117,6 +121,22 @@ port(
     holdoff     : in  std_logic_vector(17 downto 0);
     triggerIn   : in  std_logic;
     triggerOut  : out std_logic
+);
+end component;
+
+component trgValidFSM is
+generic(
+    nTrg        : natural;
+    nClk        : natural
+);
+port(
+    clk         : in  std_logic;
+    rst         : in  std_logic;
+    trigger     : in  std_logic;
+    trgMasks    : in  std_logic_vector(nTrg-1 downto 0);
+    validMasks  : out std_logic_vector(nTrg-1 downto 0);
+    trgValid    : out std_logic;
+    trgNotValid : out std_logic
 );
 end component;
 
@@ -204,9 +224,19 @@ signal  trgVecSig,
 
 signal  trgIDSDelay              : std_logic_vector(4 downto 0);
 
+signal  validMasks               : std_logic_vector(maskNum-1 downto 0);
+
+signal  trgValid                 : std_logic;
+
+signal  trgNotValid              : std_logic;
+
+signal  trg_intSIG               : std_logic;
+
 signal  genericSet               : std_logic;
 
 begin
+
+trg_int <= trg_intSIG;
 
 triggerID <= triggerIDSig;
 
@@ -254,9 +284,8 @@ begin
         generic_trigger_mask_int <= (others=> '0');
         trigger_mask_int <= X"00000000";
     elsif rising_edge(clock) then
-        genericSet <= '1' when unsigned(generic_trigger_mask_int) /= 0 else '0';
-
         if apply_trigger_mask = '1' then
+            genericSet <= '1' when unsigned(generic_trigger_mask) /= 0 else '0';
             generic_trigger_mask_int <= generic_trigger_mask;
             trigger_mask_int <= trigger_mask;
         end if;
@@ -288,8 +317,7 @@ trigger(7)   <= (RAN_05AND or RAN_06AND or RAN_07AND or RAN_08AND) and not (TR1 
 
 trigger(8)   <= (EN1_AND or EN2_AND) and not (TR1 or TR2 or veto_lateral or veto_bottom);
 
-trigger(9)   <= genericSet and 
-                (TR1_masked and TR2_masked and
+trigger(9)   <= genericSet and (TR1_masked and TR2_masked and
                 plane_masked(0) and plane_masked(1) and plane_masked(2) and plane_masked(3) and
                 plane_masked(4) and plane_masked(5) and plane_masked(6) and plane_masked(7) and
                 plane_masked(8) and plane_masked(9) and plane_masked(10) and plane_masked(10) and plane_masked(11) and
@@ -332,7 +360,7 @@ port map(
     Aclr   => swRst,
     Sload  => rate_time_sig,
     Clock  => clock,
-    Enable => rise(0),
+    Enable => validMasks(0),
     Data   => (others => '0'),
     Q      => count_0
 );
@@ -344,7 +372,7 @@ begin
         Aclr   => swRst,
         Sload  => rate_time_sig,
         Clock  => clock,
-        Enable => rise(i),
+        Enable => validMasks(i),
         Data   => (others => '0'),
         Q      => count_n(i)
     );
@@ -355,7 +383,7 @@ port map(
     Aclr   => swRst,
     Sload  => rate_5ms,
     Clock  => clock,
-    Enable => rise(7),
+    Enable => validMasks(7),
     Data   => (others => '0'),
     Q      => count_grb(15 downto 0)
 );
@@ -365,7 +393,7 @@ port map(
     Aclr   => swRst,
     Sload  => rate_5ms,
     Clock  => clock,
-    Enable => rise(8),
+    Enable => validMasks(8),
     Data   => (others => '0'),
     Q      => count_grb(31 downto 16)
 );
@@ -530,13 +558,28 @@ end process;
 mux_veto:process(trigger_mask_int, trigger_int, veto_lateral, veto_bottom, trgExtIn)
 begin
     case trigger_mask_int(31 downto 24) is
-        when X"00"  => trg_int <= trigger_int;
-        when X"01"  => trg_int <= trigger_int and not veto_lateral;
-        when X"02"  => trg_int <= trigger_int and not veto_bottom;
-        when X"03"  => trg_int <= trigger_int and not(veto_lateral or veto_bottom);
-        when X"04"  => trg_int <= trgExtIn;
-        when others => trg_int <= trigger_int;
+        when X"00"  => trg_intSIG <= trigger_int;
+        when X"01"  => trg_intSIG <= trigger_int and not veto_lateral;
+        when X"02"  => trg_intSIG <= trigger_int and not veto_bottom;
+        when X"03"  => trg_intSIG <= trigger_int and not(veto_lateral or veto_bottom);
+        when X"04"  => trg_intSIG <= trgExtIn;
+        when others => trg_intSIG <= trigger_int;
     end case;
 end process;
+
+trgValidFSMInst: trgValidFSM
+generic map(
+    nTrg        => maskNum,
+    nClk        => 3
+)
+port map(
+    clk         => clock,
+    rst         => swRst,
+    trigger     => trg_intSIG,
+    trgMasks    => trigger,
+    validMasks  => validMasks,
+    trgValid    => trgValidOut,
+    trgNotValid => trgNotValidOut
+);
 
 end Behavioral;
