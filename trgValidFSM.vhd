@@ -139,7 +139,7 @@ begin
 
         when trgInvalidState =>
             trgValidSigF   <= '0';
-            validMasksSigF <= (others => '0');
+            validMasksSigF <= trgMasks;
             trgInvalidSigF <= '1';
             enClkCntSigF   <= '0';
             rstClkCntSigF  <= '1';
