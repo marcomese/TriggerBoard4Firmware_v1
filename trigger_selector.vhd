@@ -242,6 +242,9 @@ signal  genericSet               : std_logic;
 
 signal  trgValidSig              : std_logic;
 
+
+signal  triggerSync              : std_logic_vector(maskNum-1 downto 0);
+
 begin
 
 trgValidOut <= trgValidSig;
@@ -366,6 +369,15 @@ begin
     );
 end generate sincronizzatore;
 
+triggerSyncProc: process(clock, swRst, trigger)
+begin
+    if swRst = '1' then
+        triggerSync <= (others => '0');
+    elsif rising_edge(clock) then
+        triggerSync <= trigger;
+    end if;
+end process;
+
 antiGlitchGen: for i in 0 to maskNum-1 generate
 begin
     antiGlitchInst: antiGlitch
@@ -375,7 +387,7 @@ begin
     port map(
         clk    => clock,
         rst    => swRst,
-        sigIn  => trigger(i),
+        sigIn  => triggerSync(i),
         sigOut => masksNoGlitch(i)
     );
 end generate;

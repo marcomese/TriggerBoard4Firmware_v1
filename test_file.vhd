@@ -270,7 +270,8 @@ end component;
 -- Signal Declaration
 -------------------------------------------------------------------------------
 
-constant holdDelayConst : std_logic_vector(7 downto 0) := x"20";
+constant holdDelayConst : std_logic_vector(7 downto 0) := x"10";
+constant trgNotValidDelConst : std_logic_vector(7 downto 0) := x"15";
 
 signal clk         : std_logic;
 signal idle_1_sig  : std_logic;
@@ -310,7 +311,8 @@ signal  pwrOnCIT1FF,
 
 signal  trgValid             : std_logic;
 
-signal  trgNotValid          : std_logic;
+signal  trgNotValid,
+        trgNotValidDelayed   : std_logic;
 
 begin
 
@@ -381,7 +383,7 @@ port map(
 
 holdDelay_1_inst: delayLine
 generic map(
-    ffNum => 32
+    ffNum => 17
 )
 port map(
     clk       => clk,
@@ -422,7 +424,7 @@ port map(
 
 holdDelay_2_inst: delayLine
 generic map(
-    ffNum => 32
+    ffNum => 17
 )
 port map(
     clk       => clk,
@@ -511,10 +513,22 @@ port map(
     data_ready  => data_ready_2_sig
 );
 
-hold_hg_1 <= holdSignal_1 or trgNotValid;
-hold_lg_1 <= holdSignal_1 or trgNotValid;
-hold_hg_2 <= holdSignal_2 or trgNotValid;
-hold_lg_2 <= holdSignal_2 or trgNotValid;
+trgNotValidDelayInst: delayLine
+generic map(
+    ffNum => 24
+)
+port map(
+    clk       => clk,
+    rst       => rst,
+    signalIN  => trgNotValid,
+    signalOUT => trgNotValidDelayed,
+    delayVal  => trgNotValidDelConst
+);
+
+hold_hg_1 <= holdSignal_1 or trgNotValidDelayed;
+hold_lg_1 <= holdSignal_1 or trgNotValidDelayed;
+hold_hg_2 <= holdSignal_2 or trgNotValidDelayed;
+hold_lg_2 <= holdSignal_2 or trgNotValidDelayed;
 
 ACQ_REGISTER: process(clk, rst, start_ACQ, stop_ACQ)
 begin
