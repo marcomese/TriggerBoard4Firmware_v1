@@ -137,9 +137,20 @@ port(
     veto        : in  std_logic_vector(1 downto 0);
     vetoExtSel  : in  std_logic_vector(7 downto 0);
     trgMasks    : in  std_logic_vector(nTrg-1 downto 0);
-    validMasks  : out std_logic_vector(nTrg-1 downto 0);
     trgValid    : out std_logic;
     trgNotValid : out std_logic
+);
+end component;
+
+component antiGlitch is
+generic(
+    nClk   : natural
+);
+port(
+    clk    : in  std_logic;
+    rst    : in  std_logic;
+    sigIn  : in  std_logic;
+    sigOut : out std_logic
 );
 end component;
 
@@ -225,9 +236,7 @@ signal  trgIDStoreSig,
 signal  trgVecSig,
         trgVecSR                 : std_logic_vector(concurrentTriggers-1 downto 0);
 
-signal  trgIDSDelay              : std_logic_vector(4 downto 0);
-
-signal  validMasks               : std_logic_vector(maskNum-1 downto 0);
+signal  masksNoGlitch            : std_logic_vector(maskNum-1 downto 0);
 
 signal  genericSet               : std_logic;
 
@@ -357,12 +366,26 @@ begin
     );
 end generate sincronizzatore;
 
+antiGlitchGen: for i in 0 to maskNum-1 generate
+begin
+    antiGlitchInst: antiGlitch
+    generic map(
+        nClk   => 3
+    )
+    port map(
+        clk    => clock,
+        rst    => swRst,
+        sigIn  => trigger(i),
+        sigOut => masksNoGlitch(i)
+    );
+end generate;
+
 countPresc_NInst: counter32BitSload
 port map(
     Aclr   => swRst,
     Sload  => rate_time_sig,
     Clock  => clock,
-    Enable => validMasks(0),
+    Enable => masksNoGlitch(0),
     Data   => (others => '0'),
     Q      => count_0
 );
@@ -374,7 +397,7 @@ begin
         Aclr   => swRst,
         Sload  => rate_time_sig,
         Clock  => clock,
-        Enable => validMasks(i),
+        Enable => masksNoGlitch(i),
         Data   => (others => '0'),
         Q      => count_n(i)
     );
@@ -385,7 +408,7 @@ port map(
     Aclr   => swRst,
     Sload  => rate_5ms,
     Clock  => clock,
-    Enable => validMasks(7),
+    Enable => masksNoGlitch(7),
     Data   => (others => '0'),
     Q      => count_grb(15 downto 0)
 );
@@ -395,7 +418,7 @@ port map(
     Aclr   => swRst,
     Sload  => rate_5ms,
     Clock  => clock,
-    Enable => validMasks(8),
+    Enable => masksNoGlitch(8),
     Data   => (others => '0'),
     Q      => count_grb(31 downto 16)
 );
@@ -565,7 +588,6 @@ port map(
     veto        => veto_bottom & veto_lateral,
     vetoExtSel  => trigger_mask_int(31 downto 24),
     trgMasks    => trigger,
-    validMasks  => validMasks,
     trgValid    => trgValidSig,
     trgNotValid => trgNotValidOut
 );
