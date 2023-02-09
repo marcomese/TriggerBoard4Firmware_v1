@@ -8,6 +8,7 @@ generic(
 port(
     clk    : in  std_logic;
     rst    : in  std_logic;
+    riseIn : in  std_logic;
     sigIn  : in  std_logic;
     sigOut : out std_logic
 );
@@ -45,11 +46,11 @@ begin
     end if;
 end process;
 
-combProc: process(currState, sigIn, clkCounter)
+combProc: process(currState, riseIn, sigIn, clkCounter)
 begin
     case currState is
         when idle =>
-            if sigIn = '1' then
+            if riseIn = '1' then
                 nextState <= clkCount;
             else
                 nextState <= idle;

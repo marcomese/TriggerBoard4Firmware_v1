@@ -149,6 +149,7 @@ generic(
 port(
     clk    : in  std_logic;
     rst    : in  std_logic;
+    riseIn : in  std_logic;
     sigIn  : in  std_logic;
     sigOut : out std_logic
 );
@@ -387,6 +388,7 @@ begin
     port map(
         clk    => clock,
         rst    => swRst,
+        riseIn => rise(i),
         sigIn  => triggerSync(i),
         sigOut => masksNoGlitch(i)
     );
