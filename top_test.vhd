@@ -1557,10 +1557,13 @@ pwrOn1Antiglitch: process(s_clock48M, s_global_rst, s_pwr_on_citiroc1)
 begin
     if s_global_rst = '1' then
         pwrOn1Steady <= '0';
+        pwrOn1FF1    <= '0';
+        pwrOn1FF2    <= '0';
+        pwrOn1FF3    <= '0';
     elsif rising_edge(s_clock48M) then
-        pwrOn1FF1 <= s_pwr_on_citiroc1;
-        pwrOn1FF2 <= pwrOn1FF1;
-        pwrOn1FF3 <= pwrOn1FF2;
+        pwrOn1FF1    <= s_pwr_on_citiroc1;
+        pwrOn1FF2    <= pwrOn1FF1;
+        pwrOn1FF3    <= pwrOn1FF2;
         pwrOn1Steady <= pwrOn1FF1 or pwrOn1FF2 or pwrOn1FF3;
     end if;
 end process;
@@ -1569,10 +1572,13 @@ pwrOn2Antiglitch: process(s_clock48M, s_global_rst, s_pwr_on_citiroc2)
 begin
     if s_global_rst = '1' then
         pwrOn2Steady <= '0';
+        pwrOn2FF1    <= '0';
+        pwrOn2FF2    <= '0';
+        pwrOn2FF3    <= '0';
     elsif rising_edge(s_clock48M) then
-        pwrOn2FF1 <= s_pwr_on_citiroc2;
-        pwrOn2FF2 <= pwrOn2FF1;
-        pwrOn2FF3 <= pwrOn2FF2;
+        pwrOn2FF1    <= s_pwr_on_citiroc2;
+        pwrOn2FF2    <= pwrOn2FF1;
+        pwrOn2FF3    <= pwrOn2FF2;
         pwrOn2Steady <= pwrOn2FF1 or pwrOn2FF2 or pwrOn2FF3;
     end if;
 end process;

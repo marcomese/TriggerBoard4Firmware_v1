@@ -190,6 +190,8 @@ signal  trigger_sincro_1,
         plane,
         trigger_PMTmasked_1,
         trigger_PMTmasked_2,
+        trigger_PMTmasked_1AND,
+        trigger_PMTmasked_2AND,
         PMT_mask_int_1,
         PMT_mask_int_2      : std_logic_vector(31 downto 0);
 
@@ -509,6 +511,9 @@ end process;
 trigger_PMTmasked_1 <= trigger_sincro_1 and PMT_mask_int_1;
 trigger_PMTmasked_2 <= trigger_sincro_2 and PMT_mask_int_2;
 
+trigger_PMTmasked_1AND   <= trigger_sincro_1 or not PMT_mask_int_1;
+trigger_PMTmasked_2AND   <= trigger_sincro_2 or not PMT_mask_int_2;
+
 PMT_mask_plane_gen: for i in 0 to 31 generate
 begin
     plane(i) <= trigger_PMTmasked_1(i) or trigger_PMTmasked_2(i);
@@ -516,7 +521,7 @@ end generate PMT_mask_plane_gen;
 
 planeT1MaskGen: for i in 0 to 31 generate
 begin
-    planeAnd(i) <= trigger_PMTmasked_1(i) and trigger_PMTmasked_2(i);
+    planeAnd(i) <= trigger_PMTmasked_1AND(i) and trigger_PMTmasked_2AND(i);
 end generate;
 
 trigger_selector_component : TRIGGER_selector
