@@ -530,11 +530,11 @@ hold_lg_1 <= holdSignal_1 or trgNotValidDelayed;
 hold_hg_2 <= holdSignal_2 or trgNotValidDelayed;
 hold_lg_2 <= holdSignal_2 or trgNotValidDelayed;
 
-ACQ_REGISTER: process(clk, rst, start_ACQ, stop_ACQ)
+ACQ_REGISTER: process(clock48M, rst, start_ACQ, stop_ACQ)
 begin
    if rst='1' then
         acquisition_state_sig <= '0';
-   elsif rising_edge(clk) then
+   elsif rising_edge(clock48M) then
         if start_ACQ = '1' and stop_ACQ = '0' then
             acquisition_state_sig <= '1';
         elsif start_ACQ = '0' and stop_ACQ = '1' then
@@ -545,11 +545,11 @@ begin
    end if;
 end process;
 
-CAL_REGISTER: process(clk, rst, start_cal, stop_cal)
+CAL_REGISTER: process(clock48M, rst, start_cal, stop_cal)
 begin
    if rst='1' then
         calibration_state_sig <= '0';
-   elsif rising_edge(clk) then
+   elsif rising_edge(clock48M) then
         if start_cal = '1' and stop_cal = '0' then
             calibration_state_sig <= '1';
         elsif start_cal = '0' and stop_cal = '1' then
