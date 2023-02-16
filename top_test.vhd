@@ -967,7 +967,9 @@ signal  pwrOn1Steady,
 
 signal  dpcuResetSteady,
         dpcuResetFF1,
-        dpcuResetFF2         : std_logic;
+        dpcuResetFF2,
+        dpcuResetFF3,
+        dpcuResetFF4         : std_logic;
 
 begin
 
@@ -1102,19 +1104,23 @@ WDI_TO_SUPERVISOR <= wdi;
 dpcuRstAntiGlitch: process(s_clock48M, wdRst)
 begin
     if wdRst = '1' then
-        dpcuResetFF1    <= '0';
-        dpcuResetFF2    <= '0';
-        dpcuResetSteady <= '0';
+        dpcuResetFF1    <= '1';
+        dpcuResetFF2    <= '1';
+        dpcuResetFF3    <= '1';
+        dpcuResetFF4    <= '1';
+        dpcuResetSteady <= '1';
     elsif rising_edge(s_clock48M) then
-        dpcuResetFF1    <= not dpcuReset;
+        dpcuResetFF1    <= dpcuReset;
         dpcuResetFF2    <= dpcuResetFF1;
-        dpcuResetSteady <= dpcuResetFF1 or dpcuResetFF2;
+        dpcuResetFF3    <= dpcuResetFF2;
+        dpcuResetFF4    <= dpcuResetFF3;
+        dpcuResetSteady <= dpcuResetFF2 or dpcuResetFF3 or dpcuResetFF4;
     end if;
 end process;
 
 global_reset_buffer_instance: CLKINT
 port map(
-    A => wdRst or dpcuResetSteady,
+    A => wdRst or not dpcuResetSteady,
     Y => s_global_rst
 );
 
