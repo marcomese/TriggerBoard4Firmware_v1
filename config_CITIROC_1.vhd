@@ -165,7 +165,9 @@ begin
             next_state <= idle_state;
 
         when idle_state =>
-            if (enable = '1' and configure_command = '1') then
+            if enable = '0' then
+                next_state <= power_off;
+            elsif (enable = '1' and configure_command = '1') then
                 next_state <= state0;
             else 
                 next_state <= idle_state;
