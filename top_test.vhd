@@ -965,6 +965,10 @@ signal  pwrOn1Steady,
         pwrOn2FF2,
         pwrOn2FF3            : std_logic;
 
+signal  dpcuResetSteady,
+        dpcuResetFF1,
+        dpcuResetFF2         : std_logic;
+
 begin
 
 PWR_ON_1  <= pwrOn1Steady;
@@ -993,7 +997,7 @@ port map(
 
 clk200DivInst: clkDiv2
 port map(
-    rst    => s_global_rst,
+    rst    => wdRst,
     clkIn  => clock200M,
     clkOut => s_clock200Mto100M
 );
@@ -1006,7 +1010,7 @@ port map(
 
 clk48DivInst: clkDiv2
 port map(
-    rst    => s_global_rst,
+    rst    => wdRst,
     clkIn  => s_clock48M,
     clkOut => s_clock24M
 );
@@ -1019,7 +1023,7 @@ clk24MBuf: CLKINT
 
 clk200kGenInst: clk220kGen
 port map(
-    rst    => s_global_rst,
+    rst    => wdRst,
     clkIn  => s_clock24MBuff,
     clkOut => clk200k_int
 );
@@ -1083,21 +1087,34 @@ port map(
 
 watchDogInst: watchDogCtrl
 generic map(
-    clkFreq   => 200.0e3,
+    clkFreq   => 48.0e6,
     wdiHWidth => 5.0e-6,
     wdiLWidth => 25.0e-6
 )
 port map(
-    clk => clk200k_sig,
+    clk => s_clock48M,
     rst => wdRst,
     wdi => wdi
 );
 
 WDI_TO_SUPERVISOR <= wdi;
 
+dpcuRstAntiGlitch: process(s_clock48M, wdRst)
+begin
+    if wdRst = '1' then
+        dpcuResetFF1    <= '0';
+        dpcuResetFF2    <= '0';
+        dpcuResetSteady <= '0';
+    elsif rising_edge(s_clock48M) then
+        dpcuResetFF1    <= not dpcuReset;
+        dpcuResetFF2    <= dpcuResetFF1;
+        dpcuResetSteady <= dpcuResetFF1 or dpcuResetFF2;
+    end if;
+end process;
+
 global_reset_buffer_instance: CLKINT
 port map(
-    A => wdRst or not dpcuReset,
+    A => wdRst or dpcuResetSteady,
     Y => s_global_rst
 );
 
@@ -1194,7 +1211,7 @@ uscitaTest(11) <= SR_OUT_SR_1;
 uscitaTest(10) <= SR_OUT_SR_2;
 uscitaTest(9)  <= SR_OUT_READ_1;
 uscitaTest(8)  <= SR_OUT_READ_2;
-uscitaTest(7)  <= dpcuReset;
+uscitaTest(7)  <= dpcuResetSteady;
 uscitaTest(6)  <= dataReadyOutSigBuff;
 uscitaTest(5)  <= trgInhibit;
 uscitaTest(4)  <= extendedTriggerOut;
