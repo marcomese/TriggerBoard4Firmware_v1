@@ -213,6 +213,7 @@ signal  calibSig,
 signal  rate_time_sig,
         rise_rate,
         reset_counter,
+        rise_rate_5ms,
         rate_5ms_sig        : std_logic;
 
 signal  mask_rate_0_sig     : std_logic_vector(31 downto 0);
@@ -547,7 +548,7 @@ port map(
 
     rate_time_sig	=> reset_counter,
 
-    rate_5ms => rate_5ms_sig,
+    rate_5ms => rise_rate_5ms,
 
     mask_rate_0 => mask_rate_0_sig,
     mask_rate_1 => mask_rate_1_sig,
@@ -754,6 +755,18 @@ begin
    elsif rising_edge(clock) then
         rise_rate <= resync(2) and not resync(3);
         resync := rate_time_sig & resync(1 to 2);
+   end if;
+end process;
+
+sincronizzatore_rate_5ms : process(reset, clock, rate_5ms_sig)
+variable resync : std_logic_vector(1 to 3):=(others=> '0');
+begin
+   if reset='1' then
+        rise_rate_5ms <= '0';
+        resync := (others => '0');
+   elsif rising_edge(clock) then
+        rise_rate_5ms <= resync(2) and not resync(3);
+        resync := rate_5ms_sig & resync(1 to 2);
    end if;
 end process;
 
