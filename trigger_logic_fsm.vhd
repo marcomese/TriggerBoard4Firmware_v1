@@ -235,8 +235,7 @@ signal  count_pmt_1,
 
 signal  rise_1, rise_2      : std_logic_vector(31 downto 0);
 
-signal  s_trgExtPulse,
-        s_trgExt100ns       : std_logic;
+signal  s_trgExtPulse       : std_logic;
 
 signal  turretsFlagsSig     : std_logic_vector(7 downto 0);
 
@@ -360,14 +359,6 @@ begin
         trigger_out  => trigger_sincro_2(i)
 );
 end generate trigger_sampler_process_2;
-
-extTrgExtended: trigger_extender_100ns
-port map(
-    clock       => clock,
-    reset       => reset, 
-    trigger_in  => s_trgExtPulse,
-    trigger_out => s_trgExt100ns
-);
 
 PMT_counter_process1 : for i in 0 to 31 generate
 begin
@@ -563,7 +554,7 @@ port map(
 
     mask_grb    => mask_grb,
 
-    trgExtIn => s_trgExt100ns,
+    trgExtIn => s_trgExtPulse,
 
     holdoff => holdoff,
 
