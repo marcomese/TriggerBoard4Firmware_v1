@@ -30,13 +30,24 @@ type fsmState is (idle,
                   endState);
 
 signal  dataSig                           : std_logic_vector(parallelWidth-1 downto 0);
-signal  bitCountSig                       : natural range 0 to shiftBits;
+
+signal  bitCountSig                       : std_logic_vector(4 downto 0);
 
 signal  shiftDoneSignal, shiftDoneSignalF,
         bitCounterRst, bitCounterRstF,
         shiftSig, shiftSigF               : std_logic;
 
 signal  currState, nextState              : fsmState;
+
+component counter5Bit is
+    port( Aclr   : in    std_logic;
+          Sload  : in    std_logic;
+          Clock  : in    std_logic;
+          Data   : in    std_logic_vector(4 downto 0);
+          Enable : in    std_logic;
+          Q      : out   std_logic_vector(4 downto 0)
+        );
+end component;
 
 begin
 
@@ -70,7 +81,7 @@ begin
             end if;
 
         when shiftState =>
-            if bitCountSig = shiftBits-2 then
+            if unsigned(bitCountSig) = shiftBits-2 then
                 nextState <= lastBit;
             else
                 nextState <= shiftState;
@@ -121,18 +132,15 @@ begin
     end case;
 end process;
 
-bitCounter: process(clk, rst, clear, bitCounterRst) 
-begin
-    if rst = '1' then
-        bitCountSig  <= 0;
-    elsif rising_edge(clk) then
-        if clear = '1' or bitCounterRst = '1' then
-            bitCountSig <= 0;
-        elsif shiftSig = '1' then
-            bitCountSig  <= bitCountSig + 1;
-        end if;
-    end if;
-end process;
+bitCounter: counter5Bit
+port map(
+    Aclr   => rst,
+    Sload  => clear or bitCounterRst,
+    Clock  => clk,
+    Data   => (others => '0'),
+    Enable => shiftSig,
+    Q      => bitCountSig
+);
 
 memory: process(clk, rst, clear, load, shiftSig)
 begin
