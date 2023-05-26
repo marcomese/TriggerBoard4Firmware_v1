@@ -316,21 +316,24 @@ trigger(0)   <= TR1AND;
 
 trigger(1)   <= (TR1 and TR2);
 
-trigger(2)   <= (TR1 and TR2) and RAN_01;
+trigger(2)   <= TR2 and veto_bottom;                                   -- NEWMASK4, ERA --> (TR1 and TR2) and RAN_01;
 
 trigger(3)   <= (TR1 and TR2) and RAN_02;
 
-trigger(4)   <= veto_lateral and not (TR1 or veto_bottom);
+trigger(4)   <= RAN_01 and RAN_07 and RAN_12;                          -- NEWMASK1, ERA --> veto_lateral and not (TR1 or veto_bottom);
 
-trigger(5)   <= TR1 and TR2 and RAN_12;
+trigger(5)   <= (RAN_05AND or RAN_06AND or RAN_07AND or RAN_08AND) and -- NEWMASK5, ERA --> TR1 and TR2 and RAN_12;
+                not (RAN_04 or RAN_09);
 
 trigger(6)   <= veto_bottom and EN1 and EN2 and not (TR1 or TR2 or veto_lateral);
 
-trigger(7)   <= (RAN_05AND or RAN_06AND or RAN_07AND or RAN_08AND) and not (TR1 or TR2 or
-                                                                            veto_lateral or veto_bottom or
-                                                                            EN1 or EN2);
+trigger(7)   <= (RAN_05AND or RAN_06AND or RAN_07AND or RAN_08AND) and -- NEWMASK2, ERA --> (RAN_05AND or RAN_06AND or RAN_07AND or RAN_08AND) and 
+                not (RAN_04 or RAN_09 or veto_lateral);                --                    not (TR1 or TR2 or
+                                                                       --                         veto_lateral or veto_bottom or    
+                                                                       --                         EN1 or EN2);
 
-trigger(8)   <= (EN1_AND or EN2_AND) and not (TR1 or TR2 or veto_lateral or veto_bottom);
+trigger(8)   <= (EN1_AND or EN2_AND) and                               -- NEWMASK3, ERA --> (EN1_AND or EN2_AND) and
+                 not (RAN_12 or veto_lateral or veto_bottom);          --                   not (TR1 or TR2 or veto_lateral or veto_bottom);
 
 trigger(9)   <= genericSet and (TR1_masked and TR2_masked and
                 plane_masked(0) and plane_masked(1) and plane_masked(2) and plane_masked(3) and
