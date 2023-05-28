@@ -136,6 +136,7 @@ port(
     mask_grb             : out std_logic_vector(31 downto 0);
 
     trgExtIn             : in  std_logic;
+    trgExtSelected       : out std_logic;
 
     holdoff              : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
@@ -235,7 +236,8 @@ signal  count_pmt_1,
 
 signal  rise_1, rise_2      : std_logic_vector(31 downto 0);
 
-signal  s_trgExtPulse       : std_logic;
+signal  s_trgExtPulse,
+        trgExtSelected      : std_logic;
 
 signal  turretsFlagsSig     : std_logic_vector(7 downto 0);
 
@@ -254,7 +256,7 @@ signal  startPeakDetSig,
 
 begin
 
-startPeakDet <= startPeakDetSig or calibRise or debug or trgExtIn;
+startPeakDet <= startPeakDetSig or calibRise or debug or (trgExtIn and trgExtSelected);
 
 rate1SecOut <= rate_time_sig;
 
@@ -555,6 +557,7 @@ port map(
     mask_grb    => mask_grb,
 
     trgExtIn => s_trgExtPulse,
+    trgExtSelected => trgExtSelected,
 
     holdoff => holdoff,
 

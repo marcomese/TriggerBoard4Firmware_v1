@@ -44,6 +44,7 @@ port(
     mask_grb             : out std_logic_vector(31 downto 0);
 
     trgExtIn             : in  std_logic;
+    trgExtSelected       : out std_logic;
 
     holdoff              : in  std_logic_vector((holdOffBits*prescaledTriggers)-1 downto 0);
 
@@ -297,12 +298,14 @@ begin
         genericSet <= '0';
         generic_trigger_mask_int <= (others=> '0');
         trigger_mask_int <= X"00000000";
+        trgExtSelected <= '0';
     elsif rising_edge(clock) then
         genericSet <= '1' when unsigned(generic_trigger_mask_int(20 downto 0)) /= 0 else '0';
 
         if apply_trigger_mask = '1' then
             generic_trigger_mask_int <= generic_trigger_mask;
             trigger_mask_int <= trigger_mask;
+            trgExtSelected <= trigger_mask(26);
         end if;
     end if;
 end process;
