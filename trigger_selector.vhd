@@ -341,7 +341,7 @@ trigger(8)   <= (EN1_AND or EN2_AND) and                               -- NEWMAS
 trigger(9)   <= genericSet and (TR1_masked and TR2_masked and
                 plane_masked(0) and plane_masked(1) and plane_masked(2) and plane_masked(3) and
                 plane_masked(4) and plane_masked(5) and plane_masked(6) and plane_masked(7) and
-                plane_masked(8) and plane_masked(9) and plane_masked(10) and plane_masked(10) and plane_masked(11) and
+                plane_masked(8) and plane_masked(9) and plane_masked(10) and plane_masked(11) and
                 EN1_masked and EN2_masked and
                 LAT_1_masked and LAT_2_masked and LAT_3_masked and LAT_4_masked and
                 BOT_00_masked);
