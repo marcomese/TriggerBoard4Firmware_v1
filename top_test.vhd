@@ -703,6 +703,15 @@ port(
 );
 end component;
 
+component trigger_extender_200ns is
+port(
+    clock       : in  STD_LOGIC;
+    reset       : in  STD_LOGIC;
+    trigger_in  : in  STD_LOGIC;
+    trigger_out : out  STD_LOGIC
+);
+end component;
+
 component pulseExt is
 generic(
     clkFreq    : real;
@@ -942,6 +951,8 @@ signal  lostCount            : std_logic_vector(15 downto 0);
 
 signal  s_turrets            : std_logic_vector(4 downto 0);
 
+signal  s_turretsExt         : std_logic_vector(4 downto 0);
+
 signal  s_turretsFlags       : std_logic_vector(7 downto 0);
 
 signal  s_turretsCounters    : std_logic_vector(159 downto 0);
@@ -1068,14 +1079,25 @@ port map(
 PS_global_trig_1 <= startPeakDet;
 PS_global_trig_2 <= startPeakDet;
 
+turrOutGen: for i in 0 to 4 generate
+begin
+    turrOutExpand: trigger_extender_200ns
+    port map(
+        clock       => s_clock200M,
+        reset       => s_global_rst,
+        trigger_in  => s_turrets(i),
+        trigger_out => s_turretsExt(i)
+    );
+end generate;
+
 TRG     <= extendedTriggerOut;
 
 TRG_EVT <= extendedTriggerOut;
-TRG_1   <= s_turrets(0);
-TRG_2   <= s_turrets(1);
-TRG_3   <= s_turrets(2);
-TRG_4   <= s_turrets(3);
-TRG_5   <= s_turrets(4);
+TRG_1   <= s_turretsExt(0);
+TRG_2   <= s_turretsExt(1);
+TRG_3   <= s_turretsExt(2);
+TRG_4   <= s_turretsExt(3);
+TRG_5   <= s_turretsExt(4);
 
 wdRst <= not RST_FROM_SUPERVISOR;
 
